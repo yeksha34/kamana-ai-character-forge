@@ -1,0 +1,8 @@
+{
+  "name": "कामना (Kamana) - AI Character Forge",
+  "description": "A sophisticated AI-powered character and scenario generator tailored for platforms like Crushon.ai, AI Dungeon, and JanitorAI, featuring multi-model support, field locking, and dual-image generation.",
+  "requestFramePermissions": [
+    "camera",
+    "microphone"
+  ]
+}
