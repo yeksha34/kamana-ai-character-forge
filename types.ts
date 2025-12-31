@@ -18,6 +18,7 @@ export interface CharacterField {
 }
 
 export interface CharacterData {
+  id?: string;
   name: string;
   fields: CharacterField[];
   characterImageUrl: string;
@@ -26,6 +27,14 @@ export interface CharacterData {
   isScenarioImageLocked: boolean;
   tags: string[];
   isNSFW: boolean;
+  createdAt?: number;
+}
+
+export interface User {
+  id: string;
+  name: string;
+  email: string;
+  isLoggedIn: boolean;
 }
 
 export interface PlatformConfig {
