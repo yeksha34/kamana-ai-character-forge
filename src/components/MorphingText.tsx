@@ -1,13 +1,17 @@
 
+import { translations } from '@/i18n/translations';
 import React, { useState, useEffect } from 'react';
 
 interface MorphingTextProps {
-  options: string[];
+  value: string;
+  language: keyof typeof translations;
   english: string;
   className?: string;
 }
 
-export const MorphingText: React.FC<MorphingTextProps> = ({ options, english, className }) => {
+export const MorphingText: React.FC<MorphingTextProps> = ({ value, language, english, className }) => {
+  const t = translations[language];
+  const options = t.morphing[value as keyof typeof t.morphing] || [value];
   // Start with a random index to ensure variety on every load
   const [index, setIndex] = useState(() => Math.floor(Math.random() * options.length));
 

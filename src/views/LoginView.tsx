@@ -1,7 +1,7 @@
 
+import { Language, translations } from '@/i18n/translations';
+import { Fingerprint, Flame, Github, RefreshCw, ShieldAlert } from 'lucide-react';
 import React from 'react';
-import { Flame, Github, RefreshCw, ShieldAlert, Fingerprint } from 'lucide-react';
-import { Language, translations } from '../i18n/translations';
 
 interface LoginViewProps {
   onSignIn: () => void;

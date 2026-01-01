@@ -1,13 +1,4 @@
-
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.48.1';
-
-// Using the specific environment variable names provided
-const supabaseUrl = process.env.SUPABASE_URL;
-const supabaseAnonKey = process.env.SUPABASE_PUBLISHABLE_DEFAULT_KEY;
-
-export const supabase = (supabaseUrl && supabaseAnonKey) 
-  ? createClient(supabaseUrl, supabaseAnonKey) 
-  : null;
+import { supabase } from "./supabaseClient";
 
 /**
  * Uploads a base64 image string to Supabase Storage.

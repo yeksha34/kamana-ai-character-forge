@@ -1,0 +1,100 @@
+:root {
+      --obsidian: #050203;
+      --rose-gold: #e11d48;
+    }
+
+    * {
+      cursor: crosshair;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: var(--obsidian);
+      color: #fff1f2;
+      overflow-x: hidden;
+      scroll-behavior: smooth;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .serif-display {
+      font-family: 'Cormorant Garamond', serif;
+      font-style: italic;
+    }
+
+    /* Bespoke Glassmorphism */
+    .art-glass {
+      background: rgba(10, 5, 7, 0.45);
+      backdrop-filter: blur(50px) saturate(160%);
+      -webkit-backdrop-filter: blur(50px) saturate(160%);
+      border: 1px solid rgba(255, 255, 255, 0.04);
+      box-shadow: 0 10px 40px -10px rgba(0, 0, 0, 0.8);
+    }
+
+    /* Custom Scrolbar */
+    ::-webkit-scrollbar {
+      width: 4px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: var(--obsidian);
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: linear-gradient(to bottom, transparent, var(--rose-gold), transparent);
+      border-radius: 10px;
+    }
+
+    /* Aura Animations */
+    .aura-blob {
+      position: fixed;
+      width: 70vw;
+      height: 70vw;
+      border-radius: 50%;
+      filter: blur(140px);
+      z-index: -1;
+      opacity: 0.08;
+      pointer-events: none;
+      mix-blend-mode: plus-lighter;
+      animation: wander 30s infinite alternate ease-in-out;
+    }
+
+    @keyframes wander {
+      0% {
+        transform: translate(-15%, -15%) scale(1);
+      }
+
+      100% {
+        transform: translate(15%, 15%) scale(1.1);
+      }
+    }
+
+    .glow-text {
+      text-shadow: 0 0 30px rgba(225, 29, 72, 0.4);
+    }
+
+    /* Remove Focus Outlines on Custom Textareas */
+    textarea:focus,
+    input:focus {
+      outline: none;
+    }
+
+    .forge-button {
+      position: relative;
+      overflow: hidden;
+      transition: all 0.5s cubic-bezier(0.19, 1, 0.22, 1);
+    }
+
+    .forge-button::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+      transition: 0.6s;
+    }
+
+    .forge-button:hover::after {
+      left: 100%;
+    }

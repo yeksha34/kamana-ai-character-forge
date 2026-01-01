@@ -1,6 +1,6 @@
 
+import { CharacterField, Platform } from "@/types";
 import { GoogleGenAI, Type } from "@google/genai";
-import { CharacterField, Platform } from "../types";
 
 const TEXT_MODEL = "gemini-3-pro-preview";
 const IMAGE_MODEL = "gemini-2.5-flash-image";
@@ -15,7 +15,7 @@ export class GeminiService {
     selectedModel?: string;
   }) {
     const { prompt, platforms, isNSFW, tags, existingFields, selectedModel } = params;
-    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+    const ai = new GoogleGenAI({ apiKey: process.env.VITE_API_KEY });
 
     const lockedContext = existingFields
       .filter(f => f.isLocked)
@@ -67,7 +67,7 @@ export class GeminiService {
     selectedModel?: string;
   }) {
     const { prompt, type, isNSFW, selectedModel } = params;
-    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+    const ai = new GoogleGenAI({ apiKey: process.env.VITE_API_KEY });
     
     const modelToUse = selectedModel || IMAGE_MODEL;
 

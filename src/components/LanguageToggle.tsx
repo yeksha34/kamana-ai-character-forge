@@ -1,7 +1,7 @@
 
-import React from 'react';
+import { Language } from '@/i18n/translations';
 import { Languages } from 'lucide-react';
-import { Language } from '../i18n/translations';
+import React from 'react';
 
 interface LanguageToggleProps {
   current: Language;
