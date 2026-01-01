@@ -12,6 +12,7 @@ export enum AIProvider {
 }
 
 export type ContentFormat = 'markdown' | 'html' | 'plaintext';
+export type CharacterStatus = 'draft' | 'finalized';
 
 export interface CharacterField {
   id: string;
@@ -24,6 +25,9 @@ export interface CharacterField {
 
 export interface CharacterData {
   id?: string;
+  parentBotId?: string; // Links different versions of the same bot
+  version: number;
+  status: CharacterStatus;
   name: string;
   fields: CharacterField[];
   characterImageUrl: string;
@@ -33,6 +37,11 @@ export interface CharacterData {
   tags: string[];
   isNSFW: boolean;
   createdAt?: number;
+  
+  // Storage for prompts used to generate assets
+  originalPrompt: string; 
+  characterImagePrompt?: string;
+  scenarioImagePrompt?: string;
 }
 
 export interface User {

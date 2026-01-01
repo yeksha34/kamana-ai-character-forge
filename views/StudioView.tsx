@@ -1,7 +1,7 @@
 
-import React from 'react';
-import { Settings, RefreshCw, Lock, Unlock, Save, Zap, Heart, Cpu, Sparkles } from 'lucide-react';
-import { Platform, CharacterData, CharacterField, AIProvider } from '../types';
+import React, { useState } from 'react';
+import { Settings, RefreshCw, Lock, Unlock, Save, Zap, Heart, Cpu, Sparkles, FileText, CheckCircle2, ChevronDown, ChevronUp, History } from 'lucide-react';
+import { Platform, CharacterData, CharacterField, AIProvider, CharacterStatus } from '../types';
 import { MorphingText } from '../components/MorphingText';
 import { TagManager } from '../components/TagManager';
 import { Language, translations } from '../i18n/translations';
@@ -17,7 +17,7 @@ interface StudioViewProps {
   generationStep?: string;
   onGenerate: () => void;
   onRegenerateImage: (type: 'character' | 'scenario') => void;
-  onSave: () => void;
+  onSave: (status: CharacterStatus) => void;
   textModel: string;
   setTextModel: (v: string) => void;
   imageModel: string;
@@ -37,11 +37,25 @@ export const StudioView: React.FC<StudioViewProps> = ({
   provider, setProvider
 }) => {
   const t = translations[language];
+  const [showPrompts, setShowPrompts] = useState(false);
 
   return (
     <div className="min-h-screen selection:bg-rose-900 selection:text-rose-100 flex flex-col animate-in fade-in duration-1000 pt-36 pb-64">
       <main className="max-w-[1700px] mx-auto px-8 lg:px-16 flex-1 grid grid-cols-1 lg:grid-cols-12 gap-16 lg:gap-24">
         <section className="lg:col-span-4 space-y-12">
+          {/* Version Info Card */}
+          <div className="art-glass p-8 rounded-[2.5rem] border border-rose-900/30 flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <div className={`w-10 h-10 rounded-full flex items-center justify-center ${character.status === 'finalized' ? 'bg-green-950/40 text-green-500 border border-green-500/20' : 'bg-rose-950/40 text-rose-500 border border-rose-500/20'}`}>
+                <History className="w-5 h-5" />
+              </div>
+              <div className="flex flex-col">
+                <span className="text-[10px] font-black uppercase tracking-widest text-rose-800">Version</span>
+                <span className="text-xl serif-display italic text-rose-100">v{character.version} • {character.status.toUpperCase()}</span>
+              </div>
+            </div>
+          </div>
+
           <div className="art-glass p-10 rounded-[3rem] space-y-10 border border-rose-950/30">
             <div className="border-b border-rose-950/50 pb-6 flex items-center justify-between">
               <MorphingText options={t.morphing.studio} english="Studio" className="text-3xl serif-display text-rose-50" />
@@ -125,6 +139,30 @@ export const StudioView: React.FC<StudioViewProps> = ({
             </div>
           ) : (
             <div className="space-y-32">
+              {/* Image Metadata Display Toggle */}
+              <div className="flex justify-center">
+                 <button 
+                   onClick={() => setShowPrompts(!showPrompts)}
+                   className="flex items-center gap-3 px-8 py-3 bg-rose-950/20 border border-rose-900/20 rounded-full text-[10px] font-black uppercase tracking-widest text-rose-600 hover:bg-rose-900/40 transition-all"
+                 >
+                   {showPrompts ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                   {showPrompts ? 'Hide Asset Prompts' : 'View Generation Prompts'}
+                 </button>
+              </div>
+
+              {showPrompts && (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8 animate-in fade-in slide-in-from-top-4 duration-500">
+                   <div className="art-glass p-8 rounded-[2.5rem] border border-rose-900/20 space-y-4">
+                      <span className="text-[9px] font-black uppercase tracking-widest text-rose-800">Portrait Prompt (Seed)</span>
+                      <p className="text-xs italic text-rose-200/50 leading-relaxed font-serif">"{character.characterImagePrompt || 'N/A'}"</p>
+                   </div>
+                   <div className="art-glass p-8 rounded-[2.5rem] border border-rose-900/20 space-y-4">
+                      <span className="text-[9px] font-black uppercase tracking-widest text-rose-800">Scenario Prompt (Seed)</span>
+                      <p className="text-xs italic text-rose-200/50 leading-relaxed font-serif">"{character.scenarioImagePrompt || 'N/A'}"</p>
+                   </div>
+                </div>
+              )}
+
               <div className={`grid grid-cols-1 md:grid-cols-2 gap-12 transition-all duration-[2s] ${!isImageGenEnabled ? 'opacity-0 scale-95 pointer-events-none' : ''}`}>
                 {(['character', 'scenario'] as const).map(type => (
                   <div key={type} className="group relative art-glass p-3 rounded-[4rem] transition-all duration-700 hover:shadow-[0_40px_100px_rgba(0,0,0,0.8)]">
@@ -163,9 +201,23 @@ export const StudioView: React.FC<StudioViewProps> = ({
                     <span className="text-[16px] font-black uppercase tracking-[1.2em] text-rose-950">{t.sculptor}</span>
                     <input className="text-[6rem] md:text-[8rem] serif-display italic tracking-tighter bg-transparent border-none outline-none text-rose-50 w-full focus:text-rose-400 transition-all duration-1000 leading-none" value={character.name} onChange={(e) => setCharacter(p => ({ ...p, name: e.target.value }))} placeholder="Unnamed..." />
                   </div>
-                  <button onClick={onSave} className="p-8 text-rose-950 hover:text-rose-500 rounded-full transition-all group">
-                    <Save className="w-10 h-10 group-active:scale-90" />
-                  </button>
+                  
+                  <div className="flex flex-col gap-4">
+                    <button 
+                      onClick={() => onSave('finalized')} 
+                      className="flex items-center gap-4 px-10 py-5 bg-rose-600 text-white rounded-full font-black text-[11px] uppercase tracking-widest hover:bg-rose-500 transition-all shadow-xl shadow-rose-950/50"
+                    >
+                      <CheckCircle2 className="w-5 h-5" />
+                      Finalize Version
+                    </button>
+                    <button 
+                      onClick={() => onSave('draft')} 
+                      className="flex items-center gap-4 px-10 py-5 bg-rose-950/40 text-rose-500 border border-rose-900/30 rounded-full font-black text-[11px] uppercase tracking-widest hover:bg-rose-900/20 transition-all"
+                    >
+                      <FileText className="w-5 h-5" />
+                      Save Draft
+                    </button>
+                  </div>
                 </div>
 
                 <div className="space-y-48 relative z-10">

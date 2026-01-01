@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { ArrowLeft, Grid, ImageIcon, Trash2 } from 'lucide-react';
+import { ArrowLeft, Grid, ImageIcon, Trash2, CheckCircle2, FileText, History } from 'lucide-react';
 import { CharacterData } from '../types';
 
 interface MuseumViewProps {
@@ -48,9 +48,22 @@ export const MuseumView: React.FC<MuseumViewProps> = ({ characters, onNavigate, 
                  ) : (
                    <div className="w-full h-full flex items-center justify-center opacity-10"><ImageIcon className="w-24 h-24" /></div>
                  )}
+                 
+                 <div className="absolute top-8 right-8 z-20 flex flex-col gap-2 items-end">
+                    <div className={`flex items-center gap-2 px-4 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest shadow-2xl border ${c.status === 'finalized' ? 'bg-green-600/20 text-green-400 border-green-500/20' : 'bg-rose-600/20 text-rose-400 border-rose-500/20'}`}>
+                      {c.status === 'finalized' ? <CheckCircle2 className="w-3 h-3" /> : <FileText className="w-3 h-3" />}
+                      {c.status}
+                    </div>
+                    <div className="bg-black/60 backdrop-blur-xl border border-white/10 px-4 py-1.5 rounded-full text-[9px] font-black text-white/60 tracking-widest flex items-center gap-2">
+                       <History className="w-3 h-3" />
+                       v{c.version}
+                    </div>
+                 </div>
+
                  <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-90" />
-                 <div className="absolute bottom-12 left-12">
-                    <h4 className="text-6xl serif-display italic text-rose-50 glow-text drop-shadow-2xl">{c.name}</h4>
+                 <div className="absolute bottom-12 left-12 right-12">
+                    <h4 className="text-6xl serif-display italic text-rose-50 glow-text drop-shadow-2xl mb-4">{c.name}</h4>
+                    <p className="text-[10px] text-rose-200/40 line-clamp-2 italic mb-6">"{c.originalPrompt}"</p>
                     <div className="flex gap-2 mt-4 overflow-hidden">
                        {c.tags.slice(0, 3).map(t => (
                          <span key={t} className="text-[8px] font-black uppercase tracking-widest text-rose-500/60 border border-rose-500/20 px-3 py-1 rounded-full">{t}</span>

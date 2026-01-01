@@ -15,7 +15,6 @@ export class GeminiService {
     selectedModel?: string;
   }) {
     const { prompt, platforms, isNSFW, tags, existingFields, selectedModel } = params;
-    // Create a new GoogleGenAI instance using the required process.env.API_KEY directly
     const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
     const lockedContext = existingFields
@@ -54,7 +53,7 @@ export class GeminiService {
         systemInstruction,
         responseMimeType: "application/json",
         responseSchema: schema,
-        temperature: 0.8 // Balanced for creativity vs rate-limit stability
+        temperature: 0.8
       }
     });
 
@@ -68,17 +67,36 @@ export class GeminiService {
     selectedModel?: string;
   }) {
     const { prompt, type, isNSFW, selectedModel } = params;
-    // Create a new GoogleGenAI instance using the required process.env.API_KEY directly
     const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
     
-    // Highly optimized image prompts to save on model tokens
+    const modelToUse = selectedModel || IMAGE_MODEL;
+
+    // Handle Imagen model specifically
+    if (modelToUse === 'imagen-4.0-generate-001') {
+      const response = await ai.models.generateImages({
+        model: 'imagen-4.0-generate-001',
+        prompt: `${type} illustration. ${isNSFW ? 'Adult/Mature' : 'SFW'}. Topic: ${prompt}`,
+        config: {
+          numberOfImages: 1,
+          aspectRatio: '1:1',
+          outputMimeType: 'image/png'
+        }
+      });
+      const bytes = response.generatedImages[0].image.imageBytes;
+      return `data:image/png;base64,${bytes}`;
+    }
+
+    // Default to generateContent for Gemini-based image models
     const imagePrompt = `${type} illustration. ${isNSFW ? 'Suggestive/NSFW' : 'Cinematic/SFW'}. Topic: ${prompt}`;
 
     const response = await ai.models.generateContent({
-      model: selectedModel || IMAGE_MODEL,
+      model: modelToUse,
       contents: { parts: [{ text: imagePrompt }] },
       config: { 
-        imageConfig: { aspectRatio: "1:1" }
+        imageConfig: { 
+          aspectRatio: "1:1",
+          imageSize: modelToUse.includes('pro') ? "1K" : undefined
+        }
       }
     });
 

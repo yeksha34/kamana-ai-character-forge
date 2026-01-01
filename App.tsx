@@ -1,6 +1,6 @@
 
 import React, { useState, useCallback, useMemo, useEffect } from 'react';
-import { Platform, CharacterData, CharacterField, PLATFORMS_CONFIG, User, AIProvider } from './types';
+import { Platform, CharacterData, CharacterField, PLATFORMS_CONFIG, User, AIProvider, CharacterStatus } from './types';
 import { GeminiService } from './services/geminiService';
 import { ClaudeService } from './services/claudeService';
 import { supabase } from './services/supabaseClient';
@@ -19,11 +19,11 @@ const claude = new ClaudeService();
 const PREPOPULATED_MODELS = {
   [AIProvider.GEMINI]: {
     text: ['gemini-3-pro-preview', 'gemini-3-flash-preview', 'Custom'],
-    image: ['None', 'gemini-2.5-flash-image', 'gemini-3-pro-image-preview', 'Custom']
+    image: ['None', 'gemini-2.5-flash-image', 'gemini-3-pro-image-preview', 'imagen-4.0-generate-001', 'Custom']
   },
   [AIProvider.CLAUDE]: {
     text: ['claude-3-5-sonnet', 'claude-3-opus', 'claude-3-haiku', 'Custom'],
-    image: ['None', 'gemini-2.5-flash-image', 'Custom']
+    image: ['None', 'claude-image-pro', 'gemini-2.5-flash-image', 'Custom']
   }
 };
 
@@ -45,7 +45,10 @@ const App: React.FC = () => {
     isCharacterImageLocked: false,
     isScenarioImageLocked: false,
     tags: [],
-    isNSFW: false
+    isNSFW: false,
+    version: 1,
+    status: 'draft',
+    originalPrompt: ''
   });
 
   const [isGenerating, setIsGenerating] = useState(false);
@@ -178,7 +181,7 @@ const App: React.FC = () => {
     setGenerationStep(language === 'mr' ? "आराखडा तयार होत आहे..." : "Drafting persona...");
     
     try {
-      if (activeImageModel === 'gemini-3-pro-image-preview') {
+      if (activeImageModel.includes('pro')) {
         const hasKey = await (window as any).aistudio.hasSelectedApiKey();
         if (!hasKey) await (window as any).aistudio.openSelectKey();
       }
@@ -214,44 +217,56 @@ const App: React.FC = () => {
         }
       });
 
-      setCharacter(prev => ({ 
-        ...prev, 
-        name: textResult.name, 
-        fields: updatedFields,
-        characterImageUrl: '', // Reset non-locked images to prompt manual gen
-        scenarioImageUrl: '' 
-      }));
+      let charImgUrl = character.characterImageUrl;
+      let scenImgUrl = character.scenarioImageUrl;
+      let charImgPrompt = character.characterImagePrompt;
+      let scenImgPrompt = character.scenarioImagePrompt;
 
-      // 2. Sequential Image Generation (With Buffer Delay)
+      // 2. Sequential Image Generation
       if (isImageGenEnabled) {
-        await sleep(1500); // Respect free tier RPM
+        await sleep(1000);
         
         if (!character.isCharacterImageLocked) {
           setGenerationStep(language === 'mr' ? "पोर्ट्रेट तयार होत आहे..." : "Painting portrait...");
-          const charImg = await gemini.generateImage({
-            prompt: `Portrait: ${textResult.name}. ${prompt}`,
+          charImgPrompt = `Portrait: ${textResult.name}. ${prompt}`;
+          const charImg = await service.generateImage({
+            prompt: charImgPrompt,
             type: 'character',
             isNSFW: character.isNSFW,
             selectedModel: activeImageModel
           });
-          if (charImg) setCharacter(prev => ({ ...prev, characterImageUrl: charImg }));
+          if (charImg) charImgUrl = charImg;
         }
 
-        await sleep(1500); // Respect free tier RPM
+        await sleep(1000);
 
         if (!character.isScenarioImageLocked) {
           setGenerationStep(language === 'mr' ? "प्रसंग तयार होत आहे..." : "Setting the scene...");
-          const scenImg = await gemini.generateImage({
-            prompt: `Environment: ${prompt}`,
+          scenImgPrompt = `Environment: ${prompt}`;
+          const scenImg = await service.generateImage({
+            prompt: scenImgPrompt,
             type: 'scenario',
             isNSFW: character.isNSFW,
             selectedModel: activeImageModel
           });
-          if (scenImg) setCharacter(prev => ({ ...prev, scenarioImageUrl: scenImg }));
+          if (scenImg) scenImgUrl = scenImg;
         }
       }
 
+      setCharacter(prev => ({ 
+        ...prev, 
+        name: textResult.name, 
+        fields: updatedFields,
+        characterImageUrl: charImgUrl,
+        scenarioImageUrl: scenImgUrl,
+        originalPrompt: prompt,
+        characterImagePrompt: charImgPrompt,
+        scenarioImagePrompt: scenImgPrompt,
+        status: 'draft'
+      }));
+
     } catch (e: any) {
+      console.error(e);
       if (e.message?.includes("Requested entity was not found.")) await (window as any).aistudio.openSelectKey();
       setErrors({ general: language === 'mr' ? "सृजन अयशस्वी." : "Generation failed." });
     } finally {
@@ -263,30 +278,65 @@ const App: React.FC = () => {
   const regenerateSingleImage = async (type: 'character' | 'scenario') => {
     setIsGenerating(true);
     setGenerationStep(language === 'mr' ? "पुन्हा तयार करत आहे..." : "Regenerating...");
+    const imgPrompt = type === 'character' ? `Portrait: ${character.name}. ${prompt}` : `Environment: ${prompt}`;
     try {
-      const img = await gemini.generateImage({
-        prompt: type === 'character' ? `Portrait: ${character.name}. ${prompt}` : `Environment: ${prompt}`,
+      const service = provider === AIProvider.GEMINI ? gemini : claude;
+      const img = await service.generateImage({
+        prompt: imgPrompt,
         type,
         isNSFW: character.isNSFW,
         selectedModel: activeImageModel
       });
-      if (img) setCharacter(prev => ({ ...prev, [type === 'character' ? 'characterImageUrl' : 'scenarioImageUrl']: img }));
+      if (img) {
+        setCharacter(prev => ({ 
+          ...prev, 
+          [type === 'character' ? 'characterImageUrl' : 'scenarioImageUrl']: img,
+          [type === 'character' ? 'characterImagePrompt' : 'scenarioImagePrompt']: imgPrompt
+        }));
+      }
     } finally {
       setIsGenerating(false);
       setGenerationStep('');
     }
   };
 
-  const saveToCollection = async () => {
+  const saveToCollection = async (status: CharacterStatus = 'draft') => {
     if (!character.name || !user) return;
     setIsSyncing(true);
-    const promptHash = await hashData(prompt);
+    
+    let targetVersion = character.version;
+    let targetParentBotId = character.parentBotId || Math.random().toString(36).substring(2, 15);
+
+    if (character.status === 'finalized' && status === 'draft') {
+      targetVersion = character.version + 1;
+    }
+
+    const characterToSave: CharacterData = {
+      ...character,
+      status,
+      version: targetVersion,
+      parentBotId: targetParentBotId,
+      createdAt: Date.now()
+    };
+
+    const promptHash = await hashData(character.originalPrompt || prompt);
+
     if (supabase) {
-      const { error } = await supabase.from('characters').insert([{ user_id: user.id, data: character, content_hash: promptHash }]);
-      if (!error) await fetchCharacters(user.id);
+      const { data, error } = await supabase.from('characters').insert([{ 
+        user_id: user.id, 
+        data: characterToSave, 
+        content_hash: promptHash 
+      }]).select();
+      
+      if (!error && data) {
+        setCharacter({ ...characterToSave, id: data[0].id });
+        await fetchCharacters(user.id);
+      }
     } else {
-      const updated = [{ ...character, id: 'local-' + Date.now() }, ...savedCharacters];
+      const newId = 'local-' + Date.now();
+      const updated = [{ ...characterToSave, id: newId }, ...savedCharacters];
       setSavedCharacters(updated);
+      setCharacter({ ...characterToSave, id: newId });
     }
     setIsSyncing(false);
   };
@@ -325,7 +375,7 @@ const App: React.FC = () => {
         return (
           <>
             <Header user={user} isNSFW={character.isNSFW} onToggleNSFW={() => setCharacter(p => ({...p, isNSFW: !p.isNSFW}))} onNavigate={navigateTo} onSignOut={signOut} language={language} onLanguageChange={setLanguage} />
-            <MuseumView characters={savedCharacters} onNavigate={navigateTo} onEdit={(c) => { setCharacter(c); navigateTo('#/studio'); }} onDelete={deleteCharacter} />
+            <MuseumView characters={savedCharacters} onNavigate={navigateTo} onEdit={(c) => { setCharacter(c); setPrompt(c.originalPrompt || ''); navigateTo('#/studio'); }} onDelete={deleteCharacter} />
           </>
         );
       case '#/login':
