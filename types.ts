@@ -6,6 +6,11 @@ export enum Platform {
   GENERIC = 'Generic'
 }
 
+export enum AIProvider {
+  GEMINI = 'Gemini',
+  CLAUDE = 'Claude'
+}
+
 export type ContentFormat = 'markdown' | 'html' | 'plaintext';
 
 export interface CharacterField {

@@ -1,7 +1,7 @@
 
 import React from 'react';
-import { Settings, RefreshCw, Lock, Unlock, Save, Zap, Heart, ImageIcon } from 'lucide-react';
-import { Platform, CharacterData, CharacterField, PLATFORMS_CONFIG } from '../types';
+import { Settings, RefreshCw, Lock, Unlock, Save, Zap, Heart, Cpu } from 'lucide-react';
+import { Platform, CharacterData, CharacterField, AIProvider } from '../types';
 import { MorphingText } from '../components/MorphingText';
 import { TagManager } from '../components/TagManager';
 import { Language, translations } from '../i18n/translations';
@@ -25,12 +25,15 @@ interface StudioViewProps {
   errors: Record<string, string>;
   models: { text: string[]; image: string[] };
   language: Language;
+  provider: AIProvider;
+  setProvider: (p: AIProvider) => void;
 }
 
 export const StudioView: React.FC<StudioViewProps> = ({
   prompt, setPrompt, selectedPlatforms, onTogglePlatform, character, setCharacter,
   isGenerating, onGenerate, onRegenerateImage, onSave,
-  textModel, setTextModel, imageModel, setImageModel, isImageGenEnabled, errors, models, language
+  textModel, setTextModel, imageModel, setImageModel, isImageGenEnabled, errors, models, language,
+  provider, setProvider
 }) => {
   const t = translations[language];
 
@@ -85,6 +88,20 @@ export const StudioView: React.FC<StudioViewProps> = ({
                      <span className="text-[10px] font-black uppercase tracking-widest text-rose-700">{t.modelConfig}</span>
                   </div>
                   <div className="space-y-3">
+                     <div className="flex flex-col gap-1.5">
+                        <span className="text-[8px] font-bold text-rose-900 uppercase tracking-widest ml-1">{t.provider}</span>
+                        <div className="flex gap-2">
+                           {Object.values(AIProvider).map(p => (
+                              <button 
+                                key={p} 
+                                onClick={() => setProvider(p)} 
+                                className={`flex-1 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all border ${provider === p ? 'bg-rose-800 text-white border-rose-600' : 'bg-black/40 text-rose-900 border-rose-950/20 hover:text-rose-400'}`}
+                              >
+                                {p}
+                              </button>
+                           ))}
+                        </div>
+                     </div>
                      <select value={textModel} onChange={(e) => setTextModel(e.target.value)} className="w-full bg-black/40 border-none rounded-xl px-4 py-2.5 text-[10px] font-bold text-rose-100 uppercase tracking-widest">
                         {models.text.map(m => <option key={m} value={m}>{m}</option>)}
                      </select>

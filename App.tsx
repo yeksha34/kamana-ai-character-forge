@@ -1,7 +1,8 @@
 
 import React, { useState, useCallback, useMemo, useEffect } from 'react';
-import { Platform, CharacterData, CharacterField, PLATFORMS_CONFIG, User } from './types';
+import { Platform, CharacterData, CharacterField, PLATFORMS_CONFIG, User, AIProvider } from './types';
 import { GeminiService } from './services/geminiService';
+import { ClaudeService } from './services/claudeService';
 import { supabase } from './services/supabaseClient';
 import { hashData } from './utils/helpers';
 import { Language } from './i18n/translations';
@@ -13,10 +14,17 @@ import { MuseumView } from './views/MuseumView';
 import { StudioView } from './views/StudioView';
 
 const gemini = new GeminiService();
+const claude = new ClaudeService();
 
 const PREPOPULATED_MODELS = {
-  text: ['gemini-3-pro-preview', 'gemini-3-flash-preview', 'Custom'],
-  image: ['None', 'gemini-2.5-flash-image', 'gemini-3-pro-image-preview', 'Custom']
+  [AIProvider.GEMINI]: {
+    text: ['gemini-3-pro-preview', 'gemini-3-flash-preview', 'Custom'],
+    image: ['None', 'gemini-2.5-flash-image', 'gemini-3-pro-image-preview', 'Custom']
+  },
+  [AIProvider.CLAUDE]: {
+    text: ['claude-3-5-sonnet', 'claude-3-opus', 'claude-3-haiku', 'Custom'],
+    image: ['None', 'gemini-2.5-flash-image', 'Custom'] // Image gen stays Gemini-powered for now
+  }
 };
 
 const App: React.FC = () => {
@@ -44,10 +52,17 @@ const App: React.FC = () => {
   const [isLoggingIn, setIsLoggingIn] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
-  const [textModel, setTextModel] = useState(PREPOPULATED_MODELS.text[0]);
-  const [imageModel, setImageModel] = useState(PREPOPULATED_MODELS.image[1]);
+  const [provider, setProvider] = useState<AIProvider>(AIProvider.GEMINI);
+  const [textModel, setTextModel] = useState(PREPOPULATED_MODELS[AIProvider.GEMINI].text[0]);
+  const [imageModel, setImageModel] = useState(PREPOPULATED_MODELS[AIProvider.GEMINI].image[1]);
   const [customTextModel] = useState('');
   const [customImageModel] = useState('');
+
+  // Reset models when provider changes
+  useEffect(() => {
+    setTextModel(PREPOPULATED_MODELS[provider].text[0]);
+    setImageModel(PREPOPULATED_MODELS[provider].image[1]);
+  }, [provider]);
 
   const activeTextModel = useMemo(() => textModel === 'Custom' ? customTextModel : textModel, [textModel, customTextModel]);
   const activeImageModel = useMemo(() => imageModel === 'Custom' ? customImageModel : imageModel, [imageModel, customImageModel]);
@@ -163,7 +178,10 @@ const App: React.FC = () => {
         if (!hasKey) await (window as any).aistudio.openSelectKey();
       }
 
-      const textResult = await gemini.generateCharacterText({
+      // Choose service based on provider
+      const service = provider === AIProvider.GEMINI ? gemini : claude;
+
+      const textResult = await service.generateCharacterText({
         prompt,
         platforms: selectedPlatforms,
         isNSFW: character.isNSFW,
@@ -274,7 +292,8 @@ const App: React.FC = () => {
               character={character} setCharacter={setCharacter} isGenerating={isGenerating}
               onGenerate={generate} onRegenerateImage={regenerateSingleImage} onSave={saveToCollection}
               textModel={textModel} setTextModel={setTextModel} imageModel={imageModel} setImageModel={setImageModel}
-              isImageGenEnabled={isImageGenEnabled} errors={errors} models={PREPOPULATED_MODELS} language={language}
+              isImageGenEnabled={isImageGenEnabled} errors={errors} models={PREPOPULATED_MODELS[provider]} language={language}
+              provider={provider} setProvider={setProvider}
             />
           </>
         );

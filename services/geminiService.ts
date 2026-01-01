@@ -15,7 +15,8 @@ export class GeminiService {
     selectedModel?: string;
   }) {
     const { prompt, platforms, isNSFW, tags, existingFields, selectedModel } = params;
-    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+    // Prioritize GEMINI_API_KEY while falling back to the standard API_KEY environment variable.
+    const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY || process.env.API_KEY });
 
     const lockedFields = existingFields.filter(f => f.isLocked);
     const lockedContext = lockedFields.map(f => `${f.label}: ${f.value}`).join('\n');
@@ -65,7 +66,8 @@ export class GeminiService {
     selectedModel?: string;
   }) {
     const { prompt, type, isNSFW, selectedModel } = params;
-    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+    // Prioritize GEMINI_API_KEY while falling back to the standard API_KEY environment variable.
+    const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY || process.env.API_KEY });
     const imagePrompt = `A ${type} illustration. ${isNSFW ? 'NSFW/suggestive.' : 'SFW.'} Prompt: ${prompt}`;
 
     const response = await ai.models.generateContent({
