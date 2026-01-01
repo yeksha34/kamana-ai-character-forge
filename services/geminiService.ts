@@ -15,18 +15,19 @@ export class GeminiService {
     selectedModel?: string;
   }) {
     const { prompt, platforms, isNSFW, tags, existingFields, selectedModel } = params;
-    // Prioritize GEMINI_API_KEY while falling back to the standard API_KEY environment variable.
-    const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY || process.env.API_KEY });
+    // Create a new GoogleGenAI instance using the required process.env.API_KEY directly
+    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
-    const lockedFields = existingFields.filter(f => f.isLocked);
-    const lockedContext = lockedFields.map(f => `${f.label}: ${f.value}`).join('\n');
+    const lockedContext = existingFields
+      .filter(f => f.isLocked)
+      .map(f => `${f.label}:${f.value.substring(0, 100)}...`)
+      .join('|');
 
-    const systemInstruction = `
-      You are an expert character creator for AI RP platforms.
-      NSFW Status: ${isNSFW ? "ENABLED (Explicit content allowed)" : "DISABLED"}.
-      Tags: ${tags.join(', ')}.
-      Locked Fields: ${lockedContext}
-    `;
+    const systemInstruction = `Expert RP Character Forge. Concise output. 
+    NSFW: ${isNSFW ? 'YES' : 'NO'}. 
+    Tags: ${tags.join(',')}. 
+    Locked: ${lockedContext}. 
+    Respond in JSON only.`;
 
     const schema = {
       type: Type.OBJECT,
@@ -48,11 +49,12 @@ export class GeminiService {
 
     const response = await ai.models.generateContent({
       model: selectedModel || TEXT_MODEL,
-      contents: `Generate character data for prompt: "${prompt}". Platforms: ${platforms.join(', ')}.`,
+      contents: `Prompt: "${prompt}". Target: ${platforms.join(',')}`,
       config: {
         systemInstruction,
         responseMimeType: "application/json",
-        responseSchema: schema
+        responseSchema: schema,
+        temperature: 0.8 // Balanced for creativity vs rate-limit stability
       }
     });
 
@@ -66,14 +68,18 @@ export class GeminiService {
     selectedModel?: string;
   }) {
     const { prompt, type, isNSFW, selectedModel } = params;
-    // Prioritize GEMINI_API_KEY while falling back to the standard API_KEY environment variable.
-    const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY || process.env.API_KEY });
-    const imagePrompt = `A ${type} illustration. ${isNSFW ? 'NSFW/suggestive.' : 'SFW.'} Prompt: ${prompt}`;
+    // Create a new GoogleGenAI instance using the required process.env.API_KEY directly
+    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+    
+    // Highly optimized image prompts to save on model tokens
+    const imagePrompt = `${type} illustration. ${isNSFW ? 'Suggestive/NSFW' : 'Cinematic/SFW'}. Topic: ${prompt}`;
 
     const response = await ai.models.generateContent({
       model: selectedModel || IMAGE_MODEL,
       contents: { parts: [{ text: imagePrompt }] },
-      config: { imageConfig: { aspectRatio: "1:1" } }
+      config: { 
+        imageConfig: { aspectRatio: "1:1" }
+      }
     });
 
     if (response.candidates?.[0]?.content?.parts) {

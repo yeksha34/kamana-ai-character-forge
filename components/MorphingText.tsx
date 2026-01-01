@@ -8,7 +8,8 @@ interface MorphingTextProps {
 }
 
 export const MorphingText: React.FC<MorphingTextProps> = ({ options, english, className }) => {
-  const [index, setIndex] = useState(0);
+  // Start with a random index to ensure variety on every load
+  const [index, setIndex] = useState(() => Math.floor(Math.random() * options.length));
 
   useEffect(() => {
     const interval = setInterval(() => {

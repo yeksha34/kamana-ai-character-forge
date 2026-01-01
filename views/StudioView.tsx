@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Settings, RefreshCw, Lock, Unlock, Save, Zap, Heart, Cpu } from 'lucide-react';
+import { Settings, RefreshCw, Lock, Unlock, Save, Zap, Heart, Cpu, Sparkles } from 'lucide-react';
 import { Platform, CharacterData, CharacterField, AIProvider } from '../types';
 import { MorphingText } from '../components/MorphingText';
 import { TagManager } from '../components/TagManager';
@@ -14,6 +14,7 @@ interface StudioViewProps {
   character: CharacterData;
   setCharacter: React.Dispatch<React.SetStateAction<CharacterData>>;
   isGenerating: boolean;
+  generationStep?: string;
   onGenerate: () => void;
   onRegenerateImage: (type: 'character' | 'scenario') => void;
   onSave: () => void;
@@ -31,7 +32,7 @@ interface StudioViewProps {
 
 export const StudioView: React.FC<StudioViewProps> = ({
   prompt, setPrompt, selectedPlatforms, onTogglePlatform, character, setCharacter,
-  isGenerating, onGenerate, onRegenerateImage, onSave,
+  isGenerating, generationStep, onGenerate, onRegenerateImage, onSave,
   textModel, setTextModel, imageModel, setImageModel, isImageGenEnabled, errors, models, language,
   provider, setProvider
 }) => {
@@ -140,8 +141,15 @@ export const StudioView: React.FC<StudioViewProps> = ({
                       {(type === 'character' ? character.characterImageUrl : character.scenarioImageUrl) ? (
                         <img src={type === 'character' ? character.characterImageUrl : character.scenarioImageUrl} alt={type} className="w-full h-full object-cover transform transition-transform duration-[8s] group-hover:scale-105" />
                       ) : (
-                        <div className="w-full h-full flex flex-col items-center justify-center gap-6 opacity-30">
-                           <RefreshCw className="w-16 h-16 animate-spin text-rose-950" />
+                        <div className="w-full h-full flex flex-col items-center justify-center gap-6 group-hover:bg-rose-900/10 transition-colors cursor-pointer" onClick={() => !isGenerating && onRegenerateImage(type)}>
+                           {isGenerating && generationStep?.includes(type === 'character' ? 'portrait' : 'scene') ? (
+                             <RefreshCw className="w-16 h-16 animate-spin text-rose-600" />
+                           ) : (
+                             <div className="flex flex-col items-center gap-4 text-rose-950 opacity-20 group-hover:opacity-100 group-hover:text-rose-500 transition-all">
+                               <Sparkles className="w-16 h-16" />
+                               <span className="text-[10px] font-black uppercase tracking-[0.4em]">{type === 'character' ? 'Generate Portrait' : 'Generate Scenario'}</span>
+                             </div>
+                           )}
                         </div>
                       )}
                     </div>
@@ -188,6 +196,11 @@ export const StudioView: React.FC<StudioViewProps> = ({
             </>
           )}
         </button>
+        {isGenerating && generationStep && (
+          <div className="absolute top-[-80px] w-max art-glass px-8 py-4 rounded-full border border-rose-900/30 animate-pulse">
+            <span className="text-[10px] font-black uppercase tracking-[0.5em] text-rose-400">{generationStep}</span>
+          </div>
+        )}
       </div>
     </div>
   );

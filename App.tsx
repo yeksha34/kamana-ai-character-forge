@@ -5,7 +5,7 @@ import { GeminiService } from './services/geminiService';
 import { ClaudeService } from './services/claudeService';
 import { supabase } from './services/supabaseClient';
 import { hashData } from './utils/helpers';
-import { Language } from './i18n/translations';
+import { Language, translations } from './i18n/translations';
 
 // Import split components/views
 import { Header } from './components/Header';
@@ -23,7 +23,7 @@ const PREPOPULATED_MODELS = {
   },
   [AIProvider.CLAUDE]: {
     text: ['claude-3-5-sonnet', 'claude-3-opus', 'claude-3-haiku', 'Custom'],
-    image: ['None', 'gemini-2.5-flash-image', 'Custom'] // Image gen stays Gemini-powered for now
+    image: ['None', 'gemini-2.5-flash-image', 'Custom']
   }
 };
 
@@ -49,6 +49,7 @@ const App: React.FC = () => {
   });
 
   const [isGenerating, setIsGenerating] = useState(false);
+  const [generationStep, setGenerationStep] = useState<string>('');
   const [isLoggingIn, setIsLoggingIn] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
@@ -58,7 +59,6 @@ const App: React.FC = () => {
   const [customTextModel] = useState('');
   const [customImageModel] = useState('');
 
-  // Reset models when provider changes
   useEffect(() => {
     setTextModel(PREPOPULATED_MODELS[provider].text[0]);
     setImageModel(PREPOPULATED_MODELS[provider].image[1]);
@@ -67,6 +67,8 @@ const App: React.FC = () => {
   const activeTextModel = useMemo(() => textModel === 'Custom' ? customTextModel : textModel, [textModel, customTextModel]);
   const activeImageModel = useMemo(() => imageModel === 'Custom' ? customImageModel : imageModel, [imageModel, customImageModel]);
   const isImageGenEnabled = useMemo(() => activeImageModel !== 'None' && activeImageModel !== '', [activeImageModel]);
+
+  const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
   useEffect(() => {
     localStorage.setItem('kamana_lang', language);
@@ -171,16 +173,18 @@ const App: React.FC = () => {
       setErrors({ prompt: language === 'mr' ? "प्रॉम्प्ट आवश्यक आहे" : "Prompt is required" });
       return;
     }
+    
     setIsGenerating(true);
+    setGenerationStep(language === 'mr' ? "आराखडा तयार होत आहे..." : "Drafting persona...");
+    
     try {
       if (activeImageModel === 'gemini-3-pro-image-preview') {
         const hasKey = await (window as any).aistudio.hasSelectedApiKey();
         if (!hasKey) await (window as any).aistudio.openSelectKey();
       }
 
-      // Choose service based on provider
+      // 1. Text Generation
       const service = provider === AIProvider.GEMINI ? gemini : claude;
-
       const textResult = await service.generateCharacterText({
         prompt,
         platforms: selectedPlatforms,
@@ -210,37 +214,55 @@ const App: React.FC = () => {
         }
       });
 
-      let charImg = character.characterImageUrl;
-      if (isImageGenEnabled && !character.isCharacterImageLocked) {
-        charImg = await gemini.generateImage({
-          prompt: `Portrait: ${textResult.name}. ${prompt}`,
-          type: 'character',
-          isNSFW: character.isNSFW,
-          selectedModel: activeImageModel
-        }) || charImg;
+      setCharacter(prev => ({ 
+        ...prev, 
+        name: textResult.name, 
+        fields: updatedFields,
+        characterImageUrl: '', // Reset non-locked images to prompt manual gen
+        scenarioImageUrl: '' 
+      }));
+
+      // 2. Sequential Image Generation (With Buffer Delay)
+      if (isImageGenEnabled) {
+        await sleep(1500); // Respect free tier RPM
+        
+        if (!character.isCharacterImageLocked) {
+          setGenerationStep(language === 'mr' ? "पोर्ट्रेट तयार होत आहे..." : "Painting portrait...");
+          const charImg = await gemini.generateImage({
+            prompt: `Portrait: ${textResult.name}. ${prompt}`,
+            type: 'character',
+            isNSFW: character.isNSFW,
+            selectedModel: activeImageModel
+          });
+          if (charImg) setCharacter(prev => ({ ...prev, characterImageUrl: charImg }));
+        }
+
+        await sleep(1500); // Respect free tier RPM
+
+        if (!character.isScenarioImageLocked) {
+          setGenerationStep(language === 'mr' ? "प्रसंग तयार होत आहे..." : "Setting the scene...");
+          const scenImg = await gemini.generateImage({
+            prompt: `Environment: ${prompt}`,
+            type: 'scenario',
+            isNSFW: character.isNSFW,
+            selectedModel: activeImageModel
+          });
+          if (scenImg) setCharacter(prev => ({ ...prev, scenarioImageUrl: scenImg }));
+        }
       }
 
-      let scenImg = character.scenarioImageUrl;
-      if (isImageGenEnabled && !character.isScenarioImageLocked) {
-        scenImg = await gemini.generateImage({
-          prompt: `Environment: ${prompt}`,
-          type: 'scenario',
-          isNSFW: character.isNSFW,
-          selectedModel: activeImageModel
-        }) || scenImg;
-      }
-
-      setCharacter(prev => ({ ...prev, name: textResult.name, fields: updatedFields, characterImageUrl: charImg, scenarioImageUrl: scenImg }));
     } catch (e: any) {
       if (e.message?.includes("Requested entity was not found.")) await (window as any).aistudio.openSelectKey();
       setErrors({ general: language === 'mr' ? "सृजन अयशस्वी." : "Generation failed." });
     } finally {
       setIsGenerating(false);
+      setGenerationStep('');
     }
   };
 
   const regenerateSingleImage = async (type: 'character' | 'scenario') => {
     setIsGenerating(true);
+    setGenerationStep(language === 'mr' ? "पुन्हा तयार करत आहे..." : "Regenerating...");
     try {
       const img = await gemini.generateImage({
         prompt: type === 'character' ? `Portrait: ${character.name}. ${prompt}` : `Environment: ${prompt}`,
@@ -251,6 +273,7 @@ const App: React.FC = () => {
       if (img) setCharacter(prev => ({ ...prev, [type === 'character' ? 'characterImageUrl' : 'scenarioImageUrl']: img }));
     } finally {
       setIsGenerating(false);
+      setGenerationStep('');
     }
   };
 
@@ -290,6 +313,7 @@ const App: React.FC = () => {
               prompt={prompt} setPrompt={setPrompt} selectedPlatforms={selectedPlatforms}
               onTogglePlatform={(p) => setSelectedPlatforms(prev => prev.includes(p) ? prev.filter(x => x !== p) : [...prev, p])}
               character={character} setCharacter={setCharacter} isGenerating={isGenerating}
+              generationStep={generationStep}
               onGenerate={generate} onRegenerateImage={regenerateSingleImage} onSave={saveToCollection}
               textModel={textModel} setTextModel={setTextModel} imageModel={imageModel} setImageModel={setImageModel}
               isImageGenEnabled={isImageGenEnabled} errors={errors} models={PREPOPULATED_MODELS[provider]} language={language}

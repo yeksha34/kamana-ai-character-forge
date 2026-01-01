@@ -1,4 +1,6 @@
 
+import { profanityDictionary } from './profanity';
+
 export type Language = 'mr' | 'en';
 
 export const translations = {
@@ -28,10 +30,19 @@ export const translations = {
     nsfwLabel: "प्रौढ सामग्री",
     biometric: "बायोमेट्रिक प्रमाणीकरण सक्षम",
     morphing: {
-      desire: ["कामना", "हव्यास", "तृष्णा", "वासना", "ओढ", "लालसा"],
-      imagination: ["कल्पनाशक्ती", "वासना-बीज", "शृंगार-लीला", "नखशिखांत", "बेधुंद", "कामुकता"],
-      studio: ["माजलेली रांड", "विखारी शृंगार", "कथकली", "कामुक कला", "रंगशाळा", "मदहोश स्टुडिओ"],
-      canvas: ["कॅनव्हास तुमच्या इच्छेची वाट पाहत आहे...", "तुमची वासना येथे मांडून पहा...", "शृंगाराची सुरुवात करा...", "नव्या मादक जगाचा उगम..."]
+      desire: profanityDictionary.mr.desire,
+      imagination: profanityDictionary.mr.imagination,
+      studio: profanityDictionary.mr.studio,
+      canvas: [
+        "कॅनव्हास तुमच्या इच्छेची वाट पाहत आहे...", 
+        "तुमची वासना येथे मांडून पहा...", 
+        "शृंगाराची सुरुवात करा...", 
+        "नव्या मादक जगाचा उगम...", 
+        "तुमच्या नग्न कल्पनेला आकार द्या...", 
+        "तुमच्या घाणेरड्या स्वप्नांना जिवंत करा...",
+        "तुमच्या विकृत वासनांना मोकळी वाट करून द्या...",
+        "तुमच्या नग्नावस्थेला शब्दांत मांडा..."
+      ]
     }
   },
   en: {
@@ -60,10 +71,19 @@ export const translations = {
     nsfwLabel: "NSFW Content",
     biometric: "Biometric Auth Enabled",
     morphing: {
-      desire: ["Desire", "Crave", "Thirst", "Lust", "Ache", "Passion"],
-      imagination: ["Fantasy", "Seed of Sin", "Erotic Play", "Sensuality", "Obsession", "Heat"],
-      studio: ["Wicked Forge", "Venomous Art", "The Ritual", "Seductive Flow", "Flesh & Ink", "Dark Muse"],
-      canvas: ["The canvas awaits your crave...", "Map your lust here...", "Begin the erotic ritual...", "Birth of a new obsession..."]
+      desire: profanityDictionary.en.desire,
+      imagination: profanityDictionary.en.imagination,
+      studio: profanityDictionary.en.studio,
+      canvas: [
+        "The canvas awaits your crave...", 
+        "Map your lust here...", 
+        "Begin the erotic ritual...", 
+        "Birth of a new obsession...", 
+        "Give shape to your filthiest thoughts...", 
+        "Unleash your most depraved fantasies...",
+        "Surrender to your darkest kinks...",
+        "Let the degradation begin..."
+      ]
     }
   }
 };

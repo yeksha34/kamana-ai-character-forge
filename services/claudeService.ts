@@ -12,8 +12,8 @@ export class ClaudeService {
     selectedModel?: string;
   }) {
     const { prompt, platforms, isNSFW, tags, existingFields, selectedModel } = params;
-    // Prioritize CLAUDE_API_KEY while falling back to the standard API_KEY environment variable.
-    const ai = new GoogleGenAI({ apiKey: process.env.CLAUDE_API_KEY || process.env.API_KEY });
+    // Create a new GoogleGenAI instance using the required process.env.API_KEY directly
+    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
     const lockedFields = existingFields.filter(f => f.isLocked);
     const lockedContext = lockedFields.map(f => `${f.label}: ${f.value}`).join('\n');
