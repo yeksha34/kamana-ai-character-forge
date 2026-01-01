@@ -3,7 +3,7 @@ import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import { Platform, CharacterData, CharacterField, PLATFORMS_CONFIG, User, AIProvider, CharacterStatus } from './types';
 import { GeminiService } from './services/geminiService';
 import { ClaudeService } from './services/claudeService';
-import { supabase } from './services/supabaseClient';
+import { supabase, uploadImageToStorage } from './services/supabaseClient';
 import { hashData } from './utils/helpers';
 import { Language, translations } from './i18n/translations';
 
@@ -229,13 +229,17 @@ const App: React.FC = () => {
         if (!character.isCharacterImageLocked) {
           setGenerationStep(language === 'mr' ? "पोर्ट्रेट तयार होत आहे..." : "Painting portrait...");
           charImgPrompt = `Portrait: ${textResult.name}. ${prompt}`;
-          const charImg = await service.generateImage({
+          const charImgBase64 = await service.generateImage({
             prompt: charImgPrompt,
             type: 'character',
             isNSFW: character.isNSFW,
             selectedModel: activeImageModel
           });
-          if (charImg) charImgUrl = charImg;
+          if (charImgBase64) {
+            // Upload to Supabase Storage immediately
+            const cloudUrl = user ? await uploadImageToStorage(user.id, charImgBase64, 'portrait') : null;
+            charImgUrl = cloudUrl || charImgBase64;
+          }
         }
 
         await sleep(1000);
@@ -243,13 +247,17 @@ const App: React.FC = () => {
         if (!character.isScenarioImageLocked) {
           setGenerationStep(language === 'mr' ? "प्रसंग तयार होत आहे..." : "Setting the scene...");
           scenImgPrompt = `Environment: ${prompt}`;
-          const scenImg = await service.generateImage({
+          const scenImgBase64 = await service.generateImage({
             prompt: scenImgPrompt,
             type: 'scenario',
             isNSFW: character.isNSFW,
             selectedModel: activeImageModel
           });
-          if (scenImg) scenImgUrl = scenImg;
+          if (scenImgBase64) {
+            // Upload to Supabase Storage immediately
+            const cloudUrl = user ? await uploadImageToStorage(user.id, scenImgBase64, 'scenario') : null;
+            scenImgUrl = cloudUrl || scenImgBase64;
+          }
         }
       }
 
@@ -281,16 +289,18 @@ const App: React.FC = () => {
     const imgPrompt = type === 'character' ? `Portrait: ${character.name}. ${prompt}` : `Environment: ${prompt}`;
     try {
       const service = provider === AIProvider.GEMINI ? gemini : claude;
-      const img = await service.generateImage({
+      const imgBase64 = await service.generateImage({
         prompt: imgPrompt,
         type,
         isNSFW: character.isNSFW,
         selectedModel: activeImageModel
       });
-      if (img) {
+      if (imgBase64) {
+        const cloudUrl = user ? await uploadImageToStorage(user.id, imgBase64, type === 'character' ? 'portrait' : 'scenario') : null;
+        const finalUrl = cloudUrl || imgBase64;
         setCharacter(prev => ({ 
           ...prev, 
-          [type === 'character' ? 'characterImageUrl' : 'scenarioImageUrl']: img,
+          [type === 'character' ? 'characterImageUrl' : 'scenarioImageUrl']: finalUrl,
           [type === 'character' ? 'characterImagePrompt' : 'scenarioImagePrompt']: imgPrompt
         }));
       }
@@ -307,6 +317,7 @@ const App: React.FC = () => {
     let targetVersion = character.version;
     let targetParentBotId = character.parentBotId || Math.random().toString(36).substring(2, 15);
 
+    // If saving a new draft of a finalized version, increment version
     if (character.status === 'finalized' && status === 'draft') {
       targetVersion = character.version + 1;
     }
@@ -322,15 +333,19 @@ const App: React.FC = () => {
     const promptHash = await hashData(character.originalPrompt || prompt);
 
     if (supabase) {
+      // Always insert as a new version record to preserve history
       const { data, error } = await supabase.from('characters').insert([{ 
         user_id: user.id, 
         data: characterToSave, 
-        content_hash: promptHash 
+        content_hash: promptHash,
+        parent_bot_id: targetParentBotId // Assuming this column exists for grouping
       }]).select();
       
       if (!error && data) {
         setCharacter({ ...characterToSave, id: data[0].id });
         await fetchCharacters(user.id);
+      } else if (error) {
+        console.error('Database save failed:', error);
       }
     } else {
       const newId = 'local-' + Date.now();
