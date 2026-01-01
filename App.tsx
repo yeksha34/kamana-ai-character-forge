@@ -181,9 +181,10 @@ const App: React.FC = () => {
     setGenerationStep(language === 'mr' ? "आराखडा तयार होत आहे..." : "Drafting persona...");
     
     try {
-      if (activeImageModel.includes('pro')) {
-        const hasKey = await (window as any).aistudio.hasSelectedApiKey();
-        if (!hasKey) await (window as any).aistudio.openSelectKey();
+      const aistudio = (window as any).aistudio;
+      if (aistudio && typeof aistudio.hasSelectedApiKey === 'function' && activeImageModel.includes('pro')) {
+        const hasKey = await aistudio.hasSelectedApiKey();
+        if (!hasKey) await aistudio.openSelectKey();
       }
 
       // 1. Text Generation
@@ -236,7 +237,6 @@ const App: React.FC = () => {
             selectedModel: activeImageModel
           });
           if (charImgBase64) {
-            // Upload to Supabase Storage immediately
             const cloudUrl = user ? await uploadImageToStorage(user.id, charImgBase64, 'portrait') : null;
             charImgUrl = cloudUrl || charImgBase64;
           }
@@ -254,7 +254,6 @@ const App: React.FC = () => {
             selectedModel: activeImageModel
           });
           if (scenImgBase64) {
-            // Upload to Supabase Storage immediately
             const cloudUrl = user ? await uploadImageToStorage(user.id, scenImgBase64, 'scenario') : null;
             scenImgUrl = cloudUrl || scenImgBase64;
           }
@@ -275,7 +274,10 @@ const App: React.FC = () => {
 
     } catch (e: any) {
       console.error(e);
-      if (e.message?.includes("Requested entity was not found.")) await (window as any).aistudio.openSelectKey();
+      const aistudio = (window as any).aistudio;
+      if (aistudio && typeof aistudio.openSelectKey === 'function' && e.message?.includes("Requested entity was not found.")) {
+        await aistudio.openSelectKey();
+      }
       setErrors({ general: language === 'mr' ? "सृजन अयशस्वी." : "Generation failed." });
     } finally {
       setIsGenerating(false);
@@ -288,6 +290,12 @@ const App: React.FC = () => {
     setGenerationStep(language === 'mr' ? "पुन्हा तयार करत आहे..." : "Regenerating...");
     const imgPrompt = type === 'character' ? `Portrait: ${character.name}. ${prompt}` : `Environment: ${prompt}`;
     try {
+      const aistudio = (window as any).aistudio;
+      if (aistudio && typeof aistudio.hasSelectedApiKey === 'function' && activeImageModel.includes('pro')) {
+        const hasKey = await aistudio.hasSelectedApiKey();
+        if (!hasKey) await aistudio.openSelectKey();
+      }
+
       const service = provider === AIProvider.GEMINI ? gemini : claude;
       const imgBase64 = await service.generateImage({
         prompt: imgPrompt,
@@ -304,6 +312,12 @@ const App: React.FC = () => {
           [type === 'character' ? 'characterImagePrompt' : 'scenarioImagePrompt']: imgPrompt
         }));
       }
+    } catch (e: any) {
+      console.error(e);
+      const aistudio = (window as any).aistudio;
+      if (aistudio && typeof aistudio.openSelectKey === 'function' && e.message?.includes("Requested entity was not found.")) {
+        await aistudio.openSelectKey();
+      }
     } finally {
       setIsGenerating(false);
       setGenerationStep('');
@@ -317,7 +331,6 @@ const App: React.FC = () => {
     let targetVersion = character.version;
     let targetParentBotId = character.parentBotId || Math.random().toString(36).substring(2, 15);
 
-    // If saving a new draft of a finalized version, increment version
     if (character.status === 'finalized' && status === 'draft') {
       targetVersion = character.version + 1;
     }
@@ -333,12 +346,11 @@ const App: React.FC = () => {
     const promptHash = await hashData(character.originalPrompt || prompt);
 
     if (supabase) {
-      // Always insert as a new version record to preserve history
       const { data, error } = await supabase.from('characters').insert([{ 
         user_id: user.id, 
         data: characterToSave, 
         content_hash: promptHash,
-        parent_bot_id: targetParentBotId // Assuming this column exists for grouping
+        parent_bot_id: targetParentBotId
       }]).select();
       
       if (!error && data) {
