@@ -1,9 +1,10 @@
+
 import { useEffect, useState } from 'react';
-import { Header } from '@/components/Header';
-import { StudioView } from '@/views/StudioView';
-import { CharacterData } from '@/types';
-import { getIdFromHash } from '@/hooks/useHashRouter';
-import { fetchCharacterById } from '@/services/supabaseDatabaseService';
+import { Header } from '../components/Header';
+import { StudioView } from '../views/StudioView';
+import { CharacterData } from '../types';
+import { getIdFromHash } from '../hooks/useHashRouter';
+import { fetchCharacterById } from '../services/supabaseDatabaseService';
 
 
 export function StudioPage(props: any) {

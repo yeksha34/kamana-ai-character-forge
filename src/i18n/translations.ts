@@ -1,5 +1,5 @@
 
-import { profanityDictionary } from '@/i18n/profanity';
+import { profanityDictionary } from './profanity';
 
 export type Language = 'mr' | 'en';
 

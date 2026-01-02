@@ -1,6 +1,7 @@
-import { Header } from "@/components/Header";
-import { MuseumView } from "@/views/MuseumView";
-import { CharacterData } from "@/types";
+
+import { Header } from "../components/Header";
+import { MuseumView } from "../views/MuseumView";
+import { CharacterData } from "../types";
 
 export function MuseumPage({
   user,

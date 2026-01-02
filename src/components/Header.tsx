@@ -1,8 +1,8 @@
 
-import { LanguageToggle } from '@/components/LanguageToggle';
-import { MorphingText } from '@/components/MorphingText';
-import { Language, translations } from '@/i18n/translations';
-import { User } from '@/types';
+import { LanguageToggle } from './LanguageToggle';
+import { MorphingText } from './MorphingText';
+import { Language, translations } from '../i18n/translations';
+import { User } from '../types';
 import { Activity, ChevronDown, Flame, Grid, Heart, LogOut, ShieldCheck, Zap } from 'lucide-react';
 import React, { useEffect, useRef, useState } from 'react';
 

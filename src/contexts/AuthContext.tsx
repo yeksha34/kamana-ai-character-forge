@@ -1,4 +1,5 @@
-import { supabase } from '@/services/supabaseClient';
+
+import { supabase } from '../services/supabaseClient';
 import { User as SupabaseUser } from '@supabase/supabase-js';
 import React, { createContext, ReactNode, useCallback, useContext, useEffect, useState } from 'react';
 
@@ -17,6 +18,7 @@ interface AuthContextType {
   signIn: () => Promise<void>;
   signOut: () => Promise<void>;
   setAgeVerified: (verified: boolean) => void;
+  isDevelopmentBypass: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -41,6 +43,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     localStorage.getItem('kamana_age_verified') === 'true'
   );
 
+  const isDevelopmentBypass = !supabase;
+
   const setAgeVerified = useCallback((verified: boolean) => {
     setAgeVerifiedState(verified);
     localStorage.setItem('kamana_age_verified', verified ? 'true' : 'false');
@@ -57,114 +61,102 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     };
   }, []);
 
+  // Development Bypass Logic
+  const initMockAuth = useCallback(() => {
+    const savedUser = localStorage.getItem('kamana_mock_user');
+    if (savedUser) {
+      setUser(JSON.parse(savedUser));
+    } else if (ageVerified) {
+        // Auto-login if age is already verified in dev mode for convenience
+        const mockUser = {
+            id: 'local-user',
+            name: 'स्थानिक कलाकार',
+            email: 'local@kamana.app',
+            isLoggedIn: true
+        };
+        setUser(mockUser);
+        localStorage.setItem('kamana_mock_user', JSON.stringify(mockUser));
+    }
+    setIsLoading(false);
+  }, [ageVerified]);
+
+  // Production Supabase Auth Logic
+  const initSupabaseAuth = useCallback(async (mounted: boolean) => {
+    try {
+      if (!supabase) return;
+
+      const { data: { session }, error } = await supabase.auth.getSession();
+      
+      if (error) {
+        console.error('Session error:', error);
+        if (mounted) setIsLoading(false);
+        return;
+      }
+
+      if (session?.user && mounted) {
+        setUser(mapSupabaseUser(session.user));
+        setAgeVerified(true);
+      }
+    } catch (err) {
+      console.error('Auth initialization error:', err);
+    } finally {
+      if (mounted) setIsLoading(false);
+    }
+  }, [mapSupabaseUser, setAgeVerified]);
+
   useEffect(() => {
-    if (!supabase) {
-      // Local mode - no Supabase
-      if (ageVerified) {
-        setUser({
+    let mounted = true;
+
+    if (isDevelopmentBypass) {
+      initMockAuth();
+    } else {
+      initSupabaseAuth(mounted);
+
+      const { data: { subscription } } = supabase!.auth.onAuthStateChange(
+        async (event, session) => {
+          if (!mounted) return;
+          if (session?.user) {
+            setUser(mapSupabaseUser(session.user));
+            if (event === "SIGNED_IN") {
+                window.location.hash = "#/studio/new";
+            }
+          } else if (event === 'SIGNED_OUT') {
+            setUser(null);
+          }
+        }
+      );
+
+      return () => {
+        mounted = false;
+        subscription.unsubscribe();
+      };
+    }
+  }, [isDevelopmentBypass, initMockAuth, initSupabaseAuth, mapSupabaseUser]);
+
+  const signIn = useCallback(async () => {
+    setIsLoggingIn(true);
+    try {
+      if (isDevelopmentBypass) {
+        // Simulate network delay for realistic dev feel
+        await new Promise(r => setTimeout(r, 1000));
+        const mockUser = {
           id: 'local-user',
           name: 'स्थानिक कलाकार',
           email: 'local@kamana.app',
           isLoggedIn: true
-        });
-      }
-      setIsLoading(false);
-      return;
-    }
-
-    let mounted = true;
-
-    const initAuth = async () => {
-      try {
-        if (supabase === null) {
-          console.warn('Supabase client is not initialized.');
-          if (mounted) setIsLoading(false);
-          return;
-        }
-        supabase.auth.onAuthStateChange((event, session) => {
-          if (event === "SIGNED_IN" && session) {
-            window.location.hash = "#/studio/new";
-          }
-
-          if (session?.user) {
-            setUser(mapSupabaseUser(session.user));
-          } else if (event === "SIGNED_OUT") {
-            setUser(null);
+        };
+        setUser(mockUser);
+        localStorage.setItem('kamana_mock_user', JSON.stringify(mockUser));
+        setAgeVerified(true);
+      } else {
+        const { error } = await supabase!.auth.signInWithOAuth({
+          provider: 'github',
+          options: {
+            redirectTo: `${window.location.origin}${window.location.pathname}`,
+            skipBrowserRedirect: false
           }
         });
-
-        // Get initial session
-        const { data: { session }, error } = await supabase.auth.getSession();
-
-        if (error) {
-          console.error('Session error:', error);
-          if (mounted) setIsLoading(false);
-          return;
-        }
-
-        if (session?.user && mounted) {
-          setUser(mapSupabaseUser(session.user));
-          setAgeVerified(true); // TODO: Verify age from user metadata if available
-          // TODO: Implement age verification logic based on user metadata
-          // TODO: For now, we assume age is verified if user exists
-          // TODO: use social logins that provide age info
-        }
-      } catch (err) {
-        console.error('Auth initialization error:', err);
-      } finally {
-        if (mounted) setIsLoading(false);
-      }
-    };
-
-    initAuth();
-
-    // Listen for auth state changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        console.log('Auth event:', event);
-
-        if (!mounted) return;
-
-        if (session?.user) {
-          setUser(mapSupabaseUser(session.user));
-        } else if (event === 'SIGNED_OUT') {
-          setUser(null);
-        }
-      }
-    );
-
-    return () => {
-      mounted = false;
-      subscription.unsubscribe();
-    };
-  }, [ageVerified, mapSupabaseUser]);
-
-  const signIn = useCallback(async () => {
-    if (!supabase) {
-      // Local mode
-      setUser({
-        id: 'local-user',
-        name: 'स्थानिक कलाकार',
-        email: 'local@kamana.app',
-        isLoggedIn: true
-      });
-      setAgeVerified(true);
-      return;
-    }
-
-    setIsLoggingIn(true);
-    try {
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: 'github',
-        options: {
-          redirectTo: `${window.location.origin}${window.location.pathname}`,
-          skipBrowserRedirect: false
-        }
-      });
-
-      if (error) {
-        console.error('Sign in error:', error);
-        throw error;
+        if (error) throw error;
       }
     } catch (err) {
       console.error('Sign in exception:', err);
@@ -172,20 +164,21 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     } finally {
       setIsLoggingIn(false);
     }
-  }, [setAgeVerified]);
+  }, [isDevelopmentBypass, setAgeVerified]);
 
   const signOut = useCallback(async () => {
-    if (supabase) {
+    if (isDevelopmentBypass) {
+      localStorage.removeItem('kamana_mock_user');
+    } else {
       try {
-        await supabase.auth.signOut();
+        await supabase!.auth.signOut();
       } catch (err) {
         console.error('Sign out error:', err);
       }
     }
-
     setUser(null);
     setAgeVerified(false);
-  }, [setAgeVerified]);
+  }, [isDevelopmentBypass, setAgeVerified]);
 
   const value: AuthContextType = {
     user,
@@ -194,8 +187,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     ageVerified,
     signIn,
     signOut,
-    setAgeVerified
+    setAgeVerified,
+    isDevelopmentBypass
   };
 
-  return <AuthContext.Provider value={value}> {children} </AuthContext.Provider>;
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };

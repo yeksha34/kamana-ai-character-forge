@@ -1,15 +1,15 @@
 
-import { MorphingText } from '@/components/MorphingText';
-import { TagManager } from '@/components/TagManager';
-import { useAuth } from '@/contexts/AuthContext';
-import { Language, translations } from '@/i18n/translations';
-import { ClaudeService } from '@/services/claudeService';
-import { GeminiService } from '@/services/geminiService';
-import { supabase } from '@/services/supabaseClient';
-import { getRawCharactersByUser, saveCharacter } from '@/services/supabaseDatabaseService';
-import { uploadImageToStorage } from '@/services/supabaseStorageService';
-import { AIProvider, CharacterData, CharacterField, CharacterStatus, Platform, PLATFORMS_CONFIG } from '@/types';
-import { hashData } from '@/utils/helpers';
+import { MorphingText } from '../components/MorphingText';
+import { TagManager } from '../components/TagManager';
+import { useAuth } from '../contexts/AuthContext';
+import { Language, translations } from '../i18n/translations';
+import { ClaudeService } from '../services/claudeService';
+import { GeminiService } from '../services/geminiService';
+import { supabase } from '../services/supabaseClient';
+import { getRawCharactersByUser, saveCharacter } from '../services/supabaseDatabaseService';
+import { uploadImageToStorage } from '../services/supabaseStorageService';
+import { AIProvider, CharacterData, CharacterField, CharacterStatus, Platform, PLATFORMS_CONFIG } from '../types';
+import { hashData } from '../utils/helpers';
 import { CheckCircle2, ChevronDown, ChevronUp, FileText, Heart, History, Lock, RefreshCw, Settings, Sparkles, Unlock, Zap } from 'lucide-react';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 
@@ -24,7 +24,8 @@ interface StudioViewProps {
 const gemini = new GeminiService();
 const claude = new ClaudeService();
 
-const PREPOPULATED_MODELS = {
+// Added explicit typing to fix 'unknown' type errors during index access in the component's render methods
+const PREPOPULATED_MODELS: Record<AIProvider, { text: string[]; image: string[] }> = {
   [AIProvider.GEMINI]: {
     text: ['gemini-3-pro-preview', 'gemini-3-flash-preview', 'Custom'],
     image: ['None', 'gemini-2.5-flash-image', 'gemini-3-pro-image-preview', 'imagen-4.0-generate-001', 'Custom']
@@ -146,41 +147,41 @@ export const StudioView: React.FC<StudioViewProps> = ({
       let scenImgPrompt = character.scenarioImagePrompt;
 
       // 2. Sequential Image Generation
-      if (isImageGenEnabled) {
-        await sleep(1000);
+      // if (isImageGenEnabled) {
+      //   await sleep(1000);
 
-        if (!character.isCharacterImageLocked) {
-          setGenerationStep(language === 'mr' ? "पोर्ट्रेट तयार होत आहे..." : "Painting portrait...");
-          charImgPrompt = `Portrait: ${textResult.name}. ${prompt}`;
-          const charImgBase64 = await service.generateImage({
-            prompt: charImgPrompt,
-            type: 'character',
-            isNSFW: character.isNSFW,
-            selectedModel: activeImageModel
-          });
-          if (charImgBase64) {
-            const cloudUrl = user ? await uploadImageToStorage(user.id, charImgBase64, 'portrait') : null;
-            charImgUrl = cloudUrl || charImgBase64;
-          }
-        }
+      //   if (!character.isCharacterImageLocked) {
+      //     setGenerationStep(language === 'mr' ? "पोर्ट्रेट तयार होत आहे..." : "Painting portrait...");
+      //     charImgPrompt = `Portrait: ${textResult.name}. ${prompt}`;
+      //     const charImgBase64 = await service.generateImage({
+      //       prompt: charImgPrompt,
+      //       type: 'character',
+      //       isNSFW: character.isNSFW,
+      //       selectedModel: activeImageModel
+      //     });
+      //     if (charImgBase64) {
+      //       const cloudUrl = user ? await uploadImageToStorage(user.id, charImgBase64, 'portrait') : null;
+      //       charImgUrl = cloudUrl || charImgBase64;
+      //     }
+      //   }
 
-        await sleep(1000);
+      //   await sleep(1000);
 
-        if (!character.isScenarioImageLocked) {
-          setGenerationStep(language === 'mr' ? "प्रसंग तयार होत आहे..." : "Setting the scene...");
-          scenImgPrompt = `Environment: ${prompt}`;
-          const scenImgBase64 = await service.generateImage({
-            prompt: scenImgPrompt,
-            type: 'scenario',
-            isNSFW: character.isNSFW,
-            selectedModel: activeImageModel
-          });
-          if (scenImgBase64) {
-            const cloudUrl = user ? await uploadImageToStorage(user.id, scenImgBase64, 'scenario') : null;
-            scenImgUrl = cloudUrl || scenImgBase64;
-          }
-        }
-      }
+      //   if (!character.isScenarioImageLocked) {
+      //     setGenerationStep(language === 'mr' ? "प्रसंग तयार होत आहे..." : "Setting the scene...");
+      //     scenImgPrompt = `Environment: ${prompt}`;
+      //     const scenImgBase64 = await service.generateImage({
+      //       prompt: scenImgPrompt,
+      //       type: 'scenario',
+      //       isNSFW: character.isNSFW,
+      //       selectedModel: activeImageModel
+      //     });
+      //     if (scenImgBase64) {
+      //       const cloudUrl = user ? await uploadImageToStorage(user.id, scenImgBase64, 'scenario') : null;
+      //       scenImgUrl = cloudUrl || scenImgBase64;
+      //     }
+      //   }
+      // }
 
       setCharacter(prev => ({
         ...prev,
@@ -375,7 +376,8 @@ export const StudioView: React.FC<StudioViewProps> = ({
                   <div className="flex flex-col gap-1.5">
                     <span className="text-[8px] font-bold text-rose-900 uppercase tracking-widest ml-1">{t.provider}</span>
                     <div className="flex gap-2">
-                      {Object.values(AIProvider).map(p => (
+                      {/* Cast Object.values to AIProvider[] to fix 'unknown' type errors during iteration */}
+                      {(Object.values(AIProvider) as AIProvider[]).map(p => (
                         <button
                           key={p}
                           onClick={() => setProvider(p)}

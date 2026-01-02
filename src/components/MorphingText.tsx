@@ -1,5 +1,5 @@
 
-import { translations } from '@/i18n/translations';
+import { translations } from '../i18n/translations';
 import React, { useState, useEffect } from 'react';
 
 interface MorphingTextProps {

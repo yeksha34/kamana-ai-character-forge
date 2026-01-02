@@ -1,13 +1,14 @@
+
 import { supabase } from "./supabaseClient";
 
 /**
  * Uploads a base64 image string to Supabase Storage.
- * Assumes a bucket named 'bot-assets' exists and has appropriate RLS policies.
+ * Fallbacks to returning the base64 string directly in development/bypass mode.
  */
 export async function uploadImageToStorage(userId: string, base64Data: string, type: 'portrait' | 'scenario'): Promise<string | null> {
   if (!supabase) {
-    console.warn('Supabase client not initialized. Cannot upload to storage.');
-    return null;
+    console.debug('Supabase not available, using base64 data as local URL.');
+    return base64Data;
   }
 
   try {
@@ -41,6 +42,7 @@ export async function uploadImageToStorage(userId: string, base64Data: string, t
     return publicUrl;
   } catch (err) {
     console.error('Storage upload failed:', err);
-    return null;
+    // Return base64 as fallback even if upload fails
+    return base64Data;
   }
 }

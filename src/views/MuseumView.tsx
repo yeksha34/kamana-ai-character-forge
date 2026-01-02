@@ -1,5 +1,5 @@
 
-import { CharacterData } from '@/types';
+import { CharacterData } from '../types';
 import { ArrowLeft, CheckCircle2, FileText, Grid, History, ImageIcon, Trash2 } from 'lucide-react';
 import React from 'react';
 

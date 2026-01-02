@@ -1,4 +1,5 @@
-import { CharacterField, Platform } from "@/types";
+
+import { CharacterField, Platform } from "../types";
 import Anthropic from "@anthropic-ai/sdk";
 
 export class ClaudeService {
@@ -93,23 +94,10 @@ You must respond with valid JSON in this exact format:
     isNSFW: boolean;
     selectedModel?: string;
   }) {
-    // NOTE: Claude does not have native image generation capabilities
-    // You have a few options:
-    
-    // Option 1: Use a different service for image generation (Stability AI, DALL-E, etc.)
-    // Option 2: Use Claude to generate a detailed prompt, then pass it to an image service
-    // Option 3: Return null and handle image generation elsewhere
-    
     const { prompt, type, isNSFW } = params;
     
     console.warn('Claude does not support native image generation.');
-    console.log('Consider using Stability AI, DALL-E, or another image generation service.');
-    
-    // Option 2 implementation: Generate enhanced prompt for external service
     const enhancedPrompt = await this.generateImagePrompt(prompt, type, isNSFW);
-    
-    // You would then pass this enhanced prompt to your image generation service
-    // For now, returning null
     return null;
   }
 

@@ -1,5 +1,5 @@
 
-import { Language } from '@/i18n/translations';
+import { Language } from '../i18n/translations';
 import { Languages } from 'lucide-react';
 import React from 'react';
 

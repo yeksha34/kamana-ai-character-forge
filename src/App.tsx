@@ -1,15 +1,17 @@
-import { useAuth } from "@/contexts/AuthContext";
-import { useHashRouter } from "@/hooks/useHashRouter";
-import { AppLayout } from "@/layout/AppLayout";
-import { LoginPage } from "@/pages/LoginPage";
-import { MuseumPage } from "@/pages/MuseumPage";
-import { StudioPage } from "@/pages/StudioPage";
+
+import { useAuth } from "./contexts/AuthContext";
+import { useHashRouter } from "./hooks/useHashRouter";
+import { AppLayout } from "./layout/AppLayout";
+import { LoginPage } from "./pages/LoginPage";
+import { MuseumPage } from "./pages/MuseumPage";
+import { StudioPage } from "./pages/StudioPage";
 import { useState } from "react";
 import { Language } from "./i18n/translations";
 
 function App() {
-  const auth = useAuth();
   const [language, setLanguage] = useState<Language>(() => (localStorage.getItem('kamana_lang') as Language) || 'mr');
+
+  const auth = useAuth();
   const { route, navigate } = useHashRouter(
     auth.user ? "#/studio" : "#/login"
   );
@@ -23,13 +25,15 @@ function App() {
         <LoginPage
           onSignIn={auth.signIn}
           isLoggingIn={auth.isLoggingIn}
-          language={"mr"}
+          language={language}
+          isDevelopmentBypass={auth.isDevelopmentBypass}
         />
       )}
 
       {route.startsWith("#/studio") && (
         <StudioPage
           {...auth}
+          language={language}
           onNavigate={navigate}
         />
       )}
@@ -37,6 +41,7 @@ function App() {
       {route === "#/museum" && (
         <MuseumPage
           {...auth}
+          language={language}
           onNavigate={navigate}
         />
       )}

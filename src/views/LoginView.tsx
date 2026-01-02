@@ -1,15 +1,21 @@
 
-import { Language, translations } from '@/i18n/translations';
-import { Fingerprint, Flame, Github, RefreshCw, ShieldAlert } from 'lucide-react';
+import { Language, translations } from '../i18n/translations';
+import { Fingerprint, Flame, Github, RefreshCw, ShieldAlert, Terminal, Zap } from 'lucide-react';
 import React from 'react';
 
 interface LoginViewProps {
   onSignIn: () => void;
   isLoggingIn: boolean;
   language: Language;
+  isDevelopmentBypass: boolean;
 }
 
-export const LoginView: React.FC<LoginViewProps> = ({ onSignIn, isLoggingIn, language }) => {
+export const LoginView: React.FC<LoginViewProps> = ({ 
+  onSignIn, 
+  isLoggingIn, 
+  language,
+  isDevelopmentBypass 
+}) => {
   const t = translations[language];
   return (
     <div className="min-h-screen flex flex-col items-center justify-center p-8 relative overflow-hidden">
@@ -29,6 +35,15 @@ export const LoginView: React.FC<LoginViewProps> = ({ onSignIn, isLoggingIn, lan
         </div>
 
         <div className="space-y-12">
+          {isDevelopmentBypass && (
+            <div className="px-6 py-2 bg-rose-500/10 border border-rose-500/20 rounded-full inline-flex items-center gap-3 animate-pulse">
+              <Terminal className="w-3 h-3 text-rose-500" />
+              <span className="text-[9px] font-black uppercase tracking-[0.2em] text-rose-500">
+                Local Development Mode Active
+              </span>
+            </div>
+          )}
+
           <div className="space-y-6">
             <p className="text-xl serif-display italic text-rose-200/70 leading-relaxed px-4">
               {t.morphing.canvas[0]}
@@ -46,10 +61,20 @@ export const LoginView: React.FC<LoginViewProps> = ({ onSignIn, isLoggingIn, lan
             <button 
               onClick={onSignIn} 
               disabled={isLoggingIn}
-              className="group flex items-center gap-6 px-16 py-7 bg-white text-rose-950 rounded-full font-black text-xs uppercase tracking-[0.4em] hover:bg-rose-50 transition-all shadow-2xl active:scale-95 disabled:opacity-50"
+              className={`group flex items-center gap-6 px-16 py-7 rounded-full font-black text-xs uppercase tracking-[0.4em] transition-all shadow-2xl active:scale-95 disabled:opacity-50 ${
+                isDevelopmentBypass 
+                ? 'bg-rose-800 text-white hover:bg-rose-700' 
+                : 'bg-white text-rose-950 hover:bg-rose-50'
+              }`}
             >
-              {isLoggingIn ? <RefreshCw className="w-5 h-5 animate-spin" /> : <Github className="w-6 h-6 group-hover:scale-110 transition-transform" />}
-              {t.githubSignIn}
+              {isLoggingIn ? (
+                <RefreshCw className="w-5 h-5 animate-spin" />
+              ) : (
+                isDevelopmentBypass 
+                ? <Zap className="w-6 h-6 group-hover:scale-110 transition-transform fill-white/20" />
+                : <Github className="w-6 h-6 group-hover:scale-110 transition-transform" />
+              )}
+              {isDevelopmentBypass ? 'Enter Studio (Dev)' : t.githubSignIn}
             </button>
             
             <div className="pt-4 flex flex-col items-center gap-2 opacity-30 hover:opacity-100 transition-opacity">
