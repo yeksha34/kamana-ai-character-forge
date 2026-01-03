@@ -6,16 +6,18 @@ import { saveUserSecret, fetchUserSecrets, deleteUserSecret } from '../services/
 import { MigrationService } from '../services/migrationService';
 import { DEFAULT_MODELS } from '../data/defaultModels';
 import { STATIC_TAGS } from '../data/staticTags';
+import { SCHEMA_SQL } from '../data/schemaSql';
 import { encryptSecret } from '../utils/encryption';
 import { GlassCard } from '../components/ui/GlassCard';
 import { DisplayTitle } from '../components/ui/DisplayTitle';
-import { Key, Shield, Database, RefreshCw, Save, Trash2, Eye, EyeOff, Hash, ArrowLeft, CheckCircle, Calendar } from 'lucide-react';
+import { Key, Shield, Database, RefreshCw, Save, Trash2, Eye, EyeOff, Hash, ArrowLeft, CheckCircle, Calendar, Code, ChevronRight } from 'lucide-react';
 
 export const SettingsView: React.FC<{ onNavigate?: (route: string) => void }> = ({ onNavigate }) => {
   const { user } = useAuth();
   const { refreshModels, refreshTags, isKeyAvailable } = useAppContext();
   const [secrets, setSecrets] = useState<AISecret[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [showSchema, setShowSchema] = useState(false);
   const [showKey, setShowKey] = useState<Record<string, boolean>>({});
   const [form, setForm] = useState({ provider: AIProvider.GEMINI, key: '' });
 
@@ -54,9 +56,7 @@ export const SettingsView: React.FC<{ onNavigate?: (route: string) => void }> = 
   const handleSyncRegistry = async () => {
     setIsLoading(true);
     try {
-      // Force sync the registries via migration service
       await MigrationService.forceSyncRegistry();
-      // Update application state
       await refreshModels();
       await refreshTags();
       alert("Creative Axis synchronized with the central repository!");
@@ -196,16 +196,45 @@ export const SettingsView: React.FC<{ onNavigate?: (route: string) => void }> = 
                </div>
             </div>
             <p className="text-[11px] italic text-rose-200/50 leading-relaxed font-serif">Models are platform-agnostic. Vault keys to enable them in the Forge Studio.</p>
-            <button 
-              onClick={handleSyncRegistry}
-              disabled={isLoading}
-              className="w-full py-6 bg-rose-950/40 border border-rose-900/30 text-rose-500 rounded-2xl text-[11px] font-black uppercase tracking-[0.3em] flex flex-col items-center justify-center gap-3 hover:bg-rose-900/20 transition-all group"
-            >
-              <div className="relative">
-                <RefreshCw className={`w-10 h-10 transition-all duration-700 ${isLoading ? 'animate-architect-spin' : 'group-hover:rotate-180'}`} />
+            
+            <div className="space-y-4">
+              <button 
+                onClick={handleSyncRegistry}
+                disabled={isLoading}
+                className="w-full py-6 bg-rose-950/40 border border-rose-900/30 text-rose-500 rounded-2xl text-[11px] font-black uppercase tracking-[0.3em] flex flex-col items-center justify-center gap-3 hover:bg-rose-900/20 transition-all group"
+              >
+                <div className="relative">
+                  <RefreshCw className={`w-10 h-10 transition-all duration-700 ${isLoading ? 'animate-architect-spin' : 'group-hover:rotate-180'}`} />
+                </div>
+                <span className="mt-2">Re-Sync Creative Axis</span>
+              </button>
+
+              <button 
+                onClick={() => setShowSchema(!showSchema)}
+                className="w-full py-4 bg-black/40 border border-rose-950/20 text-rose-900 rounded-xl text-[9px] font-black uppercase tracking-widest flex items-center justify-center gap-3 hover:text-rose-500 hover:border-rose-900/40 transition-all"
+              >
+                <Code className="w-3 h-3" />
+                {showSchema ? 'Hide Database Blueprint' : 'View Database Blueprint'}
+                <ChevronRight className={`w-3 h-3 transition-transform duration-300 ${showSchema ? 'rotate-90' : ''}`} />
+              </button>
+            </div>
+
+            {showSchema && (
+              <div className="animate-in fade-in slide-in-from-top-4 duration-500">
+                <div className="relative group">
+                  <div className="absolute -inset-0.5 bg-gradient-to-r from-rose-500 to-rose-900 rounded-xl blur opacity-10 group-hover:opacity-20 transition duration-1000"></div>
+                  <textarea 
+                    readOnly
+                    className="relative w-full h-[200px] bg-black/60 border border-rose-950/40 rounded-xl p-4 font-mono text-[9px] text-rose-300/60 custom-scrollbar focus:ring-0"
+                    value={SCHEMA_SQL}
+                  />
+                  <div className="absolute top-2 right-4 flex gap-2">
+                    <span className="text-[7px] font-black uppercase tracking-widest text-rose-900/40">Read-Only View</span>
+                  </div>
+                </div>
               </div>
-              <span className="mt-2">Re-Sync Creative Axis</span>
-            </button>
+            )}
+
             <div className="flex items-start gap-4 p-6 bg-amber-950/10 border border-amber-900/20 rounded-2xl">
               <Shield className="w-5 h-5 text-amber-600 shrink-0" />
               <div className="space-y-1">
