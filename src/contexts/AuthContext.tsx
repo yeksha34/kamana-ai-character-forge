@@ -148,6 +148,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         setUser(mockUser);
         localStorage.setItem('kamana_mock_user', JSON.stringify(mockUser));
         setAgeVerified(true);
+        // Explicitly trigger hash change for dev bypass redirect
+        window.location.hash = "#/studio/new";
       } else {
         const { error } = await supabase!.auth.signInWithOAuth({
           provider: 'github',
@@ -178,6 +180,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
     setUser(null);
     setAgeVerified(false);
+    window.location.hash = "#/login";
   }, [isDevelopmentBypass, setAgeVerified]);
 
   const value: AuthContextType = {

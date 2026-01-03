@@ -1,5 +1,7 @@
 
 import { Language, translations } from '../i18n/translations';
+import { GlassCard } from '../components/ui/GlassCard';
+import { DisplayTitle } from '../components/ui/DisplayTitle';
 import { Fingerprint, Flame, Github, RefreshCw, ShieldAlert, Terminal, Zap } from 'lucide-react';
 import React from 'react';
 
@@ -23,15 +25,12 @@ export const LoginView: React.FC<LoginViewProps> = ({
       <div className="aura-blob bg-rose-600 top-[-20%] left-[-10%] opacity-5" />
       <div className="aura-blob bg-rose-950 bottom-[-20%] right-[-10%] opacity-5" />
       
-      <div className="max-w-xl w-full art-glass rounded-[4rem] p-16 md:p-24 text-center space-y-16 border border-rose-900/30 relative z-10 shadow-[0_0_150px_rgba(225,29,72,0.15)] animate-in fade-in zoom-in duration-1000">
+      <GlassCard padding="xl" className="max-w-xl w-full rounded-[4rem] text-center space-y-16 border-rose-900/30 relative z-10 shadow-[0_0_150px_rgba(225,29,72,0.15)] animate-in fade-in zoom-in duration-1000">
         <div className="space-y-8">
            <div className="w-28 h-28 bg-gradient-to-tr from-rose-950 to-rose-600 rounded-full mx-auto flex items-center justify-center shadow-[0_0_60px_rgba(225,29,72,0.4)] transform hover:rotate-12 transition-transform duration-700">
               <Flame className="w-14 h-14 text-white" />
            </div>
-           <div className="space-y-4">
-            <h1 className="text-[7rem] serif-display italic text-rose-50 leading-none tracking-tighter glow-text">{t.appTitle}</h1>
-            <p className="text-[11px] font-black uppercase tracking-[1em] text-rose-800">{t.appSubtitle}</p>
-           </div>
+           <DisplayTitle marathi={t.appTitle} english={t.appSubtitle} size="xl" />
         </div>
 
         <div className="space-y-12">
@@ -83,7 +82,7 @@ export const LoginView: React.FC<LoginViewProps> = ({
             </div>
           </div>
         </div>
-      </div>
+      </GlassCard>
       
       <footer className="absolute bottom-12 text-rose-950/20 font-black text-[9px] uppercase tracking-[1em]">
         © २०२५ {t.appTitle} आर्ट स्टुडिओ

@@ -2,20 +2,20 @@
 import { CharacterField, Platform } from "../types";
 import { GoogleGenAI, Type } from "@google/genai";
 
-const TEXT_MODEL = "gemini-3-pro-preview";
+const TEXT_MODEL = "gemini-3-flash-preview";
 const IMAGE_MODEL = "gemini-2.5-flash-image";
 
 export class GeminiService {
   async generateCharacterText(params: {
     prompt: string;
     platforms: Platform[];
+    platformRequirements: { platform: string, fields: string[] }[];
     isNSFW: boolean;
     tags: string[];
     existingFields: CharacterField[];
     selectedModel?: string;
   }) {
-    const { prompt, platforms, isNSFW, tags, existingFields, selectedModel } = params;
-    // Always use process.env.API_KEY directly for Gemini API initialization
+    const { prompt, platforms, platformRequirements, isNSFW, tags, existingFields, selectedModel } = params;
     const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
     const lockedContext = existingFields
@@ -23,23 +23,34 @@ export class GeminiService {
       .map(f => `${f.label}:${f.value.substring(0, 100)}...`)
       .join('|');
 
-    const systemInstruction = `Expert RP Character Forge. Concise output. 
-    NSFW: ${isNSFW ? 'YES' : 'NO'}. 
-    Tags: ${tags.join(',')}. 
-    Locked: ${lockedContext}. 
-    Respond in JSON only.`;
+    // Create a strict mapping string for the AI to follow
+    const fieldMapping = platformRequirements
+      .map(p => `For ${p.platform}, you MUST generate these fields: [${p.fields.join(', ')}]`)
+      .join('. ');
+
+    const systemInstruction = `Expert Roleplay Character Forge. 
+    You create high-quality, immersive character data for specific RP platforms.
+    
+    CORE REQUIREMENTS:
+    1. STRICT FIELD ADHERENCE: ${fieldMapping}.
+    2. NSFW CONTENT: ${isNSFW ? 'ENABLED. Explicit and mature themes are allowed and should be detailed if the user prompt implies them.' : 'DISABLED. Keep content SFW.'}
+    3. TAGS/ATTRIBUTES: Incorporate these vibes: ${tags.join(',')}.
+    4. PERSISTENCE: Respect these locked fields: ${lockedContext}.
+    5. STYLE: Poetic, psychological, and evocative.
+    
+    OUTPUT FORMAT: JSON ONLY. Use field labels exactly as requested above.`;
 
     const schema = {
       type: Type.OBJECT,
       properties: {
-        name: { type: Type.STRING },
+        name: { type: Type.STRING, description: "Full name of the character" },
         fields: {
           type: Type.ARRAY,
           items: {
             type: Type.OBJECT,
             properties: {
-              label: { type: Type.STRING },
-              value: { type: Type.STRING }
+              label: { type: Type.STRING, description: "Exact label from the requirements" },
+              value: { type: Type.STRING, description: "Rich, formatted content for this field" }
             }
           }
         }
@@ -49,12 +60,12 @@ export class GeminiService {
 
     const response = await ai.models.generateContent({
       model: selectedModel || TEXT_MODEL,
-      contents: `Prompt: "${prompt}". Target: ${platforms.join(',')}`,
+      contents: `Create character data based on this vision: "${prompt}". Targeted Platforms: ${platforms.join(', ')}.`,
       config: {
         systemInstruction,
         responseMimeType: "application/json",
         responseSchema: schema,
-        temperature: 0.8
+        temperature: 0.85
       }
     });
 
@@ -68,16 +79,14 @@ export class GeminiService {
     selectedModel?: string;
   }) {
     const { prompt, type, isNSFW, selectedModel } = params;
-    // Always use process.env.API_KEY directly for Gemini API initialization
     const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
     
     const modelToUse = selectedModel || IMAGE_MODEL;
 
-    // Handle Imagen model specifically
     if (modelToUse === 'imagen-4.0-generate-001') {
       const response = await ai.models.generateImages({
         model: 'imagen-4.0-generate-001',
-        prompt: `${type} illustration. ${isNSFW ? 'Adult/Mature' : 'SFW'}. Topic: ${prompt}`,
+        prompt: `${type === 'character' ? 'Highly detailed portrait' : 'Atmospheric scenario environment'} of: ${prompt}. ${isNSFW ? 'Mature/Suggestive' : 'SFW'}. Masterpiece quality, cinematic lighting.`,
         config: {
           numberOfImages: 1,
           aspectRatio: '1:1',
@@ -88,8 +97,7 @@ export class GeminiService {
       return `data:image/png;base64,${bytes}`;
     }
 
-    // Default to generateContent for Gemini-based image models
-    const imagePrompt = `${type} illustration. ${isNSFW ? 'Suggestive/NSFW' : 'Cinematic/SFW'}. Topic: ${prompt}`;
+    const imagePrompt = `${type === 'character' ? 'Portrait' : 'Environment'}. Style: Cinematic, detailed. Topic: ${prompt}. ${isNSFW ? 'Mature content allowed' : 'SFW'}`;
 
     const response = await ai.models.generateContent({
       model: modelToUse,

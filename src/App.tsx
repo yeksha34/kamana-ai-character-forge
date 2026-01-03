@@ -1,49 +1,85 @@
 
 import { useAuth } from "./contexts/AuthContext";
+import { useAppContext } from "./contexts/AppContext";
 import { useHashRouter } from "./hooks/useHashRouter";
 import { AppLayout } from "./layout/AppLayout";
 import { LoginPage } from "./pages/LoginPage";
 import { MuseumPage } from "./pages/MuseumPage";
 import { StudioPage } from "./pages/StudioPage";
-import { useState } from "react";
-import { Language } from "./i18n/translations";
+import { SettingsPage } from "./pages/SettingsPage";
+import { useEffect } from "react";
 
 function App() {
-  const [language, setLanguage] = useState<Language>(() => (localStorage.getItem('kamana_lang') as Language) || 'mr');
-
   const auth = useAuth();
-  const { route, navigate } = useHashRouter(
-    auth.user ? "#/studio" : "#/login"
-  );
+  const { language } = useAppContext();
+  const { route, navigate } = useHashRouter("#/login");
+
+  useEffect(() => {
+    if (!auth.isLoading) {
+      if (auth.user) {
+        // Redirect away from login if authenticated
+        if (route === "#/login" || route === "") {
+          navigate("#/studio/new");
+        }
+      } else {
+        // Redirect to login if NOT authenticated and trying to access protected route
+        if (route !== "#/login") {
+          navigate("#/login");
+        }
+      }
+    }
+  }, [auth.isLoading, auth.user, route, navigate]);
+
   if (auth.isLoading) {
-    return <div className="min-h-screen flex items-center justify-center">Loading…</div>;
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center bg-black text-rose-500">
+        <div className="w-16 h-16 border-4 border-rose-900 border-t-rose-500 rounded-full animate-spin mb-8" />
+        <span className="serif-display italic text-2xl animate-pulse tracking-widest">
+          Loading desire...
+        </span>
+      </div>
+    );
   }
+
+  // Determine view based on route and auth status
+  const isLoginPage = route === "#/login" || !auth.user;
 
   return (
     <AppLayout>
-      {route === "#/login" && (
+      {isLoginPage ? (
         <LoginPage
           onSignIn={auth.signIn}
           isLoggingIn={auth.isLoggingIn}
           language={language}
           isDevelopmentBypass={auth.isDevelopmentBypass}
         />
-      )}
+      ) : (
+        <>
+          {route.startsWith("#/studio") && (
+            <StudioPage
+              key={route}
+              user={auth.user}
+              onSignOut={auth.signOut}
+              onNavigate={navigate}
+            />
+          )}
 
-      {route.startsWith("#/studio") && (
-        <StudioPage
-          {...auth}
-          language={language}
-          onNavigate={navigate}
-        />
-      )}
+          {route === "#/museum" && (
+            <MuseumPage
+              user={auth.user}
+              onSignOut={auth.signOut}
+              onNavigate={navigate}
+            />
+          )}
 
-      {route === "#/museum" && (
-        <MuseumPage
-          {...auth}
-          language={language}
-          onNavigate={navigate}
-        />
+          {route === "#/settings" && (
+            <SettingsPage
+              user={auth.user}
+              onSignOut={auth.signOut}
+              onNavigate={navigate}
+            />
+          )}
+        </>
       )}
     </AppLayout>
   );

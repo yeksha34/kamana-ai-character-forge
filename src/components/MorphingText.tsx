@@ -24,9 +24,25 @@ export const MorphingText: React.FC<MorphingTextProps> = ({ value, language, eng
 
   return (
     <div className={`flex flex-col ${className}`}>
-      <span className="transition-all duration-1000 ease-in-out whitespace-nowrap">
-        {options[index]}
-      </span>
+      {/* 
+        Container for the morphing text with stable width. 
+        We use a grid layout where all options are technically rendered to calculate 
+        the maximum width, but only one is visible.
+      */}
+      <div className="grid grid-cols-1 grid-rows-1 items-baseline">
+        {/* Invisible shadow items to force the container to the maximum width of all options */}
+        <div className="invisible h-0 overflow-hidden whitespace-nowrap col-start-1 row-start-1 pointer-events-none" aria-hidden="true">
+          {options.map((opt, i) => (
+            <div key={i}>{opt}</div>
+          ))}
+        </div>
+        
+        {/* The actually visible text */}
+        <span className="col-start-1 row-start-1 transition-all duration-1000 ease-in-out whitespace-nowrap">
+          {options[index]}
+        </span>
+      </div>
+
       <span className="text-[9px] uppercase tracking-[0.4em] font-bold -mt-1 whitespace-nowrap opacity-40">
         {english}
       </span>

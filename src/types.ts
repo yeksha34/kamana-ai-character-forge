@@ -11,6 +11,29 @@ export enum AIProvider {
   CLAUDE = 'Claude'
 }
 
+export interface AIModelMeta {
+  id: string;
+  name: string;
+  isFree: boolean;
+  provider: AIProvider;
+  type: 'text' | 'image';
+}
+
+export interface TagMeta {
+  id: string;
+  name: string;
+  textGenerationRule: string;
+  imageGenerationRule: string;
+  isNSFW: boolean;
+}
+
+export interface AISecret {
+  id?: string;
+  provider: AIProvider;
+  encryptedKey: string;
+  lastFour?: string;
+}
+
 export type ContentFormat = 'markdown' | 'html' | 'plaintext';
 export type CharacterStatus = 'draft' | 'finalized';
 

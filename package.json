@@ -1,7 +1,7 @@
 {
   "name": "कामना-(kamana)---ai-character-forge",
   "private": true,
-  "version": "0.0.0",
+  "version": "1.0.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
