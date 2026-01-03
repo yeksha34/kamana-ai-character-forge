@@ -1,5 +1,3 @@
-
-// Fix: Import TagMeta from the correct types file instead of the interface file which does not export it.
 import { TagMeta } from "../../types";
 import { ForgeProvider } from "./providerInterface";
 
@@ -24,17 +22,19 @@ export class FireworksForgeProvider implements ForgeProvider {
   }
 
   async refinePrompt(params: { prompt: string, tags: TagMeta[], isNSFW: boolean, modelId: string }): Promise<string> {
+    const tagRules = params.tags.map(t => `[${t.textGenerationRule}]`).join(' ');
     const res = await this.fetchFireworks({
       model: params.modelId,
-      messages: [{ role: "user", content: `Refine this character vision: ${params.prompt}` }]
+      messages: [{ role: "user", content: `Refine vision: ${params.prompt}. Behavior Rules: ${tagRules}` }]
     });
     return res.choices[0].message.content.trim();
   }
 
   async generatePlatformContent(params: any) {
+    const tagRules = params.tags.map((t: any) => `[${t.textGenerationRule}]`).join(' ');
     const res = await this.fetchFireworks({
       model: params.modelId,
-      messages: [{ role: "system", content: "Output JSON ONLY. {name, fields:[]}" }, { role: "user", content: params.modifiedPrompt }],
+      messages: [{ role: "system", content: `Output JSON ONLY. Apply logic: ${tagRules}` }, { role: "user", content: params.modifiedPrompt }],
       response_format: { type: "json_object" }
     });
     return JSON.parse(res.choices[0].message.content);

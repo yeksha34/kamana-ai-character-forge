@@ -1,4 +1,3 @@
-
 import { CharacterField, Platform, TagMeta, AIDungeonCard } from "../../types";
 import { ForgeProvider } from "./providerInterface";
 
@@ -23,7 +22,7 @@ export class OpenAIForgeProvider implements ForgeProvider {
   }
 
   async refinePrompt(params: { prompt: string, tags: TagMeta[], isNSFW: boolean, modelId: string }): Promise<string> {
-    const tagSummary = params.tags.map(t => t.textGenerationRule).join("; ");
+    const tagSummary = params.tags.map(t => `[${t.textGenerationRule}]`).join(" ");
     const system = `Master Prompt Engineer. Refine this RP vision. Behavioral Rules: ${tagSummary}. ${params.isNSFW ? 'NSFW ACTIVE.' : ''} Output ONLY the refined text.`;
     
     const result = await this.fetchOpenAI("chat/completions", {
@@ -34,7 +33,8 @@ export class OpenAIForgeProvider implements ForgeProvider {
   }
 
   async generatePlatformContent(params: any) {
-    const system = `Character Architect. Output JSON ONLY: { "name": "...", "fields": [{ "label": "...", "value": "..." }] }. Platforms: ${params.platforms.join(',')}. ${params.isNSFW ? 'NSFW MODE.' : ''}`;
+    const tagRules = params.tags.map((t: any) => `[${t.textGenerationRule}]`).join(' ');
+    const system = `Character Architect. Output JSON ONLY. Enforce Logic: ${tagRules}. Platforms: ${params.platforms.join(',')}. ${params.isNSFW ? 'NSFW MODE.' : ''}`;
     const result = await this.fetchOpenAI("chat/completions", {
       model: params.modelId,
       messages: [{ role: "system", content: system }, { role: "user", content: params.modifiedPrompt }],
@@ -53,7 +53,6 @@ export class OpenAIForgeProvider implements ForgeProvider {
   }
 
   async generateImage(params: { prompt: string, isNSFW: boolean, modelId: string }) {
-    // DALL-E 3
     const result = await this.fetchOpenAI("images/generations", {
       model: "dall-e-3",
       prompt: params.prompt,
@@ -75,7 +74,8 @@ export class OpenAIForgeProvider implements ForgeProvider {
   }
 
   async generateSystemRules(params: any): Promise<string> {
-    const system = `Logic Architect. Construct [SYSTEM INFORMATION: ...] block. Context: ${params.content.substring(0, 300)}`;
+    const tagRules = params.tags.map((t: any) => `[${t.textGenerationRule}]`).join('\n');
+    const system = `Logic Architect. Construct [SYSTEM INFORMATION: ...] block. Rule constraints: \n${tagRules}\n. Context: ${params.content.substring(0, 300)}`;
     const result = await this.fetchOpenAI("chat/completions", {
       model: params.modelId,
       messages: [{ role: "system", content: system }, { role: "user", content: "Finalize rules." }]

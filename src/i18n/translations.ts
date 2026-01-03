@@ -7,16 +7,16 @@ export type Language = 'mr' | 'en' | 'hi';
 export const translations = {
   mr: {
     appTitle: "कामना",
-    appSubtitle: "The Forge of AI Desire",
+    appSubtitle: "AI वासनेची कार्यशाळा",
     studio: "कार्यशाळा",
     museum: "दालन",
     login: "प्रवेश",
     githubSignIn: "GitHub द्वारे प्रवेश करा",
     ageRestriction: "१८+ वयोगटासाठी अनिवार्य",
     imagination: "कल्पनाशक्ती",
-    tags: "टॅग्स",
+    tags: "गुणधर्म",
     platforms: "मंच",
-    modelConfig: "मॉडेल संरचना",
+    modelConfig: "मॉडेल रचना",
     provider: "सेवा प्रदाता",
     breatheLife: "प्राण फुंका",
     sculptor: "मुर्तिकार",
@@ -30,6 +30,11 @@ export const translations = {
     scenario: "प्रसंग",
     nsfwLabel: "प्रौढ सामग्री",
     biometric: "बायोमेट्रिक प्रमाणीकरण सक्षम",
+    themes: {
+      [Theme.SOFTCORE]: "कोमल",
+      [Theme.DEFAULT]: "नैसर्गिक",
+      [Theme.HARDCORE]: "प्रखर"
+    },
     morphing: {
       desire: categorizedProfanity.mr.desire[Theme.DEFAULT],
       imagination: categorizedProfanity.mr.imagination[Theme.DEFAULT],
@@ -62,6 +67,11 @@ export const translations = {
     scenario: "Scenario",
     nsfwLabel: "NSFW Content",
     biometric: "Biometric Auth Enabled",
+    themes: {
+      [Theme.SOFTCORE]: "Sensual",
+      [Theme.DEFAULT]: "Natural",
+      [Theme.HARDCORE]: "Visceral"
+    },
     morphing: {
       desire: categorizedProfanity.en.desire[Theme.DEFAULT],
       imagination: categorizedProfanity.en.imagination[Theme.DEFAULT],
@@ -71,11 +81,11 @@ export const translations = {
   },
   hi: {
     appTitle: "कामना",
-    appSubtitle: "The Forge of AI Desire",
+    appSubtitle: "एआई वासना की कार्यशाला",
     studio: "स्टूडियो",
     museum: "संग्रहालय",
     login: "लॉगिन",
-    githubSignIn: "GitHub से जुड़ें",
+    githubSignIn: "GitHub से जुड़ें",
     ageRestriction: "18+ वयस्कों के लिए",
     imagination: "कल्पना",
     tags: "विशेषताएं",
@@ -85,7 +95,7 @@ export const translations = {
     breatheLife: "प्राण फूँकें",
     sculptor: "मूर्तिकार",
     placeholderPrompt: "अपनी स्याही यहाँ उंडेलें...",
-    placeholderTag: "विशेषता जोड़ें...",
+    placeholderTag: "विशेषता जोड़ें...",
     edit: "संपादन",
     delete: "मिटाएं",
     save: "सहेजें",
@@ -94,6 +104,11 @@ export const translations = {
     scenario: "दृश्य",
     nsfwLabel: "NSFW सामग्री",
     biometric: "बायोमेट्रिक प्रमाणीकरण सक्षम",
+    themes: {
+      [Theme.SOFTCORE]: "मृदुल",
+      [Theme.DEFAULT]: "स्वाभाविक",
+      [Theme.HARDCORE]: "बीभत्स"
+    },
     morphing: {
       desire: categorizedProfanity.hi.desire[Theme.DEFAULT],
       imagination: categorizedProfanity.hi.imagination[Theme.DEFAULT],

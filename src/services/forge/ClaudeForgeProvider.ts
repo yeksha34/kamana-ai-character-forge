@@ -1,4 +1,3 @@
-
 import Anthropic from "@anthropic-ai/sdk";
 import { CharacterField, Platform, TagMeta, AIDungeonCard } from "../../types";
 import { ForgeProvider } from "./providerInterface";
@@ -20,7 +19,7 @@ export class ClaudeForgeProvider implements ForgeProvider {
     const coreLogic = tags.filter(t => t.id.startsWith('logic'));
     let instructions = "NSFW MODE: ACTIVE.";
     if (coreLogic.length > 0) {
-      instructions += " BEHAVIORAL OVERRIDES: " + coreLogic.map(t => t.textGenerationRule).join(' ');
+      instructions += " BEHAVIORAL OVERRIDES: " + coreLogic.map(t => `[${t.textGenerationRule}]`).join(' ');
     }
     return instructions;
   }
@@ -28,11 +27,12 @@ export class ClaudeForgeProvider implements ForgeProvider {
   async refinePrompt(params: { prompt: string, tags: TagMeta[], isNSFW: boolean, modelId: string }): Promise<string> {
     const client = this.getClient();
     if (!client) return params.prompt;
+    const tagRules = params.tags.map(t => `[${t.textGenerationRule}]`).join(' ');
     const nsfwPart = this.constructNSFWInstruction(params.isNSFW, params.tags);
     const response = await client.messages.create({
       model: params.modelId,
       max_tokens: 1000,
-      system: `Master Prompt Gen. ${nsfwPart}`,
+      system: `Master Prompt Gen. Rules: ${tagRules}. ${nsfwPart}`,
       messages: [{ role: "user", content: params.prompt }]
     });
     return (response.content[0] as any).text.trim();
@@ -41,10 +41,11 @@ export class ClaudeForgeProvider implements ForgeProvider {
   async generatePlatformContent(params: any) {
     const client = this.getClient();
     if (!client) return { name: "Error", fields: [] };
+    const tagRules = params.tags.map((t: any) => `[${t.textGenerationRule}]`).join(' ');
     const response = await client.messages.create({
       model: params.modelId,
       max_tokens: 2000,
-      system: "Construct character JSON.",
+      system: `Construct character JSON. Behavior Logic: ${tagRules}`,
       messages: [{ role: "user", content: params.modifiedPrompt }]
     });
     const text = (response.content[0] as any).text.trim();
@@ -81,10 +82,11 @@ export class ClaudeForgeProvider implements ForgeProvider {
   async generateSystemRules(params: any) {
     const client = this.getClient();
     if (!client) return "";
+    const tagRules = params.tags.map((t: any) => `[${t.textGenerationRule}]`).join('\n');
     const response = await client.messages.create({
       model: params.modelId,
       max_tokens: 1000,
-      system: "Construct system information block.",
+      system: `Construct system information block. Mandatory Rules: \n${tagRules}`,
       messages: [{ role: "user", content: params.content }]
     });
     return (response.content[0] as any).text.trim();

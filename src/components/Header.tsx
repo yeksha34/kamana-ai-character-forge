@@ -47,28 +47,28 @@ export const Header: React.FC<HeaderProps> = ({
 
       <div className="flex items-center gap-8">
         <div className="flex items-center gap-4">
-          {/* Theme Switcher Pill */}
+          {/* Localized Theme Switcher Pill */}
           <div className="theme-pill">
             <button 
               onClick={() => setTheme(Theme.SOFTCORE)}
-              className={`theme-pill-item flex items-center gap-1 ${theme === Theme.SOFTCORE ? 'active' : ''}`}
+              className={`theme-pill-item flex items-center gap-1.5 ${theme === Theme.SOFTCORE ? 'active' : ''}`}
             >
               <Sparkles className="w-2.5 h-2.5" />
-              <span>Soft</span>
+              <span>{t.themes[Theme.SOFTCORE]}</span>
             </button>
             <button 
               onClick={() => setTheme(Theme.DEFAULT)}
-              className={`theme-pill-item flex items-center gap-1 ${theme === Theme.DEFAULT ? 'active' : ''}`}
+              className={`theme-pill-item flex items-center gap-1.5 ${theme === Theme.DEFAULT ? 'active' : ''}`}
             >
               <Ghost className="w-2.5 h-2.5" />
-              <span>Def</span>
+              <span>{t.themes[Theme.DEFAULT]}</span>
             </button>
             <button 
               onClick={() => setTheme(Theme.HARDCORE)}
-              className={`theme-pill-item flex items-center gap-1 ${theme === Theme.HARDCORE ? 'active' : ''}`}
+              className={`theme-pill-item flex items-center gap-1.5 ${theme === Theme.HARDCORE ? 'active' : ''}`}
             >
               <Skull className="w-2.5 h-2.5" />
-              <span>Hard</span>
+              <span>{t.themes[Theme.HARDCORE]}</span>
             </button>
           </div>
 
@@ -100,7 +100,7 @@ export const Header: React.FC<HeaderProps> = ({
         {user && (
           <div className="flex items-center gap-6 relative" ref={dropdownRef}>
             <div
-              className="flex flex-col text-right cursor-pointer group/user flex"
+              className="flex flex-col text-right cursor-pointer group/user"
               onClick={() => setIsPlanOpen(!isPlanOpen)}
             >
               <div className="flex items-center justify-end gap-2">

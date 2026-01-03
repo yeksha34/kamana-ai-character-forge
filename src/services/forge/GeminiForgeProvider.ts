@@ -1,10 +1,8 @@
-
 import { GoogleGenAI, Type } from "@google/genai";
 import { CharacterField, Platform, TagMeta, AIDungeonCard } from "../../types";
 import { ForgeProvider } from "./providerInterface";
 
 export class GeminiForgeProvider implements ForgeProvider {
-  // Priority: 1. Vault Key (via setApiKey), 2. Dev Env Key
   private apiKey: string = process.env.VITE_DEV_GEMINI_KEY || "";
 
   setApiKey(key: string): void {
@@ -20,7 +18,7 @@ export class GeminiForgeProvider implements ForgeProvider {
     const coreLogic = tags.filter(t => t.id.startsWith('logic'));
     let instructions = "NSFW MODE: ACTIVE. Be visceral and explicit.";
     if (coreLogic.length > 0) {
-      instructions += " BEHAVIORAL OVERRIDES: " + coreLogic.map(t => t.textGenerationRule).join(' ');
+      instructions += " BEHAVIORAL OVERRIDES: " + coreLogic.map(t => `[${t.textGenerationRule}]`).join(' ');
     }
     return instructions;
   }
@@ -28,9 +26,9 @@ export class GeminiForgeProvider implements ForgeProvider {
   async refinePrompt(params: { prompt: string, tags: TagMeta[], isNSFW: boolean, modelId: string }): Promise<string> {
     const { prompt, tags, isNSFW, modelId } = params;
     const ai = this.getClient();
-    const tagRules = tags.map(t => `${t.name}: ${t.textGenerationRule}`).join('; ');
+    const tagRules = tags.map(t => `[${t.textGenerationRule}]`).join(' ');
     const nsfwPart = this.constructNSFWInstruction(isNSFW, tags);
-    const systemInstruction = `Prompt Engineer. Incorporate: ${tagRules}. ${nsfwPart}. Output ONLY refined text.`;
+    const systemInstruction = `Prompt Engineer. Incorporate behavior logic: ${tagRules}. ${nsfwPart}. Output ONLY refined text.`;
 
     const response = await ai.models.generateContent({
       model: modelId,
@@ -44,8 +42,9 @@ export class GeminiForgeProvider implements ForgeProvider {
     const { modifiedPrompt, platformRequirements, isNSFW, tags, modelId } = params;
     const ai = this.getClient();
     const fieldMapping = platformRequirements.map((p: any) => `For ${p.platform}, generate: [${p.fields.join(', ')}]`).join('. ');
+    const tagRules = tags.map((t: any) => `[${t.textGenerationRule}]`).join(' ');
     const nsfwPart = this.constructNSFWInstruction(isNSFW, tags);
-    const systemInstruction = `Character Architect. Vision: "${modifiedPrompt}". Fields: ${fieldMapping}. ${nsfwPart}. JSON ONLY.`;
+    const systemInstruction = `Character Architect. Vision: "${modifiedPrompt}". Enforce Rules: ${tagRules}. Fields: ${fieldMapping}. ${nsfwPart}. JSON ONLY.`;
 
     const schema = {
       type: Type.OBJECT,
@@ -119,8 +118,8 @@ export class GeminiForgeProvider implements ForgeProvider {
   async generateSystemRules(params: any): Promise<string> {
     const { tags, content, isNSFW, modelId } = params;
     const ai = this.getClient();
-    const tagSummary = tags.map((t: any) => t.textGenerationRule).join('\n');
-    const systemInstruction = `Logic Architect. Tone: ${tagSummary}. ${isNSFW ? 'NSFW: Yes.' : ''} Wrap in [SYSTEM INFORMATION: ...].`;
+    const tagSummary = tags.map((t: any) => `[${t.textGenerationRule}]`).join('\n');
+    const systemInstruction = `Logic Architect. Enforce behaviors: \n${tagSummary}\n ${isNSFW ? 'NSFW: Yes.' : ''} Wrap in [SYSTEM INFORMATION: ...].`;
     const response = await ai.models.generateContent({
       model: modelId,
       contents: `Construct logic for: ${content.substring(0, 300)}...`,
