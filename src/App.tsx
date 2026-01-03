@@ -1,4 +1,3 @@
-
 import { useAuth } from "./contexts/AuthContext";
 import { useAppContext } from "./contexts/AppContext";
 import { useHashRouter } from "./hooks/useHashRouter";
@@ -8,11 +7,17 @@ import { MuseumPage } from "./pages/MuseumPage";
 import { StudioPage } from "./pages/StudioPage";
 import { SettingsPage } from "./pages/SettingsPage";
 import { useEffect } from "react";
+import { MigrationService } from "./services/migrationService";
 
 function App() {
   const auth = useAuth();
   const { language } = useAppContext();
   const { route, navigate } = useHashRouter("#/login");
+
+  useEffect(() => {
+    // Run data migrations/hydration whenever the app initializes
+    MigrationService.runMigrations();
+  }, []);
 
   useEffect(() => {
     if (!auth.isLoading) {
