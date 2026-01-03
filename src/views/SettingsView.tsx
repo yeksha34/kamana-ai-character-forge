@@ -2,38 +2,37 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useAppContext } from '../contexts/AppContext';
-import { AIProvider, AIModelMeta, AISecret, TagMeta } from '../types';
+import { AIProvider, AIModelMeta, AISecret } from '../types';
 import { saveUserSecret, fetchUserSecrets, deleteUserSecret, saveModelsBulk, saveTagsBulk } from '../services/supabaseDatabaseService';
 import { encryptSecret } from '../utils/encryption';
 import { GlassCard } from '../components/ui/GlassCard';
 import { DisplayTitle } from '../components/ui/DisplayTitle';
-import { Key, Shield, Database, RefreshCw, Save, Trash2, Eye, EyeOff, Hash, ArrowLeft } from 'lucide-react';
+import { Key, Shield, Database, RefreshCw, Save, Trash2, Eye, EyeOff, Hash, ArrowLeft, CheckCircle, Calendar } from 'lucide-react';
 import { STATIC_TAGS } from '../data/staticTags';
 
 const DEFAULT_MODELS: AIModelMeta[] = [
   { id: 'gemini-3-flash-preview', name: 'Gemini 3 Flash', isFree: true, provider: AIProvider.GEMINI, type: 'text' },
   { id: 'gemini-3-pro-preview', name: 'Gemini 3 Pro', isFree: false, provider: AIProvider.GEMINI, type: 'text' },
-  { id: 'gemini-flash-lite-latest', name: 'Gemini Flash Lite', isFree: true, provider: AIProvider.GEMINI, type: 'text' },
+  { id: 'gemini-2.5-flash-image', name: 'Gemini Flash Image', isFree: true, provider: AIProvider.GEMINI, type: 'image' },
   { id: 'claude-3-5-haiku-latest', name: 'Claude 3.5 Haiku', isFree: true, provider: AIProvider.CLAUDE, type: 'text' },
   { id: 'claude-3-5-sonnet-latest', name: 'Claude 3.5 Sonnet', isFree: false, provider: AIProvider.CLAUDE, type: 'text' },
-  { id: 'claude-3-opus-20240229', name: 'Claude 3 Opus', isFree: false, provider: AIProvider.CLAUDE, type: 'text' },
-  { id: 'gemini-2.5-flash-image', name: 'Gemini Flash Image', isFree: true, provider: AIProvider.GEMINI, type: 'image' },
-  { id: 'gemini-3-pro-image-preview', name: 'Gemini Pro Image', isFree: false, provider: AIProvider.GEMINI, type: 'image' },
-  { id: 'imagen-4.0-generate-001', name: 'Imagen 4', isFree: false, provider: AIProvider.GEMINI, type: 'image' },
+  { id: 'gpt-4o', name: 'GPT-4o', isFree: false, provider: AIProvider.OPENAI, type: 'text' },
+  { id: 'gpt-4o-mini', name: 'GPT-4o Mini', isFree: true, provider: AIProvider.OPENAI, type: 'text' },
+  { id: 'llama-3.1-70b-versatile', name: 'Llama 3.1 70B (Groq)', isFree: true, provider: AIProvider.GROQ, type: 'text' },
+  { id: 'mistral-large-latest', name: 'Mistral Large', isFree: false, provider: AIProvider.MISTRAL, type: 'text' },
+  { id: 'stable-diffusion-xl-1024-v1-0', name: 'SDXL 1.0 (Stability)', isFree: false, provider: AIProvider.STABILITY, type: 'image' },
+  { id: 'flux-1-schnell', name: 'Flux.1 Schnell (Together)', isFree: true, provider: AIProvider.TOGETHER, type: 'image' },
+  { id: 'accounts/fireworks/models/llama-v3-70b-instruct', name: 'Llama 3 70B (Fireworks)', isFree: true, provider: AIProvider.FIREWORKS, type: 'text' },
+  { id: 'runwayml/stable-diffusion-v1-5', name: 'SD 1.5 (HuggingFace)', isFree: true, provider: AIProvider.HUGGINGFACE, type: 'image' },
   { id: 'None', name: 'Disable Visuals', isFree: true, provider: AIProvider.GEMINI, type: 'image' },
 ];
 
-interface SettingsViewProps {
-  onNavigate?: (route: string) => void;
-}
-
-export const SettingsView: React.FC<SettingsViewProps> = ({ onNavigate }) => {
+export const SettingsView: React.FC<{ onNavigate?: (route: string) => void }> = ({ onNavigate }) => {
   const { user } = useAuth();
-  const { refreshModels, refreshTags } = useAppContext();
+  const { refreshModels, refreshTags, isKeyAvailable } = useAppContext();
   const [secrets, setSecrets] = useState<AISecret[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [showKey, setShowKey] = useState<Record<string, boolean>>({});
-
   const [form, setForm] = useState({ provider: AIProvider.GEMINI, key: '' });
 
   useEffect(() => {
@@ -58,7 +57,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ onNavigate }) => {
     } catch (e) {
       console.error(e);
     } finally {
-      setTimeout(() => setIsLoading(false), 500);
+      setIsLoading(false);
     }
   };
 
@@ -71,11 +70,13 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ onNavigate }) => {
   const handleSyncRegistry = async () => {
     setIsLoading(true);
     try {
+      // Simulate connection logic to Axis
+      await new Promise(resolve => setTimeout(resolve, 2000));
       await saveModelsBulk(DEFAULT_MODELS);
       await saveTagsBulk(STATIC_TAGS);
       await refreshModels();
       await refreshTags();
-      alert("System Registry synchronized with database!");
+      alert("System Registry synchronized!");
     } catch (e) {
       console.error(e);
     } finally {
@@ -83,9 +84,19 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ onNavigate }) => {
     }
   };
 
+  const formatDate = (ts: number) => {
+    return new Date(ts).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
+  };
+
+  const getStaleStatus = (ts: number) => {
+    const diffDays = (Date.now() - ts) / (1000 * 60 * 60 * 24);
+    if (diffDays > 30) return 'text-amber-500';
+    return 'text-rose-900/40';
+  };
+
   return (
     <div className="min-h-screen pt-48 pb-64 px-8 md:px-16 flex flex-col items-center animate-in fade-in slide-in-from-bottom-4 duration-1000">
-      <div className="max-w-4xl w-full space-y-16">
+      <div className="max-w-6xl w-full space-y-16">
         <div className="flex items-center justify-between border-b border-rose-950/30 pb-12">
           <DisplayTitle marathi="संरचना" english="System Architect" size="lg" />
           {onNavigate && (
@@ -103,34 +114,35 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ onNavigate }) => {
           <GlassCard padding="lg" className="rounded-[3rem] space-y-10">
             <div className="flex items-center gap-4 border-b border-rose-900/10 pb-6">
               <Key className="w-5 h-5 text-rose-600" />
-              <h2 className="text-2xl serif-display text-rose-100">AI Secrets</h2>
+              <h2 className="text-2xl serif-display text-rose-100">AI Vault</h2>
             </div>
 
             <div className="space-y-6">
-              <div className="space-y-2">
-                <label className="text-[9px] font-black uppercase tracking-widest text-rose-900 ml-1">Provider</label>
-                <div className="flex gap-2">
-                  {[AIProvider.GEMINI, AIProvider.CLAUDE].map(p => (
+              <div className="space-y-3">
+                <label className="text-[9px] font-black uppercase tracking-widest text-rose-900 ml-1">Select Provider</label>
+                <div className="grid grid-cols-3 gap-2">
+                  {Object.values(AIProvider).map(p => (
                     <button 
                       key={p} 
                       onClick={() => setForm({ ...form, provider: p })}
-                      className={`flex-1 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all border ${form.provider === p ? 'bg-rose-800 text-white border-rose-600' : 'bg-black/40 text-rose-900 border-rose-950/20'}`}
+                      className={`py-2.5 rounded-xl text-[8px] font-black uppercase tracking-tighter transition-all border flex flex-col items-center gap-1 ${form.provider === p ? 'bg-rose-800 text-white border-rose-600' : 'bg-black/40 text-rose-900 border-rose-950/20'}`}
                     >
                       {p}
+                      {isKeyAvailable(p) && <CheckCircle className="w-2 h-2 text-green-500" />}
                     </button>
                   ))}
                 </div>
               </div>
 
               <div className="space-y-2">
-                <label className="text-[9px] font-black uppercase tracking-widest text-rose-900 ml-1">API Key</label>
+                <label className="text-[9px] font-black uppercase tracking-widest text-rose-900 ml-1">Key for {form.provider}</label>
                 <div className="relative">
                   <input 
                     type={showKey[form.provider] ? 'text' : 'password'}
                     value={form.key}
                     onChange={(e) => setForm({ ...form, key: e.target.value })}
                     className="w-full bg-black/40 border border-rose-950/40 rounded-xl px-6 py-4 text-[11px] text-rose-100 focus:border-rose-700/50 outline-none"
-                    placeholder={`Enter your ${form.provider} key...`}
+                    placeholder={`Enter ${form.provider} API key...`}
                   />
                   <button 
                     onClick={() => setShowKey({ ...showKey, [form.provider]: !showKey[form.provider] })}
@@ -147,28 +159,36 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ onNavigate }) => {
                 className="w-full py-4 bg-rose-600 text-white rounded-xl text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-3 hover:bg-rose-500 transition-all shadow-xl disabled:opacity-20"
               >
                 {isLoading ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-                Encrypt & Save Secret
+                Vault Key
               </button>
             </div>
 
             <div className="space-y-4 pt-6 border-t border-rose-900/10">
-              <h3 className="text-[9px] font-black uppercase tracking-widest text-rose-700">Stored Keys</h3>
-              <div className="space-y-2">
+              <h3 className="text-[9px] font-black uppercase tracking-widest text-rose-700">Configured Node Access</h3>
+              <div className="space-y-2 max-h-[180px] overflow-y-auto custom-scrollbar pr-2">
                 {secrets.length === 0 ? (
-                  <p className="text-[10px] italic text-rose-950">No encrypted keys found.</p>
+                  <p className="text-[10px] italic text-rose-950">No keys in vault.</p>
                 ) : (
                   secrets.map(s => (
-                    <div key={s.provider} className="flex items-center justify-between p-4 bg-black/20 rounded-2xl border border-rose-950/20">
-                      <div className="flex flex-col">
-                        <span className="text-[10px] font-bold text-rose-100 uppercase tracking-widest">{s.provider}</span>
-                        <span className="text-[8px] text-rose-900 font-mono">**** **** **** {s.lastFour}</span>
+                    <div key={s.provider} className="flex flex-col p-4 bg-black/20 rounded-2xl border border-rose-950/20 gap-3">
+                      <div className="flex items-center justify-between">
+                        <div className="flex flex-col">
+                          <span className="text-[9px] font-bold text-rose-100 uppercase tracking-widest">{s.provider}</span>
+                          <span className="text-[7px] text-rose-900 font-mono tracking-tighter">Vaulted: ...{s.lastFour}</span>
+                        </div>
+                        <button 
+                          onClick={() => handleDeleteSecret(s.provider)}
+                          className="p-1.5 text-rose-950 hover:text-red-500 transition-colors"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
                       </div>
-                      <button 
-                        onClick={() => handleDeleteSecret(s.provider)}
-                        className="p-2 text-rose-950 hover:text-red-500 transition-colors"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
+                      <div className="flex items-center gap-2">
+                        <Calendar className={`w-2.5 h-2.5 ${getStaleStatus(s.updatedAt)}`} />
+                        <span className={`text-[7px] font-black uppercase tracking-widest ${getStaleStatus(s.updatedAt)}`}>
+                          Last Rotated: {formatDate(s.updatedAt)}
+                        </span>
+                      </div>
                     </div>
                   ))
                 )}
@@ -179,47 +199,34 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ onNavigate }) => {
           <GlassCard padding="lg" className="rounded-[3rem] space-y-10">
             <div className="flex items-center gap-4 border-b border-rose-900/10 pb-6">
               <Database className="w-5 h-5 text-rose-600" />
-              <h2 className="text-2xl serif-display text-rose-100">System Registry</h2>
+              <h2 className="text-2xl serif-display text-rose-100">Intelligence Index</h2>
             </div>
-
             <div className="space-y-4">
                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                     <Database className="w-3 h-3 text-rose-800" />
-                     <span className="text-[9px] font-black uppercase tracking-widest text-rose-200">AI Models</span>
-                  </div>
-                  <span className="text-[9px] font-mono text-rose-900">{DEFAULT_MODELS.length} defined</span>
+                  <div className="flex items-center gap-3"><Database className="w-3 h-3 text-rose-800" /><span className="text-[9px] font-black uppercase tracking-widest text-rose-200">Total Models</span></div>
+                  <span className="text-[9px] font-mono text-rose-900">{DEFAULT_MODELS.length} nodes</span>
                </div>
                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                     <Hash className="w-3 h-3 text-rose-800" />
-                     <span className="text-[9px] font-black uppercase tracking-widest text-rose-200">Attribute Tags</span>
-                  </div>
-                  <span className="text-[9px] font-mono text-rose-900">{STATIC_TAGS.length} defined</span>
+                  <div className="flex items-center gap-3"><Hash className="w-3 h-3 text-rose-800" /><span className="text-[9px] font-black uppercase tracking-widest text-rose-200">Behavioral Rules</span></div>
+                  <span className="text-[9px] font-mono text-rose-900">{STATIC_TAGS.length} tags</span>
                </div>
             </div>
-
-            <p className="text-[11px] italic text-rose-200/50 leading-relaxed font-serif">
-              Synchronize the local model and tag definitions with the database to enable cross-device consistency and global system intelligence.
-            </p>
-
+            <p className="text-[11px] italic text-rose-200/50 leading-relaxed font-serif">Models are platform-agnostic. Vault keys to enable them in the Forge Studio.</p>
             <button 
               onClick={handleSyncRegistry}
               disabled={isLoading}
               className="w-full py-6 bg-rose-950/40 border border-rose-900/30 text-rose-500 rounded-2xl text-[11px] font-black uppercase tracking-[0.3em] flex flex-col items-center justify-center gap-3 hover:bg-rose-900/20 transition-all group"
             >
-              <RefreshCw className={`w-8 h-8 group-hover:rotate-180 transition-transform duration-700 ${isLoading ? 'animate-spin' : ''}`} />
-              Sync Global Registry
+              <div className="relative">
+                <RefreshCw className={`w-10 h-10 transition-all duration-700 ${isLoading ? 'animate-architect-spin' : 'group-hover:rotate-180'}`} />
+              </div>
+              <span className="mt-2">Re-Sync Creative Axis</span>
             </button>
-
             <div className="flex items-start gap-4 p-6 bg-amber-950/10 border border-amber-900/20 rounded-2xl">
               <Shield className="w-5 h-5 text-amber-600 shrink-0" />
               <div className="space-y-1">
-                <span className="text-[9px] font-black text-amber-600 uppercase tracking-widest">Privacy Guard</span>
-                <p className="text-[9px] text-amber-900 leading-normal italic">
-                  All keys are XOR-encrypted using a hash derived from your unique session ID. 
-                  The server never sees your plain-text keys.
-                </p>
+                <span className="text-[9px] font-black text-amber-600 uppercase tracking-widest">End-to-End Encryption</span>
+                <p className="text-[9px] text-amber-900 leading-normal italic">AES-GCM 256-bit encryption. Rotation warning at 30 days keeps your axis secure.</p>
               </div>
             </div>
           </GlassCard>

@@ -25,12 +25,12 @@ export async function fetchCharacterById(id: string): Promise<CharacterData> {
 
     if (!supabase) {
         const record = await localDb.getById<any>('characters', id);
-        return record ? record.data : createEmptyCharacter();
+        return record ? { ...createEmptyCharacter(), ...record.data } : createEmptyCharacter();
     }
 
     const { data, error } = await supabase.from('characters').select('*').eq('id', id).single();
     if (error || !data) return createEmptyCharacter();
-    return data.data as CharacterData;
+    return { ...createEmptyCharacter(), ...(data.data as CharacterData) };
 }
 
 export async function saveCharacter(userId: string, character: CharacterData, contentHash: string) {
@@ -134,7 +134,7 @@ export async function saveTagsBulk(tags: TagMeta[]) {
 export async function fetchUserSecrets(userId: string): Promise<AISecret[]> {
   if (!supabase) {
     const all = await localDb.getAll<any>('secrets');
-    return all.map(s => ({ ...s, id: s.id }));
+    return all.map(s => ({ ...s, id: s.id, updatedAt: s.updatedAt || Date.now() }));
   }
   const { data, error } = await supabase.from('user_secrets').select('*').eq('user_id', userId);
   if (error) return [];
@@ -142,13 +142,15 @@ export async function fetchUserSecrets(userId: string): Promise<AISecret[]> {
     id: s.id, 
     provider: s.provider, 
     encryptedKey: s.encrypted_key,
-    lastFour: s.last_four
+    lastFour: s.last_four,
+    updatedAt: s.updated_at || Date.now()
   }));
 }
 
 export async function saveUserSecret(userId: string, provider: AIProvider, encryptedKey: string, lastFour: string) {
+  const updatedAt = Date.now();
   if (!supabase) {
-    const secret = { id: provider, provider, encryptedKey, lastFour };
+    const secret = { id: provider, provider, encryptedKey, lastFour, updatedAt };
     await localDb.save('secrets', secret);
     return;
   }
@@ -156,7 +158,8 @@ export async function saveUserSecret(userId: string, provider: AIProvider, encry
     user_id: userId,
     provider,
     encrypted_key: encryptedKey,
-    last_four: lastFour
+    last_four: lastFour,
+    updated_at: updatedAt
   }, { onConflict: 'user_id,provider' });
   if (error) throw error;
 }

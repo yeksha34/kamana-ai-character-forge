@@ -1,9 +1,9 @@
 
 import { LanguageToggle } from './LanguageToggle';
 import { MorphingText } from './MorphingText';
-import { User } from '../types';
+import { User, Theme } from '../types';
 import { useAppContext } from '../contexts/AppContext';
-import { ChevronDown, Flame, Grid, Heart, LogOut, ShieldCheck, PenTool, Settings } from 'lucide-react';
+import { ChevronDown, Flame, Grid, Heart, LogOut, ShieldCheck, PenTool, Settings, Sparkles, Ghost, Skull } from 'lucide-react';
 import React, { useEffect, useRef, useState } from 'react';
 
 interface HeaderProps {
@@ -16,7 +16,7 @@ interface HeaderProps {
 export const Header: React.FC<HeaderProps> = ({
   user, onNavigate, onSignOut, currentRoute
 }) => {
-  const { language, setLanguage, isGlobalNSFW, toggleGlobalNSFW, t } = useAppContext();
+  const { language, setLanguage, isGlobalNSFW, toggleGlobalNSFW, t, theme, setTheme } = useAppContext();
   const [isPlanOpen, setIsPlanOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -38,7 +38,7 @@ export const Header: React.FC<HeaderProps> = ({
         <div className="flex items-center gap-8 group">
           <div className="relative cursor-pointer transition-transform duration-700 hover:rotate-12" onClick={() => onNavigate('#/studio/new')}>
             <div className="w-14 h-14 bg-gradient-to-tr from-rose-950 to-rose-600 rounded-full flex items-center justify-center shadow-[0_0_40px_rgba(225,29,72,0.3)]">
-              <Flame className="text-white w-7 h-7" />
+              <Flame className="text-white w-7 h-7 animate-icon-glow" />
             </div>
           </div>
           <MorphingText language={language} value={"desire"} english="Desire" className="text-3xl serif-display leading-none glow-text tracking-tighter" />
@@ -47,13 +47,38 @@ export const Header: React.FC<HeaderProps> = ({
 
       <div className="flex items-center gap-8">
         <div className="flex items-center gap-4">
+          {/* Theme Switcher Pill */}
+          <div className="theme-pill">
+            <button 
+              onClick={() => setTheme(Theme.SOFTCORE)}
+              className={`theme-pill-item flex items-center gap-1 ${theme === Theme.SOFTCORE ? 'active' : ''}`}
+            >
+              <Sparkles className="w-2.5 h-2.5" />
+              <span>Soft</span>
+            </button>
+            <button 
+              onClick={() => setTheme(Theme.DEFAULT)}
+              className={`theme-pill-item flex items-center gap-1 ${theme === Theme.DEFAULT ? 'active' : ''}`}
+            >
+              <Ghost className="w-2.5 h-2.5" />
+              <span>Def</span>
+            </button>
+            <button 
+              onClick={() => setTheme(Theme.HARDCORE)}
+              className={`theme-pill-item flex items-center gap-1 ${theme === Theme.HARDCORE ? 'active' : ''}`}
+            >
+              <Skull className="w-2.5 h-2.5" />
+              <span>Hard</span>
+            </button>
+          </div>
+
           <LanguageToggle current={language} onChange={setLanguage} />
 
           <button 
             onClick={toggleGlobalNSFW}
             className="flex items-center gap-3 px-5 py-2.5 bg-rose-950/20 border border-rose-900/20 rounded-full hover:bg-rose-900/40 transition-all group"
           >
-            <Heart className={`w-4 h-4 transition-all duration-700 ${isGlobalNSFW ? 'text-rose-600 fill-rose-600' : 'text-rose-950'}`} />
+            <Heart className={`w-4 h-4 transition-all duration-700 ${isGlobalNSFW ? 'text-rose-600 fill-rose-600 animate-icon-heartbeat' : 'text-rose-950'}`} />
             <span className="text-[10px] font-black uppercase tracking-widest text-rose-100">
               {isGlobalNSFW ? 'NSFW' : 'SFW'}
             </span>
@@ -95,7 +120,7 @@ export const Header: React.FC<HeaderProps> = ({
                 <div className="space-y-6">
                   <div className="pb-4 border-b border-rose-950/30">
                     <div className="flex items-center gap-3 mb-2">
-                      <ShieldCheck className="w-4 h-4 text-rose-500" />
+                      <ShieldCheck className="w-4 h-4 text-rose-500 animate-icon-float" />
                       <span className="text-[10px] font-black uppercase tracking-widest text-rose-100">System Preferences</span>
                     </div>
                   </div>
@@ -103,13 +128,13 @@ export const Header: React.FC<HeaderProps> = ({
                   <div className="space-y-2">
                     <button 
                       onClick={() => { onNavigate('#/settings'); setIsPlanOpen(false); }}
-                      className="w-full py-3 bg-rose-950/40 text-rose-100 border border-rose-900/20 rounded-xl text-[9px] font-black uppercase tracking-[0.3em] flex items-center justify-center gap-2 hover:bg-rose-900/40 transition-all"
+                      className="w-full py-3 bg-rose-950/40 text-rose-100 border border-rose-900/20 rounded-xl text-[9px] font-black uppercase tracking-[0.3em] flex items-center justify-center gap-2 hover:bg-rose-900/40 transition-all group/settings"
                     >
-                      <Settings className="w-3 h-3" />
+                      <Settings className="w-3 h-3 group-hover/settings:rotate-180 transition-transform duration-700" />
                       Global Settings
                     </button>
-                    <button onClick={onSignOut} className="w-full py-3 bg-black/40 text-rose-900 rounded-xl text-[9px] font-black uppercase tracking-[0.3em] flex items-center justify-center gap-2 hover:text-rose-400 transition-all">
-                      <LogOut className="w-3 h-3" />
+                    <button onClick={onSignOut} className="w-full py-3 bg-black/40 text-rose-900 rounded-xl text-[9px] font-black uppercase tracking-[0.3em] flex items-center justify-center gap-2 hover:text-rose-400 transition-all group/logout">
+                      <LogOut className="w-3 h-3 group-hover/logout:-translate-x-1 transition-transform" />
                       Logout
                     </button>
                   </div>

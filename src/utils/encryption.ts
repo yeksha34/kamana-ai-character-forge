@@ -1,34 +1,91 @@
 
 /**
- * Simple client-side encryption utility for demo purposes.
- * In a real-world app, use Web Crypto API (SubtleCrypto) for AES-GCM.
- * We use a "User Hash" derived from their ID as a rudimentary key.
+ * Advanced client-side encryption utility using the Web Crypto API.
+ * Uses AES-GCM for authenticated encryption and PBKDF2 for secure key derivation.
+ * Keys are derived from the User ID and a fixed application salt.
  */
 
-export async function encryptSecret(text: string, userId: string): Promise<string> {
+const ALGORITHM = 'AES-GCM';
+const IV_LENGTH = 12; // Standard for AES-GCM
+const SALT = 'kamana-forge-vault-v1-salt';
+const ITERATIONS = 100000;
+
+/**
+ * Derives a deterministic 256-bit AES key from the user's ID.
+ */
+async function deriveKey(userId: string): Promise<CryptoKey> {
   const encoder = new TextEncoder();
-  const data = encoder.encode(text);
-  
-  // Use user ID as a salt/key part for rudimentary obfuscation
-  // Real implementation should derive a proper key using PBKDF2
-  const hashBuffer = await crypto.subtle.digest('SHA-256', encoder.encode(userId));
-  const key = new Uint8Array(hashBuffer);
-  
-  const encrypted = data.map((byte, i) => byte ^ key[i % key.length]);
-  return btoa(String.fromCharCode(...encrypted));
+  const baseKey = await crypto.subtle.importKey(
+    'raw',
+    encoder.encode(userId),
+    'PBKDF2',
+    false,
+    ['deriveKey']
+  );
+
+  return crypto.subtle.deriveKey(
+    {
+      name: 'PBKDF2',
+      salt: encoder.encode(SALT),
+      iterations: ITERATIONS,
+      hash: 'SHA-256'
+    },
+    baseKey,
+    { name: ALGORITHM, length: 256 },
+    false,
+    ['encrypt', 'decrypt']
+  );
 }
 
+/**
+ * Encrypts a string and returns a base64 encoded string containing [IV][Ciphertext + Tag].
+ */
+export async function encryptSecret(text: string, userId: string): Promise<string> {
+  const key = await deriveKey(userId);
+  const iv = crypto.getRandomValues(new Uint8Array(IV_LENGTH));
+  const encodedData = new TextEncoder().encode(text);
+
+  const encryptedBuffer = await crypto.subtle.encrypt(
+    { name: ALGORITHM, iv },
+    key,
+    encodedData
+  );
+
+  // Combine IV and Encrypted content (Ciphertext + Auth Tag)
+  const combined = new Uint8Array(iv.length + encryptedBuffer.byteLength);
+  combined.set(iv);
+  combined.set(new Uint8Array(encryptedBuffer), iv.length);
+
+  // Browser-compatible binary to base64
+  return btoa(String.fromCharCode(...combined));
+}
+
+/**
+ * Decrypts a base64 string using the user's derived key.
+ */
 export async function decryptSecret(base64: string, userId: string): Promise<string> {
-  const binary = atob(base64);
-  const data = new Uint8Array(binary.length);
-  for (let i = 0; i < binary.length; i++) {
-    data[i] = binary.charCodeAt(i);
+  const key = await deriveKey(userId);
+  
+  // Base64 to Uint8Array
+  const combined = new Uint8Array(
+    atob(base64)
+      .split('')
+      .map((char) => char.charCodeAt(0))
+  );
+
+  const iv = combined.slice(0, IV_LENGTH);
+  const data = combined.slice(IV_LENGTH);
+
+  try {
+    const decryptedBuffer = await crypto.subtle.decrypt(
+      { name: ALGORITHM, iv },
+      key,
+      data
+    );
+
+    return new TextDecoder().decode(decryptedBuffer);
+  } catch (err) {
+    console.error('Decryption failed. Key rotation or user mismatch suspected.', err);
+    throw new Error('Failed to decrypt vaulted secret.');
   }
-  
-  const encoder = new TextEncoder();
-  const hashBuffer = await crypto.subtle.digest('SHA-256', encoder.encode(userId));
-  const key = new Uint8Array(hashBuffer);
-  
-  const decrypted = data.map((byte, i) => byte ^ key[i % key.length]);
-  return new TextDecoder().decode(decrypted);
 }

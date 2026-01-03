@@ -18,10 +18,11 @@ export default defineConfig(({ mode }) => {
       plugins: [react()],
       define: {
         'process.env.VITE_PORT': JSON.stringify(env.VITE_PORT),
-        'process.env.API_KEY': JSON.stringify(env.VITE_GEMINI_API_KEY || env.API_KEY),
-        'process.env.VITE_CLAUDE_API_KEY': JSON.stringify(env.VITE_CLAUDE_API_KEY),
         'process.env.VITE_SUPABASE_URL': JSON.stringify(env.VITE_SUPABASE_URL),
         'process.env.VITE_SUPABASE_ANON_KEY': JSON.stringify(env.VITE_SUPABASE_ANON_KEY),
+        // Baseline fallback key for development logic
+        'process.env.API_KEY': JSON.stringify(env.VITE_DEV_GEMINI_KEY || env.VITE_GEMINI_API_KEY || env.API_KEY),
+        'process.env.VITE_DEV_GEMINI_KEY': JSON.stringify(env.VITE_DEV_GEMINI_KEY || env.VITE_GEMINI_API_KEY || env.API_KEY),
       },
       resolve: {
         alias: {

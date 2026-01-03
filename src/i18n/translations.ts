@@ -1,7 +1,8 @@
 
-import { profanityDictionary } from './profanity';
+import { categorizedProfanity } from './profanity';
+import { Theme } from '../types';
 
-export type Language = 'mr' | 'en';
+export type Language = 'mr' | 'en' | 'hi';
 
 export const translations = {
   mr: {
@@ -30,19 +31,10 @@ export const translations = {
     nsfwLabel: "प्रौढ सामग्री",
     biometric: "बायोमेट्रिक प्रमाणीकरण सक्षम",
     morphing: {
-      desire: profanityDictionary.mr.desire,
-      imagination: profanityDictionary.mr.imagination,
-      studio: profanityDictionary.mr.studio,
-      canvas: [
-        "कॅनव्हास तुमच्या इच्छेची वाट पाहत आहे...", 
-        "तुमची वासना येथे मांडून पहा...", 
-        "शृंगाराची सुरुवात करा...", 
-        "नव्या मादक जगाचा उगम...", 
-        "तुमच्या नग्न कल्पनेला आकार द्या...", 
-        "तुमच्या घाणेरड्या स्वप्नांना जिवंत करा...",
-        "तुमच्या विकृत वासनांना मोकळी वाट करून द्या...",
-        "तुमच्या नग्नावस्थेला शब्दांत मांडा..."
-      ]
+      desire: categorizedProfanity.mr.desire[Theme.DEFAULT],
+      imagination: categorizedProfanity.mr.imagination[Theme.DEFAULT],
+      studio: categorizedProfanity.mr.studio[Theme.DEFAULT],
+      canvas: categorizedProfanity.mr.canvas[Theme.DEFAULT]
     }
   },
   en: {
@@ -71,19 +63,42 @@ export const translations = {
     nsfwLabel: "NSFW Content",
     biometric: "Biometric Auth Enabled",
     morphing: {
-      desire: profanityDictionary.en.desire,
-      imagination: profanityDictionary.en.imagination,
-      studio: profanityDictionary.en.studio,
-      canvas: [
-        "The canvas awaits your crave...", 
-        "Map your lust here...", 
-        "Begin the erotic ritual...", 
-        "Birth of a new obsession...", 
-        "Give shape to your filthiest thoughts...", 
-        "Unleash your most depraved fantasies...",
-        "Surrender to your darkest kinks...",
-        "Let the degradation begin..."
-      ]
+      desire: categorizedProfanity.en.desire[Theme.DEFAULT],
+      imagination: categorizedProfanity.en.imagination[Theme.DEFAULT],
+      studio: categorizedProfanity.en.studio[Theme.DEFAULT],
+      canvas: categorizedProfanity.en.canvas[Theme.DEFAULT]
+    }
+  },
+  hi: {
+    appTitle: "कामना",
+    appSubtitle: "The Forge of AI Desire",
+    studio: "स्टूडियो",
+    museum: "संग्रहालय",
+    login: "लॉगिन",
+    githubSignIn: "GitHub से जुड़ें",
+    ageRestriction: "18+ वयस्कों के लिए",
+    imagination: "कल्पना",
+    tags: "विशेषताएं",
+    platforms: "मंच",
+    modelConfig: "मॉडल विन्यास",
+    provider: "सेवा प्रदाता",
+    breatheLife: "प्राण फूँकें",
+    sculptor: "मूर्तिकार",
+    placeholderPrompt: "अपनी स्याही यहाँ उंडेलें...",
+    placeholderTag: "विशेषता जोड़ें...",
+    edit: "संपादन",
+    delete: "मिटाएं",
+    save: "सहेजें",
+    back: "पीछे जाएं",
+    character: "पात्र",
+    scenario: "दृश्य",
+    nsfwLabel: "NSFW सामग्री",
+    biometric: "बायोमेट्रिक प्रमाणीकरण सक्षम",
+    morphing: {
+      desire: categorizedProfanity.hi.desire[Theme.DEFAULT],
+      imagination: categorizedProfanity.hi.imagination[Theme.DEFAULT],
+      studio: categorizedProfanity.hi.studio[Theme.DEFAULT],
+      canvas: categorizedProfanity.hi.canvas[Theme.DEFAULT]
     }
   }
 };

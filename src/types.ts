@@ -8,7 +8,50 @@ export enum Platform {
 
 export enum AIProvider {
   GEMINI = 'Gemini',
-  CLAUDE = 'Claude'
+  CLAUDE = 'Claude',
+  OPENAI = 'OpenAI',
+  MISTRAL = 'Mistral',
+  GROQ = 'Groq',
+  TOGETHER = 'Together',
+  FIREWORKS = 'Fireworks',
+  HUGGINGFACE = 'HuggingFace',
+  STABILITY = 'Stability',
+  REPLICATE = 'Replicate',
+  RUNPOD = 'RunPod'
+}
+
+export enum Theme {
+  DEFAULT = 'default',
+  SOFTCORE = 'softcore',
+  HARDCORE = 'hardcore'
+}
+
+export enum Context {
+  DESIRE = 'desire',
+  IMAGINATION = 'imagination',
+  STUDIO = 'studio',
+  CANVAS = 'canvas'
+}
+
+export enum Target {
+  BODY = 'body',
+  MIND = 'mind',
+  LINEAGE = 'lineage',
+  GOD = 'god',
+  STATUS = 'status',
+  OBJECTIFICATION = 'objectification',
+  SOCIAL = 'social',
+  SELF = 'self'
+}
+
+export interface ProfanityWord {
+  word: string;
+  // Fix: Added 'hi' to the permitted language types
+  language: 'en' | 'mr' | 'hi';
+  contexts: Context[];
+  themes: Theme[];
+  targets: Target[];
+  weight?: number;
 }
 
 export interface AIModelMeta {
@@ -19,6 +62,14 @@ export interface AIModelMeta {
   type: 'text' | 'image';
 }
 
+export interface AISecret {
+  id: string;
+  provider: AIProvider;
+  encryptedKey: string;
+  lastFour: string;
+  updatedAt: number; // For rotation tracking
+}
+
 export interface TagMeta {
   id: string;
   name: string;
@@ -27,28 +78,25 @@ export interface TagMeta {
   isNSFW: boolean;
 }
 
-export interface AISecret {
-  id?: string;
-  provider: AIProvider;
-  encryptedKey: string;
-  lastFour?: string;
-}
-
-export type ContentFormat = 'markdown' | 'html' | 'plaintext';
-export type CharacterStatus = 'draft' | 'finalized';
-
 export interface CharacterField {
   id: string;
   label: string;
   value: string;
   isLocked: boolean;
-  format: ContentFormat;
+  format: 'markdown' | 'html' | 'plaintext';
   placeholder?: string;
 }
 
+export interface AIDungeonCard {
+  label: string;
+  content: string;
+}
+
+export type CharacterStatus = 'draft' | 'finalized';
+
 export interface CharacterData {
   id?: string;
-  parentBotId?: string; // Links different versions of the same bot
+  parentBotId?: string;
   version: number;
   status: CharacterStatus;
   name: string;
@@ -60,11 +108,12 @@ export interface CharacterData {
   tags: string[];
   isNSFW: boolean;
   createdAt?: number;
-  
-  // Storage for prompts used to generate assets
   originalPrompt: string; 
-  characterImagePrompt?: string;
-  scenarioImagePrompt?: string;
+  modifiedPrompt?: string; 
+  characterImagePrompt?: string; 
+  scenarioImagePrompt?: string; 
+  worldInfo?: AIDungeonCard[];
+  systemRules?: string;
 }
 
 export interface User {

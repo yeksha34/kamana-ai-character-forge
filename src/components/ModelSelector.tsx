@@ -67,7 +67,7 @@ const BaseModelSelector: React.FC<BaseSelectorProps> = ({
         className="w-full bg-black/40 border border-rose-950/20 rounded-xl px-4 py-3 text-[10px] font-bold text-rose-100 uppercase tracking-widest flex items-center justify-between hover:border-rose-700/40 transition-all group"
       >
         <div className="flex items-center gap-3">
-          {selectedModel?.isFree ? <Zap className="w-3 h-3 text-rose-500" /> : <Sparkles className="w-3 h-3 text-amber-500" />}
+          {selectedModel?.isFree ? <Zap className="w-3 h-3 text-rose-500 animate-icon-wiggle" /> : <Sparkles className="w-3 h-3 text-amber-500 animate-icon-glow" />}
           <span>{selectedModel?.name || "Select Model"}</span>
         </div>
         <ChevronDown className={`w-4 h-4 text-rose-900 transition-transform duration-500 ${isOpen ? 'rotate-180 text-rose-500' : ''}`} />
@@ -76,8 +76,8 @@ const BaseModelSelector: React.FC<BaseSelectorProps> = ({
       {isOpen && (
         <div className="absolute top-full left-0 right-0 mt-2 z-[200] art-glass rounded-2xl border border-rose-900/30 shadow-[0_20px_60px_rgba(0,0,0,0.8)] overflow-hidden animate-in fade-in slide-in-from-top-2 duration-300">
           <div className="p-3 border-b border-rose-950/30">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3 h-3 text-rose-900" />
+            <div className="relative group/search">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3 h-3 text-rose-900 group-hover/search:scale-110 transition-transform" />
               <input
                 autoFocus
                 type="text"
@@ -98,7 +98,7 @@ const BaseModelSelector: React.FC<BaseSelectorProps> = ({
               Object.entries(groupedModels).map(([providerName, providerModels]) => (
                 <div key={providerName} className="p-2">
                   <div className="px-3 py-1.5 flex items-center gap-2 opacity-30">
-                    <Cpu className="w-2.5 h-2.5" />
+                    <Cpu className="w-2.5 h-2.5 animate-pulse" />
                     <span className="text-[8px] font-black uppercase tracking-[0.2em]">{providerName}</span>
                   </div>
                   <div className="space-y-1">

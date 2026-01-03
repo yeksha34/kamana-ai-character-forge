@@ -28,18 +28,18 @@ export const MuseumView: React.FC<MuseumViewProps> = ({ characters = [], onNavig
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-16">
         {characters.length === 0 ? (
           <div className="col-span-full h-[600px] flex flex-col items-center justify-center opacity-10">
-            <Grid className="w-48 h-48 mb-10" />
+            <Grid className="w-48 h-48 mb-10 animate-icon-float" />
             <p className="text-5xl serif-display italic tracking-widest text-center">अद्याप काहीही जतन केलेले नाही...</p>
           </div>
         ) : (
           characters.map(c => (
-            <GlassCard key={c.id} hoverable padding="none" className="rounded-[4rem] overflow-hidden flex flex-col shadow-2xl">
+            <GlassCard key={c.id} hoverable padding="none" className="rounded-[4rem] overflow-hidden flex flex-col shadow-2xl group hover-animate">
               <div className="aspect-square relative overflow-hidden bg-rose-950/10">
                 {c.characterImageUrl ? (
                   <img src={c.characterImageUrl} className="w-full h-full object-cover transition-transform duration-[12s] group-hover:scale-110" />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center opacity-10">
-                    <ImageIcon className="w-24 h-24" />
+                    <ImageIcon className="w-24 h-24 animate-pulse" />
                   </div>
                 )}
 
@@ -48,6 +48,7 @@ export const MuseumView: React.FC<MuseumViewProps> = ({ characters = [], onNavig
                     label={c.status} 
                     icon={c.status === 'finalized' ? CheckCircle2 : FileText} 
                     variant={c.status === 'finalized' ? 'green' : 'rose'} 
+                    className={c.status === 'finalized' ? 'animate-icon-glow' : ''}
                   />
                   <Badge label={`v${c.version}`} icon={History} variant="neutral" />
                 </div>
@@ -67,15 +68,15 @@ export const MuseumView: React.FC<MuseumViewProps> = ({ characters = [], onNavig
                 <div className="flex gap-4">
                   <button
                     onClick={() => onEdit(c)}
-                    className="flex-1 py-6 bg-rose-800/10 border border-rose-900/20 text-rose-500 rounded-full font-black text-[10px] uppercase tracking-widest hover:bg-rose-800 hover:text-white transition-all shadow-xl"
+                    className="flex-1 py-6 bg-rose-800/10 border border-rose-900/20 text-rose-500 rounded-full font-black text-[10px] uppercase tracking-widest hover:bg-rose-800 hover:text-white transition-all shadow-xl group/edit"
                   >
                     संपादन करा (Edit)
                   </button>
                   <button
                     onClick={() => onDelete(c.id!)}
-                    className="p-6 bg-rose-950/50 text-rose-950 hover:text-rose-500 rounded-full transition-all border border-rose-900/10 hover:border-rose-700/50 active:scale-90"
+                    className="p-6 bg-rose-950/50 text-rose-950 hover:text-rose-500 rounded-full transition-all border border-rose-900/10 hover:border-rose-700/50 active:scale-90 group/delete"
                   >
-                    <Trash2 className="w-6 h-6" />
+                    <Trash2 className="w-6 h-6 group-hover/delete:animate-icon-wiggle" />
                   </button>
                 </div>
               </div>

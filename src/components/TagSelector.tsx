@@ -47,11 +47,11 @@ const BaseTagSelector: React.FC<BaseTagSelectorProps> = ({
       
       <div className="flex flex-wrap gap-2 mb-2">
         {selectedTags.map(tag => (
-          <span key={tag} className="flex items-center gap-2 px-3 py-1 bg-rose-950/40 border border-rose-900/20 rounded-full text-[9px] font-black text-rose-300 uppercase tracking-widest group">
-            <Hash className="w-2.5 h-2.5 opacity-40" />
+          <span key={tag} className="flex items-center gap-2 px-3 py-1 bg-rose-950/40 border border-rose-900/20 rounded-full text-[9px] font-black text-rose-300 uppercase tracking-widest group animate-in zoom-in duration-300">
+            <Hash className="w-2.5 h-2.5 opacity-40 animate-pulse" />
             {tag}
-            <button onClick={() => onToggle(tag)} className="hover:text-white transition-colors">
-              <X className="w-2.5 h-2.5" />
+            <button onClick={() => onToggle(tag)} className="hover:text-white transition-colors group/del">
+              <X className="w-2.5 h-2.5 group-hover/del:animate-icon-wiggle" />
             </button>
           </span>
         ))}
@@ -62,7 +62,7 @@ const BaseTagSelector: React.FC<BaseTagSelectorProps> = ({
         className="w-full bg-black/40 border border-rose-950/20 rounded-xl px-4 py-3 text-[10px] font-bold text-rose-100 uppercase tracking-widest flex items-center justify-between hover:border-rose-700/40 transition-all group"
       >
         <div className="flex items-center gap-3">
-          <Hash className="w-3 h-3 text-rose-500" />
+          <Hash className="w-3 h-3 text-rose-500 group-hover:rotate-12 transition-transform" />
           <span>Select Attributes</span>
         </div>
         <ChevronDown className={`w-4 h-4 text-rose-900 transition-transform duration-500 ${isOpen ? 'rotate-180 text-rose-500' : ''}`} />
@@ -71,8 +71,8 @@ const BaseTagSelector: React.FC<BaseTagSelectorProps> = ({
       {isOpen && (
         <div className="absolute top-full left-0 right-0 mt-2 z-[200] art-glass rounded-2xl border border-rose-900/30 shadow-[0_20px_60px_rgba(0,0,0,0.8)] overflow-hidden animate-in fade-in slide-in-from-top-2 duration-300">
           <div className="p-3 border-b border-rose-950/30">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3 h-3 text-rose-900" />
+            <div className="relative group/search">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3 h-3 text-rose-900 group-hover/search:scale-110 transition-transform" />
               <input
                 autoFocus
                 type="text"
@@ -107,7 +107,7 @@ const BaseTagSelector: React.FC<BaseTagSelectorProps> = ({
                     </span>
                   </div>
                   {t.isNSFW && (
-                    <Sparkles className="w-3 h-3 text-rose-600 opacity-50" />
+                    <Sparkles className="w-3 h-3 text-rose-600 opacity-50 animate-icon-glow" />
                   )}
                 </button>
               ))
