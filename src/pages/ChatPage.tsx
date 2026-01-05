@@ -3,16 +3,16 @@ import { Header } from '../components/Header';
 import { ChatView } from '../views/ChatView';
 import { CharacterData } from '../types';
 import { fetchCharacterById } from '../services/supabaseDatabaseService';
+import { getIdFromHash } from '../hooks/useHashRouter';
 
 export function ChatPage({ user, onNavigate, onSignOut }: any) {
   const [character, setCharacter] = useState<CharacterData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const parts = window.location.hash.split('/');
-    const id = parts[parts.length - 1];
+    const id = getIdFromHash();
     
-    if (id && id !== 'chat') {
+    if (id && id !== 'new') {
       setIsLoading(true);
       fetchCharacterById(id)
         .then(setCharacter)
