@@ -11,6 +11,7 @@ const __dirname = path.dirname(__filename);
 export default defineConfig(({ mode }) => {
     const env = loadEnv(mode, '.', '');
     return {
+      base: './', // Ensures the app can be hosted in subdirectories or local file systems correctly
       server: {
         port: parseInt(env.VITE_PORT) || 3000,
         host: '0.0.0.0',
@@ -27,6 +28,21 @@ export default defineConfig(({ mode }) => {
       resolve: {
         alias: {
           '@': path.resolve(__dirname, './src'),
+        }
+      },
+      build: {
+        outDir: 'dist',
+        assetsDir: 'assets',
+        sourcemap: false,
+        minify: 'esbuild',
+        rollupOptions: {
+          output: {
+            manualChunks: {
+              vendor: ['react', 'react-dom', 'lucide-react'],
+              genai: ['@google/genai'],
+              supabase: ['@supabase/supabase-js']
+            }
+          }
         }
       }
     };

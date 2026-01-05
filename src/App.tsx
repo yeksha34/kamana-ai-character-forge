@@ -1,3 +1,4 @@
+
 import { useAuth } from "./contexts/AuthContext";
 import { useAppContext } from "./contexts/AppContext";
 import { useHashRouter } from "./hooks/useHashRouter";
@@ -21,20 +22,24 @@ function App() {
   }, []);
 
   useEffect(() => {
-    if (!auth.isLoading) {
-      if (auth.user) {
-        // Redirect away from login if authenticated
-        if (route === "#/login" || route === "") {
-          navigate("#/studio/new");
-        }
-      } else {
-        // Redirect to login if NOT authenticated and trying to access protected route
-        if (route !== "#/login") {
-          navigate("#/login");
-        }
+    if (auth.isLoading) return;
+
+    // Normalize routes for easier checking
+    const isAtLogin = route === "#/login" || route === "" || route === "#/";
+
+    if (auth.user) {
+      // If logged in, ONLY redirect if the user is stuck on a login or empty route.
+      // This prevents "resets" from #/museum or #/chat when auth state refreshes.
+      if (isAtLogin) {
+        navigate("#/studio/new");
+      }
+    } else {
+      // If NOT logged in, redirect to login unless already there.
+      if (!isAtLogin) {
+        navigate("#/login");
       }
     }
-  }, [auth.isLoading, auth.user, route, navigate]);
+  }, [auth.isLoading, !!auth.user, route, navigate]);
 
   if (auth.isLoading) {
     return (
