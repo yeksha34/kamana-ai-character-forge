@@ -1,10 +1,11 @@
-
 import { CharacterData } from '../types';
 import { GlassCard } from '../components/ui/GlassCard';
 import { DisplayTitle } from '../components/ui/DisplayTitle';
 import { Badge } from '../components/ui/Badge';
-import { CheckCircle2, FileText, Grid, History, ImageIcon, Trash2 } from 'lucide-react';
-import React from 'react';
+// Added RefreshCw to imports
+import { CheckCircle2, FileText, Grid, History, ImageIcon, Trash2, Download, CheckSquare, Square, X, RefreshCw } from 'lucide-react';
+import React, { useState } from 'react';
+import { downloadCharactersZip } from '../utils/exportUtils';
 
 interface MuseumViewProps {
   characters: CharacterData[];
@@ -14,14 +15,57 @@ interface MuseumViewProps {
 }
 
 export const MuseumView: React.FC<MuseumViewProps> = ({ characters = [], onNavigate, onEdit, onDelete }) => {
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [isExporting, setIsExporting] = useState(false);
+
+  const toggleSelect = (id: string) => {
+    setSelectedIds(prev => 
+      prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]
+    );
+  };
+
+  const handleBulkExport = async () => {
+    if (selectedIds.length === 0) return;
+    setIsExporting(true);
+    try {
+      const exportList = characters.filter(c => selectedIds.includes(c.id!));
+      const filename = `Forge_Museum_Export_${Date.now()}.zip`;
+      await downloadCharactersZip(exportList, filename);
+    } finally {
+      setIsExporting(false);
+      setSelectedIds([]);
+    }
+  };
+
   return (
     <div className="min-h-screen flex flex-col p-8 md:p-16 pt-72 animate-in fade-in slide-in-from-right-10 duration-1000">
-      <div className="flex items-center justify-between mb-24 border-b border-rose-950/30 pb-20">
+      <div className="flex flex-col lg:flex-row lg:items-end justify-between mb-24 border-b border-rose-950/30 pb-20 gap-12">
         <DisplayTitle marathi="दालन" english="Gallery Museum" size="lg" />
         
-        <div className="text-right">
-          <p className="text-[10px] font-black uppercase tracking-widest text-rose-900 mb-1">संग्रह संख्या (Total)</p>
-          <p className="text-3xl serif-display italic text-rose-500">{characters.length} पात्रे</p>
+        <div className="flex items-center gap-8 self-start lg:self-end">
+          {selectedIds.length > 0 && (
+            <div className="flex items-center gap-4 animate-in slide-in-from-bottom-4 duration-500">
+              <button 
+                onClick={handleBulkExport}
+                disabled={isExporting}
+                className="flex items-center gap-3 px-8 py-4 bg-rose-600 text-white rounded-full font-black text-[10px] uppercase tracking-widest hover:bg-rose-500 transition-all shadow-2xl disabled:opacity-50"
+              >
+                {isExporting ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
+                Export {selectedIds.length} Selected
+              </button>
+              <button 
+                onClick={() => setSelectedIds([])}
+                className="p-4 bg-rose-950/40 text-rose-500 border border-rose-900/20 rounded-full hover:bg-rose-900/40 transition-all"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+          )}
+
+          <div className="text-right">
+            <p className="text-[10px] font-black uppercase tracking-widest text-rose-900 mb-1">संग्रह संख्या (Total)</p>
+            <p className="text-3xl serif-display italic text-rose-500">{characters.length} पात्रे</p>
+          </div>
         </div>
       </div>
 
@@ -33,8 +77,21 @@ export const MuseumView: React.FC<MuseumViewProps> = ({ characters = [], onNavig
           </div>
         ) : (
           characters.map(c => (
-            <GlassCard key={c.id} hoverable padding="none" className="rounded-[4rem] overflow-hidden flex flex-col shadow-2xl group hover-animate">
+            <GlassCard 
+              key={c.id} 
+              hoverable 
+              padding="none" 
+              className={`rounded-[4rem] overflow-hidden flex flex-col shadow-2xl group hover-animate transition-all duration-500 ${selectedIds.includes(c.id!) ? 'ring-4 ring-rose-500/50 scale-[0.98]' : ''}`}
+            >
               <div className="aspect-square relative overflow-hidden bg-rose-950/10">
+                {/* Selection Overlay */}
+                <button 
+                  onClick={() => toggleSelect(c.id!)}
+                  className="absolute top-8 left-8 z-30 p-4 rounded-full backdrop-blur-xl border border-white/10 bg-black/40 text-white transition-all hover:bg-rose-600 active:scale-90"
+                >
+                  {selectedIds.includes(c.id!) ? <CheckSquare className="w-6 h-6 text-white" /> : <Square className="w-6 h-6 opacity-40" />}
+                </button>
+
                 {c.characterImageUrl ? (
                   <img src={c.characterImageUrl} className="w-full h-full object-cover transition-transform duration-[12s] group-hover:scale-110" />
                 ) : (

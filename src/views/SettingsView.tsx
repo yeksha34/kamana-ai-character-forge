@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useAppContext } from '../contexts/AppContext';
-import { AIProvider, AISecret } from '../types';
-import { saveUserSecret, fetchUserSecrets, deleteUserSecret } from '../services/supabaseDatabaseService';
+import { AIProvider, AISecret, CharacterData } from '../types';
+import { saveUserSecret, fetchUserSecrets, deleteUserSecret, getRawCharactersByUser, saveCharacter } from '../services/supabaseDatabaseService';
 import { MigrationService } from '../services/migrationService';
 import { DEFAULT_MODELS } from '../data/defaultModels';
 import { STATIC_TAGS } from '../data/staticTags';
@@ -10,7 +10,9 @@ import { SCHEMA_SQL } from '../data/schemaSql';
 import { encryptSecret } from '../utils/encryption';
 import { GlassCard } from '../components/ui/GlassCard';
 import { DisplayTitle } from '../components/ui/DisplayTitle';
-import { Key, Shield, Database, RefreshCw, Save, Trash2, Eye, EyeOff, Hash, ArrowLeft, CheckCircle, Calendar, Code, ChevronRight } from 'lucide-react';
+import { hashData } from '../utils/helpers';
+import { downloadCharactersZip, parseImportFile } from '../utils/exportUtils';
+import { Key, Shield, Database, RefreshCw, Save, Trash2, Eye, EyeOff, Hash, ArrowLeft, CheckCircle, Calendar, Code, ChevronRight, Download, Upload, Box } from 'lucide-react';
 
 export const SettingsView: React.FC<{ onNavigate?: (route: string) => void }> = ({ onNavigate }) => {
   const { user } = useAuth();
@@ -19,8 +21,8 @@ export const SettingsView: React.FC<{ onNavigate?: (route: string) => void }> = 
   const [isLoading, setIsLoading] = useState(false);
   const [showSchema, setShowSchema] = useState(false);
   const [showKey, setShowKey] = useState<Record<string, boolean>>({});
-  // Default to CLAUDE or another non-Gemini provider for the manual key entry form
   const [form, setForm] = useState({ provider: AIProvider.CLAUDE, key: '' });
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (user) loadSecrets();
@@ -69,6 +71,59 @@ export const SettingsView: React.FC<{ onNavigate?: (route: string) => void }> = 
     }
   };
 
+  const handleExportAll = async () => {
+    if (!user) return;
+    setIsLoading(true);
+    try {
+      const raw = await getRawCharactersByUser(user.id);
+      const characters: CharacterData[] = raw.map((r: any) => ({ ...r.data, id: r.id }));
+      if (characters.length === 0) {
+        alert("No creations found to export.");
+        return;
+      }
+      await downloadCharactersZip(characters, `Full_Forge_Backup_${Date.now()}.zip`);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleImportClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !user) return;
+
+    setIsLoading(true);
+    try {
+      const characters = await parseImportFile(file);
+      if (characters.length === 0) {
+        alert("No valid character data found in file.");
+        return;
+      }
+
+      let successCount = 0;
+      for (const char of characters) {
+        try {
+          const hash = await hashData(char.originalPrompt);
+          await saveCharacter(user.id, { ...char, id: 'new' }, hash);
+          successCount++;
+        } catch (err) {
+          console.error(`Failed to import character ${char.name}:`, err);
+        }
+      }
+      alert(`Import complete! ${successCount} creation(s) added to museum.`);
+      if (onNavigate) onNavigate('#/museum');
+    } catch (err) {
+      console.error("Import failed:", err);
+      alert("Import failed. Ensure you selected a valid Forge JSON or ZIP bundle.");
+    } finally {
+      setIsLoading(false);
+      if (fileInputRef.current) fileInputRef.current.value = '';
+    }
+  };
+
   const formatDate = (ts: number) => {
     return new Date(ts).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
   };
@@ -107,7 +162,7 @@ export const SettingsView: React.FC<{ onNavigate?: (route: string) => void }> = 
                 <label className="text-[9px] font-black uppercase tracking-widest text-rose-900 ml-1">Select Provider</label>
                 <div className="grid grid-cols-3 gap-2">
                   {Object.values(AIProvider)
-                    .filter(p => p !== AIProvider.GEMINI) // Guidelines: Do not provide UI for entering or managing the Gemini API key.
+                    .filter(p => p !== AIProvider.GEMINI)
                     .map(p => (
                     <button 
                       key={p} 
@@ -183,69 +238,106 @@ export const SettingsView: React.FC<{ onNavigate?: (route: string) => void }> = 
             </div>
           </GlassCard>
 
-          <GlassCard padding="lg" className="rounded-[3rem] space-y-10">
-            <div className="flex items-center gap-4 border-b border-rose-900/10 pb-6">
-              <Database className="w-5 h-5 text-rose-600" />
-              <h2 className="text-2xl serif-display text-rose-100">Intelligence Index</h2>
-            </div>
-            <div className="space-y-4">
-               <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3"><Database className="w-3 h-3 text-rose-800" /><span className="text-[9px] font-black uppercase tracking-widest text-rose-200">Total Models</span></div>
-                  <span className="text-[9px] font-mono text-rose-900">{DEFAULT_MODELS.length} nodes</span>
-               </div>
-               <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3"><Hash className="w-3 h-3 text-rose-800" /><span className="text-[9px] font-black uppercase tracking-widest text-rose-200">Behavioral Rules</span></div>
-                  <span className="text-[9px] font-mono text-rose-900">{STATIC_TAGS.length} tags</span>
-               </div>
-            </div>
-            <p className="text-[11px] italic text-rose-200/50 leading-relaxed font-serif">Models are platform-agnostic. Vault keys to enable them in the Forge Studio.</p>
-            
-            <div className="space-y-4">
-              <button 
-                onClick={handleSyncRegistry}
-                disabled={isLoading}
-                className="w-full py-6 bg-rose-950/40 border border-rose-900/30 text-rose-500 rounded-2xl text-[11px] font-black uppercase tracking-[0.3em] flex flex-col items-center justify-center gap-3 hover:bg-rose-900/20 transition-all group"
-              >
-                <div className="relative">
-                  <RefreshCw className={`w-10 h-10 transition-all duration-700 ${isLoading ? 'animate-architect-spin' : 'group-hover:rotate-180'}`} />
-                </div>
-                <span className="mt-2">Re-Sync Creative Axis</span>
-              </button>
+          <div className="space-y-12">
+            <GlassCard padding="lg" className="rounded-[3rem] space-y-10">
+              <div className="flex items-center gap-4 border-b border-rose-950/10 pb-6">
+                <Box className="w-5 h-5 text-rose-600" />
+                <h2 className="text-2xl serif-display text-rose-100">Backup & Restore</h2>
+              </div>
+              
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                <button 
+                  onClick={handleExportAll}
+                  disabled={isLoading}
+                  className="flex flex-col items-center justify-center gap-4 p-8 bg-black/40 border border-rose-950/20 rounded-[2rem] hover:bg-rose-900/10 hover:border-rose-700/40 transition-all group"
+                >
+                  <Download className="w-8 h-8 text-rose-500 group-hover:scale-110 transition-transform" />
+                  <div className="text-center">
+                    <span className="text-[10px] font-black uppercase tracking-widest text-rose-100 block">Export All</span>
+                    <span className="text-[8px] font-bold text-rose-900 uppercase block mt-1">Full Museum Backup</span>
+                  </div>
+                </button>
 
-              <button 
-                onClick={() => setShowSchema(!showSchema)}
-                className="w-full py-4 bg-black/40 border border-rose-950/20 text-rose-900 rounded-xl text-[9px] font-black uppercase tracking-widest flex items-center justify-center gap-3 hover:text-rose-500 hover:border-rose-900/40 transition-all"
-              >
-                <Code className="w-3 h-3" />
-                {showSchema ? 'Hide Database Blueprint' : 'View Database Blueprint'}
-                <ChevronRight className={`w-3 h-3 transition-transform duration-300 ${showSchema ? 'rotate-90' : ''}`} />
-              </button>
-            </div>
+                <button 
+                  onClick={handleImportClick}
+                  disabled={isLoading}
+                  className="flex flex-col items-center justify-center gap-4 p-8 bg-black/40 border border-rose-950/20 rounded-[2rem] hover:bg-rose-900/10 hover:border-rose-700/40 transition-all group"
+                >
+                  <Upload className="w-8 h-8 text-rose-500 group-hover:scale-110 transition-transform" />
+                  <div className="text-center">
+                    <span className="text-[10px] font-black uppercase tracking-widest text-rose-100 block">Import Bundle</span>
+                    <span className="text-[8px] font-bold text-rose-900 uppercase block mt-1">JSON or ZIP Archive</span>
+                  </div>
+                </button>
+              </div>
 
-            {showSchema && (
-              <div className="animate-in fade-in slide-in-from-top-4 duration-500">
-                <div className="relative group">
-                  <div className="absolute -inset-0.5 bg-gradient-to-r from-rose-500 to-rose-900 rounded-xl blur opacity-10 group-hover:opacity-20 transition duration-1000"></div>
-                  <textarea 
-                    readOnly
-                    className="relative w-full h-[200px] bg-black/60 border border-rose-950/40 rounded-xl p-4 font-mono text-[9px] text-rose-300/60 custom-scrollbar focus:ring-0"
-                    value={SCHEMA_SQL}
-                  />
-                  <div className="absolute top-2 right-4 flex gap-2">
-                    <span className="text-[7px] font-black uppercase tracking-widest text-rose-900/40">Read-Only View</span>
+              <input 
+                type="file" 
+                ref={fileInputRef} 
+                onChange={handleFileChange} 
+                className="hidden" 
+                accept=".json,.zip"
+              />
+
+              <div className="p-6 bg-rose-950/10 border border-rose-900/20 rounded-2xl">
+                <p className="text-[9px] text-rose-900 leading-relaxed italic">
+                  ZIP backups create a structured repository with readable Markdown files for your prompts and character content.
+                </p>
+              </div>
+            </GlassCard>
+
+            <GlassCard padding="lg" className="rounded-[3rem] space-y-10">
+              <div className="flex items-center gap-4 border-b border-rose-900/10 pb-6">
+                <Database className="w-5 h-5 text-rose-600" />
+                <h2 className="text-2xl serif-display text-rose-100">Intelligence Index</h2>
+              </div>
+              <div className="space-y-4">
+                 <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3"><Database className="w-3 h-3 text-rose-800" /><span className="text-[9px] font-black uppercase tracking-widest text-rose-200">Total Models</span></div>
+                    <span className="text-[9px] font-mono text-rose-900">{DEFAULT_MODELS.length} nodes</span>
+                 </div>
+                 <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3"><Hash className="w-3 h-3 text-rose-800" /><span className="text-[9px] font-black uppercase tracking-widest text-rose-200">Behavioral Rules</span></div>
+                    <span className="text-[9px] font-mono text-rose-900">{STATIC_TAGS.length} tags</span>
+                 </div>
+              </div>
+              
+              <div className="space-y-4">
+                <button 
+                  onClick={handleSyncRegistry}
+                  disabled={isLoading}
+                  className="w-full py-6 bg-rose-950/40 border border-rose-900/30 text-rose-500 rounded-2xl text-[11px] font-black uppercase tracking-[0.3em] flex flex-col items-center justify-center gap-3 hover:bg-rose-900/20 transition-all group"
+                >
+                  <div className="relative">
+                    <RefreshCw className={`w-10 h-10 transition-all duration-700 ${isLoading ? 'animate-architect-spin' : 'group-hover:rotate-180'}`} />
+                  </div>
+                  <span className="mt-2">Re-Sync Creative Axis</span>
+                </button>
+
+                <button 
+                  onClick={() => setShowSchema(!showSchema)}
+                  className="w-full py-4 bg-black/40 border border-rose-950/20 text-rose-900 rounded-xl text-[9px] font-black uppercase tracking-widest flex items-center justify-center gap-3 hover:text-rose-500 hover:border-rose-900/40 transition-all"
+                >
+                  <Code className="w-3 h-3" />
+                  {showSchema ? 'Hide Database Blueprint' : 'View Database Blueprint'}
+                  <ChevronRight className={`w-3 h-3 transition-transform duration-300 ${showSchema ? 'rotate-90' : ''}`} />
+                </button>
+              </div>
+
+              {showSchema && (
+                <div className="animate-in fade-in slide-in-from-top-4 duration-500">
+                  <div className="relative group">
+                    <div className="absolute -inset-0.5 bg-gradient-to-r from-rose-500 to-rose-900 rounded-xl blur opacity-10 group-hover:opacity-20 transition duration-1000"></div>
+                    <textarea 
+                      readOnly
+                      className="relative w-full h-[200px] bg-black/60 border border-rose-950/40 rounded-xl p-4 font-mono text-[9px] text-rose-300/60 custom-scrollbar focus:ring-0"
+                      value={SCHEMA_SQL}
+                    />
                   </div>
                 </div>
-              </div>
-            )}
-
-            <div className="flex items-start gap-4 p-6 bg-amber-950/10 border border-amber-900/20 rounded-2xl">
-              <Shield className="w-5 h-5 text-amber-600 shrink-0" />
-              <div className="space-y-1">
-                <span className="text-[9px] font-black text-amber-600 uppercase tracking-widest">End-to-End Encryption</span>
-                <p className="text-[9px] text-amber-900 leading-normal italic">AES-GCM 256-bit encryption. Rotation warning at 30 days keeps your axis secure.</p>
-              </div>
-            </div>
-          </GlassCard>
+              )}
+            </GlassCard>
+          </div>
         </section>
       </div>
     </div>

@@ -9,7 +9,7 @@ export class HuggingFaceForgeProvider implements ForgeProvider {
   }
 
   private async fetchHF(modelId: string, body: any) {
-    const response = await fetch(`https://api-inference.huggingface.co/models/${modelId}`, {
+    const response = await fetch(`https://router.huggingface.co/models/${modelId}`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -39,7 +39,7 @@ export class HuggingFaceForgeProvider implements ForgeProvider {
   async generateImagePrompt(params: any): Promise<string> { return params.prompt; }
 
   async generateImage(params: { prompt: string, modelId: string }) {
-    const response = await fetch(`https://api-inference.huggingface.co/models/${params.modelId}`, {
+    const response = await fetch(`https://router.huggingface.co/models/${params.modelId}`, {
       method: "POST",
       headers: { "Authorization": `Bearer ${this.apiKey}` },
       body: JSON.stringify({ inputs: params.prompt })

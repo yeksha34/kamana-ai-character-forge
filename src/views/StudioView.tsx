@@ -18,11 +18,12 @@ import { uploadImageToStorage } from '../services/supabaseStorageService';
 import { ForgeManager } from '../services/forge/ForgeManager';
 import { AIProvider, CharacterData, CharacterStatus, Platform, AISecret } from '../types';
 import { hashData } from '../utils/helpers';
-import { History, Heart, Zap, RefreshCw, Check } from 'lucide-react';
+import { downloadCharactersZip } from '../utils/exportUtils';
+import { History, Heart, Zap, RefreshCw, Check, Download } from 'lucide-react';
 
 interface StudioViewProps {
   character: CharacterData;
-  setCharacter: React.Dispatch<React.SetStateAction<CharacterData>>;
+  setCharacter: (character: CharacterData) => void;
 }
 
 export const StudioView: React.FC<StudioViewProps> = ({ character, setCharacter }) => {
@@ -75,6 +76,11 @@ export const StudioView: React.FC<StudioViewProps> = ({ character, setCharacter 
     } finally { setIsSaving(null); }
   };
 
+  const handleExport = () => {
+    const filename = `${character.name.replace(/\s+/g, '_')}_Forge_Bundle.zip`;
+    downloadCharactersZip([character], filename);
+  };
+
   return (
     <div className="min-h-screen flex flex-col pt-36 pb-64 animate-in fade-in duration-1000">
       <KeyRotationBanner secrets={secretsList} onDismiss={() => {}} onNavigateToSettings={() => window.location.hash = '#/settings'} />
@@ -88,6 +94,13 @@ export const StudioView: React.FC<StudioViewProps> = ({ character, setCharacter 
                 <span className="text-xl serif-display italic text-rose-100">v{character.version} • {character.status.toUpperCase()}</span>
               </div>
             </div>
+            <button 
+              onClick={handleExport}
+              title="Export Character Bundle"
+              className="p-4 bg-rose-950/20 text-rose-500 rounded-2xl hover:bg-rose-900/40 transition-all active:scale-90"
+            >
+              <Download className="w-5 h-5" />
+            </button>
           </GlassCard>
           <GlassCard padding="lg" className="rounded-[3rem] space-y-10 border-rose-900/40">
             <DisplayTitle marathi="कार्यशाळा" english="Forge Studio" size="md" />
