@@ -23,7 +23,8 @@ import { History, Heart, Zap, RefreshCw, Check, Download } from 'lucide-react';
 
 interface StudioViewProps {
   character: CharacterData;
-  setCharacter: (character: CharacterData) => void;
+  // Fixed: Use React.Dispatch<React.SetStateAction<any>> to support functional updates and handle parent state compatibility
+  setCharacter: React.Dispatch<React.SetStateAction<any>>;
 }
 
 export const StudioView: React.FC<StudioViewProps> = ({ character, setCharacter }) => {
@@ -49,14 +50,16 @@ export const StudioView: React.FC<StudioViewProps> = ({ character, setCharacter 
   const regenerateSingleImage = async (type: 'character' | 'scenario') => {
     setIsRegeneratingImage(type);
     try {
-      const imgService = ForgeManager.getProvider(dbModels.find(m => m.id === imageModel)?.provider || AIProvider.GEMINI, userSecrets[AIProvider.GEMINI]);
+      const imgProvider = dbModels.find(m => m.id === imageModel)?.provider || AIProvider.GEMINI;
+      const imgService = ForgeManager.getProvider(imgProvider, userSecrets[imgProvider]);
       const txtService = ForgeManager.getProvider(AIProvider.GEMINI, userSecrets[AIProvider.GEMINI]);
       let prompt = type === 'character' ? character.characterImagePrompt : character.scenarioImagePrompt;
       if (!prompt) prompt = await txtService.generateImagePrompt({ prompt: character.originalPrompt, type, isNSFW: character.isNSFW, modelId: textModel });
       const img = await imgService.generateImage({ prompt, isNSFW: character.isNSFW, modelId: imageModel });
       if (img) {
         const cloudUrl = user ? await uploadImageToStorage(user.id, img, type === 'character' ? 'portrait' : 'scenario') : null;
-        setCharacter(p => ({ ...p, [type === 'character' ? 'characterImageUrl' : 'scenarioImageUrl']: cloudUrl || img }));
+        // Fixed: Use functional update to avoid stale closure issues and fix type error
+        setCharacter((p: any) => ({ ...p, [type === 'character' ? 'characterImageUrl' : 'scenarioImageUrl']: cloudUrl || img }));
       }
     } finally { setIsRegeneratingImage(null); }
   };
@@ -107,7 +110,8 @@ export const StudioView: React.FC<StudioViewProps> = ({ character, setCharacter 
             <div className="space-y-6">
               <div className="flex items-center justify-between ml-4">
                 <span className={`text-[10px] font-black uppercase tracking-[0.5em] ${errors.prompt ? 'text-red-500' : 'text-rose-900'}`}>{t.imagination}</span>
-                <div onClick={() => setCharacter(p => ({ ...p, isNSFW: !p.isNSFW }))} className={`w-12 h-6 rounded-full relative cursor-pointer ${character.isNSFW ? 'bg-rose-800' : 'bg-rose-950/60'}`}>
+                {/* Fixed: Use functional update to toggle isNSFW */}
+                <div onClick={() => setCharacter((p: any) => ({ ...p, isNSFW: !p.isNSFW }))} className={`w-12 h-6 rounded-full relative cursor-pointer ${character.isNSFW ? 'bg-rose-800' : 'bg-rose-950/60'}`}>
                   <div className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full transition-transform ${character.isNSFW ? 'translate-x-6' : ''} flex items-center justify-center`}>
                     <Heart className={`w-2.5 h-2.5 ${character.isNSFW ? 'text-rose-600' : 'text-rose-200'}`} />
                   </div>
@@ -115,7 +119,8 @@ export const StudioView: React.FC<StudioViewProps> = ({ character, setCharacter 
               </div>
               <textarea value={promptInput} onChange={(e) => setPromptInput(e.target.value)} className="w-full h-[250px] rounded-[2rem] p-8 text-lg serif-display italic" placeholder={t.placeholderPrompt} />
             </div>
-            <TagSelector label={t.tags} selectedTags={character.tags} isNSFW={character.isNSFW} onToggle={(tag) => setCharacter(p => ({ ...p, tags: p.tags.includes(tag) ? p.tags.filter(t => t !== tag) : [...p.tags, tag] }))} />
+            {/* Fixed: Use functional update for tag selection */}
+            <TagSelector label={t.tags} selectedTags={character.tags} isNSFW={character.isNSFW} onToggle={(tag) => setCharacter((p: any) => ({ ...p, tags: p.tags.includes(tag) ? p.tags.filter((t: string) => t !== tag) : [...p.tags, tag] }))} />
             <PlatformSelector label={t.platforms} selectedPlatforms={selectedPlatforms} onToggle={(p) => setSelectedPlatforms(prev => prev.includes(p) ? prev.filter(sp => sp !== p) : [...prev, p])} />
             <div className="p-8 rounded-[2.5rem] bg-rose-950/20 border border-rose-900/10 space-y-6">
               <TextModelSelector label="Intelligence Engine" value={textModel} onSelect={setTextModel} />
@@ -135,8 +140,10 @@ export const StudioView: React.FC<StudioViewProps> = ({ character, setCharacter 
               <PromptSection character={character} setCharacter={setCharacter} showAssets={showAssets} setShowAssets={setShowAssets} />
               <VisualAssets character={character} setCharacter={setCharacter} isImageGenEnabled={imageModel !== 'None'} isRegeneratingImage={isRegeneratingImage} isGenerating={isGenerating} regenerateSingleImage={regenerateSingleImage} />
               <GlassCard padding="xl" className="rounded-[7rem] space-y-32 relative overflow-hidden shadow-2xl border-rose-900/50">
-                <CharacterIdentity name={character.name} setName={(name) => setCharacter(p => ({ ...p, name }))} isSaving={isSaving} onSave={handleSave} />
-                <CharacterFields fields={character.fields} onToggleLock={(id) => setCharacter(p => ({ ...p, fields: p.fields.map(f => f.id === id ? { ...f, isLocked: !f.isLocked } : f) }))} onUpdateValue={(id, val) => setCharacter(p => ({ ...p, fields: p.fields.map(f => f.id === id ? { ...f, value: val } : f) }))} worldInfo={character.worldInfo} />
+                {/* Fixed: Use functional update for name change */}
+                <CharacterIdentity name={character.name} setName={(name) => setCharacter((p: any) => ({ ...p, name }))} isSaving={isSaving} onSave={handleSave} />
+                {/* Fixed: Use functional update for fields modification */}
+                <CharacterFields fields={character.fields} onToggleLock={(id) => setCharacter((p: any) => ({ ...p, fields: p.fields.map((f: any) => f.id === id ? { ...f, isLocked: !f.isLocked } : f) }))} onUpdateValue={(id, val) => setCharacter((p: any) => ({ ...p, fields: p.fields.map((f: any) => f.id === id ? { ...f, value: val } : f) }))} worldInfo={character.worldInfo} />
               </GlassCard>
             </div>
           )}
