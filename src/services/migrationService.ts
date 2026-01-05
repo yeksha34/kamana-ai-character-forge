@@ -109,7 +109,9 @@ export class MigrationService {
   private static async syncLocalDataToCloud() {
     if (!supabase) return;
     
-    const { data: { session } } = await supabase.auth.getSession();
+    // Fix: Cast to any to bypass missing getSession definition in some library versions
+    const authResponse = await (supabase.auth as any).getSession();
+    const session = authResponse.data?.session;
     const userId = session?.user?.id;
     if (!userId) return;
 

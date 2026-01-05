@@ -131,371 +131,85 @@ export const STATIC_TAGS: TagMeta[] = [
   { id: "kink58", name: "Cross-Species", textGenerationRule: "XENO-INTIMACY: Focus on the distinct differences between species. Describe unique sensations of fur, scales, or alien fluids.", imageGenerationRule: "Highly contrasting biology in one frame, specialized xeno-carnal equipment.", isNSFW: true },
 
   // --- HARDCORE & EXTREME (The Pit) ---
-  { 
-    id: "pit01", 
-    name: "Double Penetration (DP)", 
-    textGenerationRule: "MULTI-ORIFICE FOCUS: Simultaneous penetration of two or more openings. Focus on the internal friction and the physical stretching of the subject.", 
-    imageGenerationRule: "Two or more partners, clustered anatomical focus, extreme stretching poses.", 
-    isNSFW: true 
-  },
-  { 
-    id: "pit02", 
-    name: "Fisting (Internal)", 
-    textGenerationRule: "EXPANSIVE CAPITULATION: Extreme internal exploration using hands. Focus on the depth, the use of lubrication, and the agonizing/ecstatic loss of internal shape.", 
-    imageGenerationRule: "Extreme internal focus, large-scale anatomical stretching, visceral liquid textures.", 
-    isNSFW: true 
-  },
-  { 
-    id: "pit03", 
-    name: "Trampling (Weight)", 
-    textGenerationRule: "CRUSHING DOMINANCE: Being walked upon, stood upon, or crushed under the weight of a dominant partner. Focus on the struggle for air and the pressure on the chest/limbs.", 
-    imageGenerationRule: "Soles of feet on torsos, dominant towering figures, flattened perspectives.", 
-    isNSFW: true 
-  },
-  { 
-    id: "pit04", 
-    name: "Human Furniture", 
-    textGenerationRule: "OBJECTIFIED FUNCTION: Treating the subject as an inanimate piece of furniture (chair, table, footrest). Focus on absolute stillness and the ignoring of the subject's humanity.", 
-    imageGenerationRule: "Subjects in rigid architectural poses being used as surfaces, collars, leather wraps.", 
-    isNSFW: true 
-  },
-  { 
-    id: "pit05", 
-    name: "CBT (Torture)", 
-    textGenerationRule: "GENITAL AGONY: Focus on the deliberate infliction of pain or restriction on masculine carnal organs. Includes squeezing, striking, and weighted suspension.", 
-    imageGenerationRule: "Metallic weights, tight bindings, painful expressions, intense close-ups of genital area.", 
-    isNSFW: true 
-  },
-  { 
-    id: "pit06", 
-    name: "Sounding (Metallic)", 
-    textGenerationRule: "INTERNAL CHANNELING: Insertion of metallic rods or sounds into the carnal tract. Focus on the temperature and the sharp, internal sensation of metal.", 
-    imageGenerationRule: "Glinting metallic rods, precise close-ups of insertion, medical/sterile aesthetics.", 
-    isNSFW: true 
-  },
-  { 
-    id: "pit07", 
-    name: "E-Stim (Electrical)", 
-    textGenerationRule: "NEURAL OVERLOAD: Use of electrical currents to induce muscle spasms and carnal peaks. Focus on the buzzing sound and the uncontrollable twitching of limbs.", 
-    imageGenerationRule: "Wires, electrodes, glowing sparks, wide-eyed expressions, arched backs.", 
-    isNSFW: true 
-  },
-  { 
-    id: "pit08", 
-    name: "Bloodplay (Gore-Lite)", 
-    textGenerationRule: "SANGUINE INTIMACY: Use of small cuts or needles to draw blood during carnal acts. Focus on the scent, the warmth of the fluid, and the visual of red on skin.", 
-    imageGenerationRule: "Blood droplets on skin, sharp instruments, intense contrast between red and pale flesh.", 
-    isNSFW: true 
-  },
-  { 
-    id: "pit09", 
-    name: "Forced Proximity (Small Space)", 
-    textGenerationRule: "CLAUSTROPHOBIC CARNALITY: Interactions occurring in extremely confined spaces (crates, closets, elevators). Focus on the shared heat and the inability to pull away.", 
-    imageGenerationRule: "Cramped framing, pressed flesh, dark corners, sweat-slicked skin.", 
-    isNSFW: true 
-  },
-  { 
-    id: "pit10", 
-    name: "DIPPING (Dip-n-Lick)", 
-    textGenerationRule: "LIQUID COATING: Covering the subject in food, honey, or other substances for the purpose of licking/consumption. Focus on texture and the stickiness of the skin.", 
-    imageGenerationRule: "Glistening viscous liquids, tongues in frame, messy carnal framing.", 
-    isNSFW: true 
-  },
+  { id: "pit01", name: "Double Penetration (DP)", textGenerationRule: "MULTI-ORIFICE FOCUS: Simultaneous penetration of two or more openings. Focus on internal friction and physical stretching.", imageGenerationRule: "Two or more partners, clustered anatomical focus.", isNSFW: true },
+  { id: "pit02", name: "Fisting (Internal)", textGenerationRule: "EXPANSIVE CAPITULATION: Extreme internal exploration using hands. Focus on depth and agonizing loss of internal shape.", imageGenerationRule: "Extreme internal focus, large-scale stretching.", isNSFW: true },
 
-  // --- PUBLIC NUDITY & EXPOSURE (The Stage) ---
-  { 
-    id: "stage01", 
-    name: "Public Flashing", 
-    textGenerationRule: "SUDDEN EXPOSURE: The act of intentionally revealing carnal parts to unsuspecting strangers. Focus on the rush of fear, the cold air on skin, and the reaction of others.", 
-    imageGenerationRule: "Opened trench coats, urban backgrounds, startled silhouettes, blurred motion.", 
-    isNSFW: true 
-  },
-  { 
-    id: "stage02", 
-    name: "Dogging (Public Car)", 
-    textGenerationRule: "VEHICULAR SPECTATORSHIP: Carnal acts occurring in parked cars in public areas, intended to be watched. Focus on the steamed-up windows and the voyeurs in the shadows.", 
-    imageGenerationRule: "Dark parking lots, car interiors, flashlight beams, silhouettes outside windows.", 
-    isNSFW: true 
-  },
-  { 
-    id: "stage03", 
-    name: "Beach/Nudist Exposure", 
-    textGenerationRule: "NATURALIST VULNERABILITY: Interactions in open, sun-drenched outdoor areas where discovery is constant. Focus on sand, salt water, and the lack of cover.", 
-    imageGenerationRule: "Bright sunlight, sand on skin, distant crowds, ocean waves, exposed carnal acts.", 
-    isNSFW: true 
-  },
-  { 
-    id: "stage04", 
-    name: "Public Transit Commute", 
-    textGenerationRule: "URBAN TRANSGRESSION: Carnal interactions on trains, buses, or subways during active operation. Focus on the vibrations, the proximity of other passengers, and the silence.", 
-    imageGenerationRule: "Subway car interiors, hand-rails, crowded backgrounds, hidden hands, blurred tunnel lights.", 
-    isNSFW: true 
-  },
-  { 
-    id: "stage05", 
-    name: "Changing Room Voyeur", 
-    textGenerationRule: "LIMINAL EXPOSURE: The vulnerability of being watched while undressing in stores or gyms. Focus on mirrors, curtains, and the feeling of eyes in the gaps.", 
-    imageGenerationRule: "Partial nudity, curtains, mirror reflections, shadows through gaps, fluorescent lighting.", 
-    isNSFW: true 
-  },
-  { 
-    id: "stage06", 
-    name: "Park Bench Risky", 
-    textGenerationRule: "DAYLIGHT PERMANENCE: Carnal acts occurring in broad daylight in public parks. Focus on the risk of children or police appearing and the use of 'quick access' clothing.", 
-    imageGenerationRule: "Greenery, park benches, strollers in the distance, lifted skirts, exposed thighs.", 
-    isNSFW: true 
-  },
-  { 
-    id: "stage07", 
-    name: "Restroom/Stall Glory", 
-    textGenerationRule: "CLANDESTINE PLUMBING: Interactions through walls or within cramped public restroom stalls. Focus on the grime, the echoing sounds, and the anonymity of the partner.", 
-    imageGenerationRule: "Graffiti-covered walls, stall doors, low-angle perspectives, tiled floors, hands under partitions.", 
-    isNSFW: true 
-  },
-  { 
-    id: "stage08", 
-    name: "Balcony Exhibition", 
-    textGenerationRule: "ELEVATED EXPOSURE: Performing carnal acts on high balconies overlooking busy streets. Focus on the wind and the feeling of being a 'display' for the world below.", 
-    imageGenerationRule: "City skylines, balcony railings, night lights, exposed poses against the wind.", 
-    isNSFW: true 
-  },
-  { 
-    id: "stage09", 
-    name: "Gym Exposure", 
-    textGenerationRule: "ATHLETIC VULNERABILITY: Intentional exposure of carnal parts during exercise or in locker rooms. Focus on sweat, high exertion, and the risk of being seen by fellow athletes.", 
-    imageGenerationRule: "Gym equipment, weights, locker room mirrors, yoga poses, exposed spandex.", 
-    isNSFW: true 
-  },
-  { 
-    id: "stage10", 
-    name: "Library Silence", 
-    textGenerationRule: "SCHOLARLY RISQUÉ: Performing quiet, hidden carnal acts in libraries or study halls. Focus on the contrast between the intellectual setting and the primal urge, using the silence as a sensory amplifier.", 
-    imageGenerationRule: "Bookshelves, wooden desks, dim library lighting, hidden hands under tables, exposed stockings.", 
-    isNSFW: true 
-  },
-
-  // --- PSYCHOLOGICAL & PHILOSOPHICAL (The Void) ---
-  { 
-    id: "void01", 
-    name: "Nihilism", 
-    textGenerationRule: "EXISTENTIAL NULLIFICATION: Dialogue and actions reflect a total lack of meaning. Moral weight is zero. Characters act without consequence or concern for future causality.", 
-    imageGenerationRule: "Bleak, empty landscapes, monochrome palettes, hollow expressions, eyes devoid of life.", 
-    isNSFW: true 
-  },
-  { 
-    id: "void02", 
-    name: "Solipsism", 
-    textGenerationRule: "SUBJECTIVE DOMINANCE: The character operates as if they are the only real consciousness. Others are perceived as biological props or NPC-like objects for their whims.", 
-    imageGenerationRule: "Distorted perspectives where the central figure dominates everything else, blurred background figures.", 
-    isNSFW: true 
-  },
-  { 
-    id: "void03", 
-    name: "Cosmic Dread", 
-    textGenerationRule: "ELDRITCH INSIGNIFICANCE: Narrative emphasizes the crushing weight of vast, uncaring entities. Characters feel small, biologically fragile, and psychologically shattered by the scale of the universe.", 
-    imageGenerationRule: "Lovecraftian motifs, swirling nebulae, incomprehensible scale, tentacles in space.", 
-    isNSFW: true 
-  },
-  { 
-    id: "void04", 
-    name: "Hedonism (Extreme)", 
-    textGenerationRule: "CARNAL ABSOLUTISM: Pursuit of pleasure as the only moral imperative. All actions are filtered through immediate sensory gratification, ignoring pain or social norms.", 
-    imageGenerationRule: "Overflowing banquets, clusters of entangled bodies, decadent textures, gold and velvet.", 
-    isNSFW: true 
-  },
-  { 
-    id: "void05", 
-    name: "Fatalism", 
-    textGenerationRule: "DOOM LOGIC: Actions are driven by the belief that the ending is already written. Characters embrace their destruction with a calm, disturbing certainty.", 
-    imageGenerationRule: "Clocks, hourglasses, falling petals, silhouettes against a setting sun.", 
-    isNSFW: true 
-  },
-
-  // --- EXTREME HORROR & GORE (The Abattoir) ---
-  { 
-    id: "gore01", 
-    name: "Guro (Visceral)", 
-    textGenerationRule: "ANATOMICAL UNVEILING: Extreme focus on internal anatomy, organs, and the aesthetic of physical destruction. Language is precise, wet, and raw, detailing the fusion of carnal pleasure and trauma.", 
-    imageGenerationRule: "Explicit internal anatomy, cross-sections of flesh, wet organic textures, heavy red palettes.", 
-    isNSFW: true 
-  },
-  { 
-    id: "gore02", 
-    name: "Cannibalism", 
-    textGenerationRule: "LIVESTOCK LOGIC: Treating human subjects as nutrition. Narrative focuses on the preparation and consumption of flesh with predatory delight and a focus on taste and texture.", 
-    imageGenerationRule: "Kitchen or butcher shop aesthetics with human-adjacent motifs, dinner plates with viscera.", 
-    isNSFW: true 
-  },
-  { 
-    id: "gore03", 
-    name: "Body Horror", 
-    textGenerationRule: "MORPHOLOGICAL DISSOLUTION: Focus on the wrongness of flesh—extra limbs, skin melting, bones warping. Interaction is driven by the horror of the body's failure and rebirth.", 
-    imageGenerationRule: "Cronenberg-style mutations, fusing flesh, unnatural geometry, teeth where they shouldn't be.", 
-    isNSFW: true 
-  },
-  { 
-    id: "gore04", 
-    name: "Mutilation", 
-    textGenerationRule: "PERMANENT ALTERATION: Intentional destruction or removal of body parts as a form of ownership or punishment. Detail the raw physics of the act and the resulting permanent mark.", 
-    imageGenerationRule: "Missing limbs, heavy scarring, medical instruments used aggressively, cauterized skin.", 
-    isNSFW: true 
-  },
-  { 
-    id: "gore05", 
-    name: "Necrophilia (The Grave)", 
-    textGenerationRule: "POST-MORTEM INTIMACY: Interaction with non-responsive, cold, and decaying subjects. Focus on the stillness, the scent of decay, and the absolute lack of life.", 
-    imageGenerationRule: "Grave sites, ashen skin, blue-tinted lighting, withered flowers, cemetery backgrounds.", 
-    isNSFW: true 
-  },
-  { 
-    id: "gore06", 
-    name: "Torture (Procedural)", 
-    textGenerationRule: "SYSTEMATIC AGONY: Narrative focuses on the step-by-step breakdown of the subject using specific tools and methods. High emphasis on the subject's vocalizations and physical collapse.", 
-    imageGenerationRule: "Racks, chains, dark dungeons, glinting metal, sweat and blood.", 
-    isNSFW: true 
-  },
-
-  // --- Archetypal Fetishes (Mythic Predators) ---
-  { 
-    id: "hindu01", 
-    name: "Apsara (Rhythmic)", 
-    textGenerationRule: "DANCE LOGIC: Seduction via rhythmic movement and celestial heat to induce a dazed state.", 
-    imageGenerationRule: "Floating silk, heavy gold jewelry, lotus pools.", 
-    isNSFW: true 
-  },
-  { 
-    id: "west08", 
-    name: "Siren (Sonic)", 
-    textGenerationRule: "SONIC FREQUENCY: Seduction through vocal resonance and humming to override willpower.", 
-    imageGenerationRule: "Wet scales, sharp teeth, coastal lighting.", 
-    isNSFW: true 
-  },
-  { 
-    id: "west02", 
-    name: "Succubus (Mirror)", 
-    textGenerationRule: "SUBCONSCIOUS INFILTRATION: Character mimics the subject's deepest cravings to dissolve mental boundaries.", 
-    imageGenerationRule: "Demonic wings, glowing markings, hazy bedroom.", 
-    isNSFW: true 
-  },
-  { 
-    id: "west06", 
-    name: "Medusa (Paralytic)", 
-    textGenerationRule: "STONY LOCKDOWN: Logic of the 'Locked Gaze' requiring absolute physical immobility.", 
-    imageGenerationRule: "Serpentine hair, unblinking eyes, statues.", 
-    isNSFW: true 
-  },
-  { 
-    id: "west01", 
-    name: "Vampire (Aristocratic)", 
-    textGenerationRule: "FLUID OWNERSHIP: Possession through fluid extraction; driven by agonizing physical thirst.", 
-    imageGenerationRule: "Fangs, pale skin, blood-red velvet.", 
-    isNSFW: true 
-  },
-  { 
-    id: "west04", 
-    name: "Werewolf (Lunar)", 
-    textGenerationRule: "BESTIAL HEAT: Logic of the wild union with zero social cues and heavy scent-logic.", 
-    imageGenerationRule: "Massive musculature, thick fur, amber eyes.", 
-    isNSFW: true 
-  },
-  { 
-    id: "hindu17", 
-    name: "Pisacha (Thermal)", 
-    textGenerationRule: "FLESH FEEDING: Guttural hunger for blood-warmth; feral and devoid of elegance.", 
-    imageGenerationRule: "Bulging veins, ashen skin, shadows.", 
-    isNSFW: true 
-  },
-  { 
-    id: "west10", 
-    name: "Gargoyle (Sentinel)", 
-    textGenerationRule: "STATIC PRESSURE: Character is heavy and unyielding; intimacy involves crushing weight.", 
-    imageGenerationRule: "Stone-textured skin, stone architecture.", 
-    isNSFW: true 
-  },
-  { 
-    id: "hindu04", 
-    name: "Nagini (Constrictor)", 
-    textGenerationRule: "MUSCULAR LOCKDOWN: Intimacy is an inescapable, pressurized 'wrap' using the entire body.", 
-    imageGenerationRule: "Serpentine skin patterns, hair coils, scales.", 
-    isNSFW: true 
-  },
-
-  // --- Academic, Professional & Study Oriented (SFW) ---
+  // --- Academic & Study Oriented (SFW Expansion) ---
   { 
     id: "study01", 
     name: "Study Buddy", 
-    textGenerationRule: "COLLABORATIVE LEARNING: Interaction is encouraging and cooperative. Focus on mutual understanding, breaking down complex topics together, and academic support.", 
-    imageGenerationRule: "Cozy library setting, books, stationery, warm focused lighting, friendly atmosphere.", 
+    textGenerationRule: "COLLABORATIVE LEARNING: Interaction is encouraging and cooperative. Focus on breaking down complex topics and mutual academic support.", 
+    imageGenerationRule: "Cozy library setting, books, stationery, warm focused lighting.", 
     isNSFW: false 
   },
   { 
     id: "study02", 
     name: "Research Assistant", 
-    textGenerationRule: "METHODICAL DATA: Provide objective, data-driven support. Focus on methodology, sourcing, structural organization of information, and technical accuracy.", 
-    imageGenerationRule: "Clean laboratory or high-tech office, multiple screens, notebooks, organized professional aesthetic.", 
+    textGenerationRule: "METHODICAL DATA: Provide objective, data-driven support. Focus on methodology, sourcing, and technical accuracy.", 
+    imageGenerationRule: "Clean office, multiple screens, notebooks, organized professional aesthetic.", 
     isNSFW: false 
   },
   { 
     id: "acad01", 
     name: "Debate Opponent", 
-    textGenerationRule: "DIALECTICAL CHALLENGE: Engaging in logical conflict. Focus on rhetoric, evidence-based counter-arguments, and challenging assumptions with intellectual respect.", 
-    imageGenerationRule: "Academic hall, lectern, sharp attire, intense intellectual focus, historical university backdrop.", 
+    textGenerationRule: "DIALECTICAL CHALLENGE: Engaging in logical conflict. Focus on rhetoric, evidence, and challenging assumptions with respect.", 
+    imageGenerationRule: "Academic hall, lectern, sharp attire, intense intellectual focus.", 
     isNSFW: false 
   },
   { 
     id: "acad02", 
     name: "Scientific Experiment", 
-    textGenerationRule: "EMPIRICAL OBSERVATION: Interactions follow a strict procedural logic. Focus on variables, hypotheses, recording observations, and analytical curiosity.", 
-    imageGenerationRule: "Lab equipment, beakers, complex machinery, data charts, focused lighting on experiments.", 
+    textGenerationRule: "EMPIRICAL OBSERVATION: Interactions follow strict procedural logic. Focus on variables, hypotheses, and analytical curiosity.", 
+    imageGenerationRule: "Lab equipment, beakers, data charts, focused lighting.", 
     isNSFW: false 
   },
   { 
     id: "acad03", 
-    name: "Presentation Mode", 
-    textGenerationRule: "ENGAGING DELIVERY: Structuring information for an audience. Focus on clarity, visual pacing, compelling storytelling, and informative authority.", 
-    imageGenerationRule: "Conference room, projection screen, confident posture, professional attire, modern minimalist background.", 
+    name: "Presentation", 
+    textGenerationRule: "ENGAGING DELIVERY: Structuring information for an audience. Focus on clarity, visual pacing, and compelling storytelling.", 
+    imageGenerationRule: "Conference room, projection screen, confident posture.", 
     isNSFW: false 
   },
   { 
     id: "acad04", 
     name: "Thesis Advisor", 
-    textGenerationRule: "MENTORSHIP RIGOR: Demanding high academic standards. Providing constructive but stern criticism, guiding the subject through complex long-term projects.", 
-    imageGenerationRule: "Classic wood-paneled office, floor-to-ceiling books, stacks of graded papers, glasses, aura of wisdom.", 
+    textGenerationRule: "MENTORSHIP RIGOR: Demanding high academic standards. Providing constructive but stern criticism on long-term projects.", 
+    imageGenerationRule: "Classic office, stacks of graded papers, glasses, aura of wisdom.", 
     isNSFW: false 
   },
   { 
     id: "acad05", 
     name: "Diary Entry", 
-    textGenerationRule: "INTROSPECTIVE RAWNESS: First-person stream of consciousness. Focus on internal vulnerability, personal reflection, and chronological logging of thoughts.", 
-    imageGenerationRule: "Vintage notebook, elegant fountain pen, soft candlelight, intimate private bedroom setting, ink stains.", 
+    textGenerationRule: "INTROSPECTIVE RAWNESS: First-person stream of consciousness. Focus on internal vulnerability and personal reflection.", 
+    imageGenerationRule: "Vintage notebook, fountain pen, soft candlelight, intimate setting.", 
     isNSFW: false 
   },
   { 
     id: "acad06", 
     name: "Interview", 
-    textGenerationRule: "PROBING INQUIRY: A structured back-and-forth driven by specific questions. Focus on professional curiosity and uncovering detailed personal or technical history.", 
-    imageGenerationRule: "Minimalist interview room, neutral colors, recording equipment, focused eye contact, professional distance.", 
+    textGenerationRule: "PROBING INQUIRY: Structured back-and-forth driven by specific questions. Focus on professional curiosity.", 
+    imageGenerationRule: "Minimalist interview room, recording equipment, focused eye contact.", 
     isNSFW: false 
   },
   { 
     id: "acad07", 
     name: "Brainstorming", 
-    textGenerationRule: "LATERAL IDEATION: Non-judgmental creativity. Focus on 'Yes And' logic, rapid-fire idea generation, and visualizing connections between distant concepts.", 
-    imageGenerationRule: "Sunlit creative studio, whiteboard covered in sketches, colorful sticky notes, collaborative open space.", 
+    textGenerationRule: "LATERAL IDEATION: Non-judgmental creativity. Focus on rapid idea generation and visualizing connections.", 
+    imageGenerationRule: "Sunlit studio, whiteboard with sketches, colorful sticky notes.", 
     isNSFW: false 
   },
   { 
     id: "acad08", 
     name: "Tutoring", 
-    textGenerationRule: "PATIENT GUIDANCE: Breaking down barriers to understanding. Focus on scaffolding knowledge, simplifying metaphors, and checking for incremental progress.", 
-    imageGenerationRule: "Classroom desk, digital tablet, shared workspace, encouraging expressions, bright daylight.", 
+    textGenerationRule: "PATIENT GUIDANCE: Breaking down barriers to understanding. Focus on scaffolding and incremental progress.", 
+    imageGenerationRule: "Classroom desk, digital tablet, shared workspace.", 
     isNSFW: false 
   },
   { 
     id: "acad09", 
     name: "Technical Documentation", 
-    textGenerationRule: "PRECISION SPECIFICATIONS: Focus on 'How-To' steps, API-like definitions, and dry technical accuracy. Avoiding narrative fluff for purely functional clarity.", 
-    imageGenerationRule: "Blueprints, architectural grids, circuit boards, clean technical drawings, monochrome industrial palette.", 
+    textGenerationRule: "PRECISION SPECIFICATIONS: Focus on 'How-To' steps, API-like definitions, and purely functional clarity.", 
+    imageGenerationRule: "Blueprints, architectural grids, circuit boards, clean drawings.", 
     isNSFW: false 
   },
 ];

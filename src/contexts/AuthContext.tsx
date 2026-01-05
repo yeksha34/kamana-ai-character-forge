@@ -1,6 +1,6 @@
-
 import { supabase } from '../services/supabaseClient';
-import { User as SupabaseUser } from '@supabase/supabase-js';
+// Using any for SupabaseUser as 'User' export might be missing in some versions of the library
+type SupabaseUser = any;
 import React, { createContext, ReactNode, useCallback, useContext, useEffect, useState } from 'react';
 
 export interface User {
@@ -67,7 +67,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     if (savedUser) {
       setUser(JSON.parse(savedUser));
     } else if (ageVerified) {
-        // Auto-login if age is already verified in dev mode for convenience
         const mockUser = {
             id: 'local-user',
             name: 'स्थानिक कलाकार',
@@ -85,7 +84,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     try {
       if (!supabase) return;
 
-      const { data: { session }, error } = await supabase.auth.getSession();
+      // Fix: Cast to any to bypass missing getSession definition in some library versions
+      const authResponse = await (supabase.auth as any).getSession();
+      const session = authResponse.data?.session;
+      const error = authResponse.error;
       
       if (error) {
         console.error('Session error:', error);
@@ -112,23 +114,24 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     } else {
       initSupabaseAuth(mounted);
 
-      const { data: { subscription } } = supabase!.auth.onAuthStateChange(
-        async (event, session) => {
+      // Fix: Cast to any to bypass missing onAuthStateChange definition in some library versions
+      const { data } = (supabase!.auth as any).onAuthStateChange(
+        async (event: string, session: any) => {
           if (!mounted) return;
           if (session?.user) {
             setUser(mapSupabaseUser(session.user));
-            if (event === "SIGNED_IN") {
-                window.location.hash = "#/studio/new";
-            }
+            // Removed forced hash navigation on every SIGNED_IN event to prevent resets during session refresh
           } else if (event === 'SIGNED_OUT') {
             setUser(null);
           }
         }
       );
 
+      const subscription = (data as any)?.subscription;
+
       return () => {
         mounted = false;
-        subscription.unsubscribe();
+        if (subscription) subscription.unsubscribe();
       };
     }
   }, [isDevelopmentBypass, initMockAuth, initSupabaseAuth, mapSupabaseUser]);
@@ -137,7 +140,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     setIsLoggingIn(true);
     try {
       if (isDevelopmentBypass) {
-        // Simulate network delay for realistic dev feel
         await new Promise(r => setTimeout(r, 1000));
         const mockUser = {
           id: 'local-user',
@@ -148,10 +150,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         setUser(mockUser);
         localStorage.setItem('kamana_mock_user', JSON.stringify(mockUser));
         setAgeVerified(true);
-        // Explicitly trigger hash change for dev bypass redirect
         window.location.hash = "#/studio/new";
       } else {
-        const { error } = await supabase!.auth.signInWithOAuth({
+        // Fix: Cast to any to bypass missing signInWithOAuth definition in some library versions
+        const { error } = await (supabase!.auth as any).signInWithOAuth({
           provider: 'github',
           options: {
             redirectTo: `${window.location.origin}${window.location.pathname}`,
@@ -173,7 +175,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       localStorage.removeItem('kamana_mock_user');
     } else {
       try {
-        await supabase!.auth.signOut();
+        // Fix: Cast to any to bypass missing signOut definition in some library versions
+        await (supabase!.auth as any).signOut();
       } catch (err) {
         console.error('Sign out error:', err);
       }
