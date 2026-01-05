@@ -1,4 +1,3 @@
-
 import { categorizedProfanity } from './profanity';
 import { Theme } from '../types';
 
@@ -37,8 +36,23 @@ export const translations = {
     },
     morphing: {
       desire: categorizedProfanity.mr.desire[Theme.DEFAULT],
-      imagination: categorizedProfanity.mr.imagination[Theme.DEFAULT],
-      studio: categorizedProfanity.mr.studio[Theme.DEFAULT],
+      imagination: ["कल्पनाशक्ती", "नवनिर्मिती", "स्वप्न", "प्रतिभा"],
+      tags: ["गुणधर्म", "वैशिष्ट्ये", "लक्षणे", "ओळख"],
+      platforms: ["मंच", "आधार", "चौकट", "विश्व"],
+      studio: ["कार्यशाळा", "स्टुडिओ", "निर्मिती केंद्र", "सृजन"],
+      museum: ["दालन", "संग्रहालय", "संग्रह", "दस्तावेज"],
+      breatheLife: ["प्राण फुंका", "जागृत करा", "सृजन करा", "सुरू करा"],
+      save: ["जतन करा", "सुरक्षित करा", "नोंद करा", "साठवा"],
+      edit: ["संपादन", "सुधारणा", "बदल", "कापछाप"],
+      delete: ["हटवा", "नष्ट करा", "मिटवा", "काढून टाका"],
+      chatNow: ["संवाद साधा", "चाचणी करा", "बोलून पहा", "भेटा"],
+      finalize: ["पूर्ण करा", "अंतिम रूप", "सिद्ध करा", "साकार करा"],
+      draft: ["मसुदा", "कच्चे काम", "नमुना", "प्रारूप"],
+      intelligence: ["बुद्धिमत्ता", "मेंदू", "तर्क", "विवेक"],
+      visual: ["दृष्टी", "चित्र", "देखावा", "रूप"],
+      nsfw: ["प्रौढ", "खुले", "निर्भीड", "प्रखर"],
+      sfw: ["सुरक्षित", "सौम्य", "कौटुंबिक", "नैसर्गिक"],
+      signIn: ["प्रवेश करा", "सुरू करा", "आत या", "ओळख पटवा"],
       canvas: categorizedProfanity.mr.canvas[Theme.DEFAULT]
     }
   },
@@ -74,8 +88,23 @@ export const translations = {
     },
     morphing: {
       desire: categorizedProfanity.en.desire[Theme.DEFAULT],
-      imagination: categorizedProfanity.en.imagination[Theme.DEFAULT],
-      studio: categorizedProfanity.en.studio[Theme.DEFAULT],
+      imagination: ["Imagination", "Vision", "Dream", "Crave"],
+      tags: ["Attributes", "Traits", "Markers", "Soul-Tags"],
+      platforms: ["Platforms", "Worlds", "Frameworks", "Realms"],
+      studio: ["Studio", "Forge", "Workshop", "Sanctum"],
+      museum: ["Gallery", "Museum", "Archive", "Exhibition"],
+      breatheLife: ["Breathe Life", "Awaken", "Ignite", "Summon"],
+      save: ["Save", "Preserve", "Record", "Anchor"],
+      edit: ["Edit", "Sculpt", "Refine", "Modify"],
+      delete: ["Delete", "Destroy", "Purge", "Erase"],
+      chatNow: ["Chat Now", "Interact", "Possess", "Speak"],
+      finalize: ["Finalize", "Manifest", "Complete", "Seal"],
+      draft: ["Draft", "Sketch", "Seed", "Ink"],
+      intelligence: ["Intelligence", "Cognition", "Logic", "Will"],
+      visual: ["Visuals", "Aura", "Form", "Skin"],
+      nsfw: ["NSFW", "Unfiltered", "Explicit", "Raw"],
+      sfw: ["SFW", "Safe", "Pure", "Soft"],
+      signIn: ["Sign In", "Access", "Enter", "Initiate"],
       canvas: categorizedProfanity.en.canvas[Theme.DEFAULT]
     }
   },
@@ -111,8 +140,23 @@ export const translations = {
     },
     morphing: {
       desire: categorizedProfanity.hi.desire[Theme.DEFAULT],
-      imagination: categorizedProfanity.hi.imagination[Theme.DEFAULT],
-      studio: categorizedProfanity.hi.studio[Theme.DEFAULT],
+      imagination: ["कल्पना", "नवनिर्माण", "स्वप्न", "दृष्टि"],
+      tags: ["विशेषताएं", "गुण", "लक्षण", "पहचान"],
+      platforms: ["मंच", "दुनिया", "ढांचा", "क्षेत्र"],
+      studio: ["स्टूडियो", "कार्यशाला", "निर्माण", "केंद्र"],
+      museum: ["संग्रहालय", "गैलरी", "संग्रह", "पुरालेख"],
+      breatheLife: ["प्राण फूँकें", "जागृत करें", "रचना करें", "आरंभ करें"],
+      save: ["सहेजें", "सुरक्षित करें", "दर्ज करें", "जमा करें"],
+      edit: ["संपादन", "सुधारें", "बदलें", "तराशें"],
+      delete: ["मिटाएं", "नष्ट करें", "हटाएं", "मिटा दें"],
+      chatNow: ["संवाद करें", "बात करें", "मिलें", "चांचें"],
+      finalize: ["पूर्ण करें", "अंतिम रूप", "साकार करें", "सिद्ध करें"],
+      draft: ["प्रारूप", "मसुदा", "कच्चा काम", "नमूना"],
+      intelligence: ["बुद्धि", "तर्क", "चेतना", "विवेक"],
+      visual: ["दृश्य", "रूप", "चित्रांकन", "आभा"],
+      nsfw: ["प्रौढ़", "अप्रतिबंधित", "स्पष्ट", "तीव्र"],
+      sfw: ["सुरक्षित", "सौम्य", "साधारण", "शुद्ध"],
+      signIn: ["लॉगिन करें", "प्रवेश करें", "जुड़ें", "शुरू करें"],
       canvas: categorizedProfanity.hi.canvas[Theme.DEFAULT]
     }
   }

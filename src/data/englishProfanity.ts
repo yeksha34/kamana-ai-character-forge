@@ -182,4 +182,25 @@ export const ENGLISH_PROFANNITY_WORDS: ProfanityWord[] = [
   { word: 'fingers', language: 'en', contexts: [Context.DESIRE], themes: [Theme.HARDCORE], targets: [Target.BODY] },
   { word: 'palms', language: 'en', contexts: [Context.DESIRE], themes: [Theme.HARDCORE], targets: [Target.BODY] },
   { word: 'fist', language: 'en', contexts: [Context.DESIRE], themes: [Theme.HARDCORE], targets: [Target.BODY] },
+
+  // ==========================================
+  // CHAT - ENGLISH
+  // ==========================================
+  { word: 'Chat Now', language: 'en', contexts: [Context.CHAT], themes: [Theme.DEFAULT], targets: [Target.SOCIAL] },
+  { word: 'Speak', language: 'en', contexts: [Context.CHAT], themes: [Theme.DEFAULT], targets: [Target.SOCIAL] },
+  { word: 'Interact', language: 'en', contexts: [Context.CHAT], themes: [Theme.DEFAULT], targets: [Target.SOCIAL] },
+  { word: 'Encounter', language: 'en', contexts: [Context.CHAT], themes: [Theme.DEFAULT], targets: [Target.SOCIAL] },
+  { word: 'Meet', language: 'en', contexts: [Context.CHAT], themes: [Theme.DEFAULT], targets: [Target.SOCIAL] },
+  
+  { word: 'Seduce', language: 'en', contexts: [Context.CHAT], themes: [Theme.SOFTCORE], targets: [Target.MIND] },
+  { word: 'Whisper', language: 'en', contexts: [Context.CHAT], themes: [Theme.SOFTCORE], targets: [Target.BODY] },
+  { word: 'Tempt', language: 'en', contexts: [Context.CHAT], themes: [Theme.SOFTCORE], targets: [Target.MIND] },
+  { word: 'Lure', language: 'en', contexts: [Context.CHAT], themes: [Theme.SOFTCORE], targets: [Target.MIND] },
+  { word: 'Entice', language: 'en', contexts: [Context.CHAT], themes: [Theme.SOFTCORE], targets: [Target.MIND] },
+  
+  { word: 'Ravish', language: 'en', contexts: [Context.CHAT], themes: [Theme.HARDCORE], targets: [Target.BODY] },
+  { word: 'Possess', language: 'en', contexts: [Context.CHAT], themes: [Theme.HARDCORE], targets: [Target.MIND] },
+  { word: 'Claim', language: 'en', contexts: [Context.CHAT], themes: [Theme.HARDCORE], targets: [Target.BODY] },
+  { word: 'Use', language: 'en', contexts: [Context.CHAT], themes: [Theme.HARDCORE], targets: [Target.OBJECTIFICATION] },
+  { word: 'Obey', language: 'en', contexts: [Context.CHAT], themes: [Theme.HARDCORE], targets: [Target.STATUS] },
 ];

@@ -2,8 +2,9 @@ import { CharacterData } from '../types';
 import { GlassCard } from '../components/ui/GlassCard';
 import { DisplayTitle } from '../components/ui/DisplayTitle';
 import { Badge } from '../components/ui/Badge';
-// Added Copy to imports
-import { CheckCircle2, FileText, Grid, History, ImageIcon, Trash2, Download, CheckSquare, Square, X, RefreshCw, Copy } from 'lucide-react';
+import { MorphingText } from '../components/MorphingText';
+import { useAppContext } from '../contexts/AppContext';
+import { CheckCircle2, FileText, Grid, History, ImageIcon, Trash2, Download, CheckSquare, Square, X, RefreshCw, Copy, MessageSquareShare } from 'lucide-react';
 import React, { useState } from 'react';
 import { downloadCharactersZip } from '../utils/exportUtils';
 
@@ -16,6 +17,7 @@ interface MuseumViewProps {
 }
 
 export const MuseumView: React.FC<MuseumViewProps> = ({ characters = [], onNavigate, onEdit, onDelete, onDuplicate }) => {
+  const { language } = useAppContext();
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [isExporting, setIsExporting] = useState(false);
 
@@ -123,26 +125,37 @@ export const MuseumView: React.FC<MuseumViewProps> = ({ characters = [], onNavig
                 </div>
               </div>
               <div className="p-12 flex-1 flex flex-col justify-between bg-black/20">
-                <div className="flex gap-4">
+                <div className="space-y-4">
                   <button
-                    onClick={() => onEdit(c)}
-                    className="flex-1 py-6 bg-rose-800/10 border border-rose-900/20 text-rose-500 rounded-full font-black text-[10px] uppercase tracking-widest hover:bg-rose-800 hover:text-white transition-all shadow-xl group/edit"
+                    onClick={() => onNavigate(`#/chat/${c.id}`)}
+                    className="w-full py-5 bg-rose-600 text-white rounded-full font-black transition-all shadow-xl flex items-center justify-center gap-3 group/chat overflow-hidden"
                   >
-                    संपादन करा (Edit)
+                    <MessageSquareShare className="w-5 h-5 group-hover/chat:animate-icon-heartbeat" />
+                    <MorphingText language={language} value="chatNow" english="Chat Now" className="text-[11px] uppercase tracking-widest" />
                   </button>
-                  <button
-                    onClick={() => onDuplicate(c)}
-                    title="Duplicate Creation"
-                    className="p-6 bg-rose-950/50 text-rose-950 hover:text-rose-400 rounded-full transition-all border border-rose-900/10 hover:border-rose-700/50 active:scale-90 group/duplicate"
-                  >
-                    <Copy className="w-6 h-6 group-hover/duplicate:animate-icon-float" />
-                  </button>
-                  <button
-                    onClick={() => onDelete(c.id!)}
-                    className="p-6 bg-rose-950/50 text-rose-950 hover:text-rose-500 rounded-full transition-all border border-rose-900/10 hover:border-rose-700/50 active:scale-90 group/delete"
-                  >
-                    <Trash2 className="w-6 h-6 group-hover/delete:animate-icon-wiggle" />
-                  </button>
+                  <div className="flex gap-4">
+                    <button
+                      onClick={() => onEdit(c)}
+                      className="flex-1 py-5 bg-rose-800/10 border border-rose-900/20 text-rose-500 rounded-full font-black transition-all group/edit overflow-hidden"
+                    >
+                      <div className="flex items-center justify-center gap-2">
+                        <MorphingText language={language} value="edit" english="Edit" className="text-[10px] uppercase tracking-widest" />
+                      </div>
+                    </button>
+                    <button
+                      onClick={() => onDuplicate(c)}
+                      title="Duplicate Creation"
+                      className="p-5 bg-rose-950/50 text-rose-950 hover:text-rose-400 rounded-full transition-all border border-rose-900/10 hover:border-rose-700/50 active:scale-90 group/duplicate"
+                    >
+                      <Copy className="w-5 h-5 group-hover/duplicate:animate-icon-float" />
+                    </button>
+                    <button
+                      onClick={() => onDelete(c.id!)}
+                      className="p-5 bg-rose-950/50 text-rose-950 hover:text-rose-500 rounded-full transition-all border border-rose-900/10 hover:border-rose-700/50 active:scale-90 group/delete overflow-hidden"
+                    >
+                      <Trash2 className="w-5 h-5 group-hover/delete:animate-icon-wiggle" />
+                    </button>
+                  </div>
                 </div>
               </div>
             </GlassCard>

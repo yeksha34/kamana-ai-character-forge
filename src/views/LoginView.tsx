@@ -1,7 +1,7 @@
-
 import { Language, translations } from '../i18n/translations';
 import { GlassCard } from '../components/ui/GlassCard';
 import { DisplayTitle } from '../components/ui/DisplayTitle';
+import { MorphingText } from '../components/MorphingText';
 import { Fingerprint, Flame, Github, RefreshCw, ShieldAlert, Terminal, Zap } from 'lucide-react';
 import React from 'react';
 
@@ -60,7 +60,7 @@ export const LoginView: React.FC<LoginViewProps> = ({
             <button 
               onClick={onSignIn} 
               disabled={isLoggingIn}
-              className={`group flex items-center gap-6 px-16 py-7 rounded-full font-black text-xs uppercase tracking-[0.4em] transition-all shadow-2xl active:scale-95 disabled:opacity-50 ${
+              className={`group flex items-center gap-6 px-16 py-7 rounded-full font-black transition-all shadow-2xl active:scale-95 disabled:opacity-50 overflow-hidden ${
                 isDevelopmentBypass 
                 ? 'bg-rose-800 text-white hover:bg-rose-700' 
                 : 'bg-white text-rose-950 hover:bg-rose-50'
@@ -73,7 +73,12 @@ export const LoginView: React.FC<LoginViewProps> = ({
                 ? <Zap className="w-6 h-6 group-hover:animate-icon-wiggle transition-transform fill-white/20" />
                 : <Github className="w-6 h-6 group-hover:scale-110 transition-transform" />
               )}
-              {isDevelopmentBypass ? 'Enter Studio (Dev)' : t.githubSignIn}
+              <MorphingText 
+                language={language} 
+                value="signIn" 
+                english={isDevelopmentBypass ? "Enter Studio (Dev)" : "GitHub Sign In"} 
+                className="text-xs uppercase tracking-[0.4em] text-left" 
+              />
             </button>
             
             <div className="pt-4 flex flex-col items-center gap-2 opacity-30 hover:opacity-100 transition-opacity">

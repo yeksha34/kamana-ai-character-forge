@@ -29,7 +29,8 @@ export enum Context {
   DESIRE = 'desire',
   IMAGINATION = 'imagination',
   STUDIO = 'studio',
-  CANVAS = 'canvas'
+  CANVAS = 'canvas',
+  CHAT = 'chat'
 }
 
 export enum Target {
@@ -93,6 +94,12 @@ export interface AIDungeonCard {
 export type CharacterStatus = 'draft' | 'finalized';
 
 export interface PromptHistoryEntry {
+  text: string;
+  timestamp: number;
+}
+
+export interface ChatMessage {
+  role: 'user' | 'model';
   text: string;
   timestamp: number;
 }

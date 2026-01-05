@@ -6,6 +6,7 @@ import { LoginPage } from "./pages/LoginPage";
 import { MuseumPage } from "./pages/MuseumPage";
 import { StudioPage } from "./pages/StudioPage";
 import { SettingsPage } from "./pages/SettingsPage";
+import { ChatPage } from "./pages/ChatPage";
 import { useEffect } from "react";
 import { MigrationService } from "./services/migrationService";
 
@@ -79,6 +80,14 @@ function App() {
 
           {route === "#/settings" && (
             <SettingsPage
+              user={auth.user}
+              onSignOut={auth.signOut}
+              onNavigate={navigate}
+            />
+          )}
+
+          {route.startsWith("#/chat") && (
+            <ChatPage
               user={auth.user}
               onSignOut={auth.signOut}
               onNavigate={navigate}

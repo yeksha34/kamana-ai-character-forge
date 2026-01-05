@@ -1,4 +1,3 @@
-
 import { Theme, Context } from '../types';
 import { RAW_PROFANNITY_WORDS } from '../data/profanityData';
 
@@ -9,6 +8,7 @@ interface LanguageProfanity {
   imagination: ProfanityTiers;
   studio: ProfanityTiers;
   canvas: ProfanityTiers;
+  chatNow: ProfanityTiers;
 }
 
 // Internal helper to filter words randomly for each tier
@@ -42,17 +42,20 @@ export const categorizedProfanity: Record<'mr' | 'en' | 'hi', LanguageProfanity>
     imagination: buildTiers('mr', Context.IMAGINATION),
     studio: buildTiers('mr', Context.STUDIO),
     canvas: buildTiers('mr', Context.CANVAS),
+    chatNow: buildTiers('mr', Context.CHAT),
   },
   en: {
     desire: buildTiers('en', Context.DESIRE),
     imagination: buildTiers('en', Context.IMAGINATION),
     studio: buildTiers('en', Context.STUDIO),
     canvas: buildTiers('en', Context.CANVAS),
+    chatNow: buildTiers('en', Context.CHAT),
   },
   hi: {
     desire: buildTiers('hi', Context.DESIRE),
     imagination: buildTiers('hi', Context.IMAGINATION),
     studio: buildTiers('hi', Context.STUDIO),
     canvas: buildTiers('hi', Context.CANVAS),
+    chatNow: buildTiers('hi', Context.CHAT),
   }
 };

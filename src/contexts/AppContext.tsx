@@ -126,10 +126,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     return {
       ...base,
       morphing: {
+        ...base.morphing,
         desire: profanity.desire[theme],
         imagination: profanity.imagination[theme],
         studio: profanity.studio[theme],
-        canvas: profanity.canvas[theme]
+        canvas: profanity.canvas[theme],
+        chatNow: profanity.chatNow[theme]
       }
     };
   }, [language, theme]);

@@ -1,4 +1,3 @@
-
 import { LanguageToggle } from './LanguageToggle';
 import { MorphingText } from './MorphingText';
 import { User, Theme } from '../types';
@@ -79,9 +78,12 @@ export const Header: React.FC<HeaderProps> = ({
             className="flex items-center gap-3 px-5 py-2.5 bg-rose-950/20 border border-rose-900/20 rounded-full hover:bg-rose-900/40 transition-all group"
           >
             <Heart className={`w-4 h-4 transition-all duration-700 ${isGlobalNSFW ? 'text-rose-600 fill-rose-600 animate-icon-heartbeat' : 'text-rose-950'}`} />
-            <span className="text-[10px] font-black uppercase tracking-widest text-rose-100">
-              {isGlobalNSFW ? 'NSFW' : 'SFW'}
-            </span>
+            <MorphingText 
+              language={language} 
+              value={isGlobalNSFW ? "nsfw" : "sfw"} 
+              english={isGlobalNSFW ? "NSFW" : "SFW"} 
+              className="text-[10px] font-black uppercase tracking-widest text-rose-100" 
+            />
           </button>
 
           <button 
@@ -89,9 +91,12 @@ export const Header: React.FC<HeaderProps> = ({
             className="flex items-center gap-3 px-5 py-2.5 bg-rose-950/20 border border-rose-900/20 rounded-full hover:bg-rose-900/40 transition-all group"
           >
             {isAtMuseum ? <PenTool className="w-4 h-4 text-rose-500" /> : <Grid className="w-4 h-4 text-rose-500" />}
-            <span className="text-[10px] font-black tracking-widest uppercase text-rose-100">
-              {isAtMuseum ? t.studio : t.museum}
-            </span>
+            <MorphingText 
+              language={language} 
+              value={isAtMuseum ? "studio" : "museum"} 
+              english={isAtMuseum ? "Studio" : "Gallery"} 
+              className="text-[10px] font-black tracking-widest uppercase text-rose-100" 
+            />
           </button>
         </div>
 
