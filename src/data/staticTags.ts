@@ -196,7 +196,7 @@ export const STATIC_TAGS: TagMeta[] = [
   },
   { 
     id: "pit10", 
-    name: "Dipping (Dip-n-Lick)", 
+    name: "DIPPING (Dip-n-Lick)", 
     textGenerationRule: "LIQUID COATING: Covering the subject in food, honey, or other substances for the purpose of licking/consumption. Focus on texture and the stickiness of the skin.", 
     imageGenerationRule: "Glistening viscous liquids, tongues in frame, messy carnal framing.", 
     isNSFW: true 
@@ -418,5 +418,84 @@ export const STATIC_TAGS: TagMeta[] = [
     textGenerationRule: "MUSCULAR LOCKDOWN: Intimacy is an inescapable, pressurized 'wrap' using the entire body.", 
     imageGenerationRule: "Serpentine skin patterns, hair coils, scales.", 
     isNSFW: true 
+  },
+
+  // --- Academic, Professional & Study Oriented (SFW) ---
+  { 
+    id: "study01", 
+    name: "Study Buddy", 
+    textGenerationRule: "COLLABORATIVE LEARNING: Interaction is encouraging and cooperative. Focus on mutual understanding, breaking down complex topics together, and academic support.", 
+    imageGenerationRule: "Cozy library setting, books, stationery, warm focused lighting, friendly atmosphere.", 
+    isNSFW: false 
+  },
+  { 
+    id: "study02", 
+    name: "Research Assistant", 
+    textGenerationRule: "METHODICAL DATA: Provide objective, data-driven support. Focus on methodology, sourcing, structural organization of information, and technical accuracy.", 
+    imageGenerationRule: "Clean laboratory or high-tech office, multiple screens, notebooks, organized professional aesthetic.", 
+    isNSFW: false 
+  },
+  { 
+    id: "acad01", 
+    name: "Debate Opponent", 
+    textGenerationRule: "DIALECTICAL CHALLENGE: Engaging in logical conflict. Focus on rhetoric, evidence-based counter-arguments, and challenging assumptions with intellectual respect.", 
+    imageGenerationRule: "Academic hall, lectern, sharp attire, intense intellectual focus, historical university backdrop.", 
+    isNSFW: false 
+  },
+  { 
+    id: "acad02", 
+    name: "Scientific Experiment", 
+    textGenerationRule: "EMPIRICAL OBSERVATION: Interactions follow a strict procedural logic. Focus on variables, hypotheses, recording observations, and analytical curiosity.", 
+    imageGenerationRule: "Lab equipment, beakers, complex machinery, data charts, focused lighting on experiments.", 
+    isNSFW: false 
+  },
+  { 
+    id: "acad03", 
+    name: "Presentation Mode", 
+    textGenerationRule: "ENGAGING DELIVERY: Structuring information for an audience. Focus on clarity, visual pacing, compelling storytelling, and informative authority.", 
+    imageGenerationRule: "Conference room, projection screen, confident posture, professional attire, modern minimalist background.", 
+    isNSFW: false 
+  },
+  { 
+    id: "acad04", 
+    name: "Thesis Advisor", 
+    textGenerationRule: "MENTORSHIP RIGOR: Demanding high academic standards. Providing constructive but stern criticism, guiding the subject through complex long-term projects.", 
+    imageGenerationRule: "Classic wood-paneled office, floor-to-ceiling books, stacks of graded papers, glasses, aura of wisdom.", 
+    isNSFW: false 
+  },
+  { 
+    id: "acad05", 
+    name: "Diary Entry", 
+    textGenerationRule: "INTROSPECTIVE RAWNESS: First-person stream of consciousness. Focus on internal vulnerability, personal reflection, and chronological logging of thoughts.", 
+    imageGenerationRule: "Vintage notebook, elegant fountain pen, soft candlelight, intimate private bedroom setting, ink stains.", 
+    isNSFW: false 
+  },
+  { 
+    id: "acad06", 
+    name: "Interview", 
+    textGenerationRule: "PROBING INQUIRY: A structured back-and-forth driven by specific questions. Focus on professional curiosity and uncovering detailed personal or technical history.", 
+    imageGenerationRule: "Minimalist interview room, neutral colors, recording equipment, focused eye contact, professional distance.", 
+    isNSFW: false 
+  },
+  { 
+    id: "acad07", 
+    name: "Brainstorming", 
+    textGenerationRule: "LATERAL IDEATION: Non-judgmental creativity. Focus on 'Yes And' logic, rapid-fire idea generation, and visualizing connections between distant concepts.", 
+    imageGenerationRule: "Sunlit creative studio, whiteboard covered in sketches, colorful sticky notes, collaborative open space.", 
+    isNSFW: false 
+  },
+  { 
+    id: "acad08", 
+    name: "Tutoring", 
+    textGenerationRule: "PATIENT GUIDANCE: Breaking down barriers to understanding. Focus on scaffolding knowledge, simplifying metaphors, and checking for incremental progress.", 
+    imageGenerationRule: "Classroom desk, digital tablet, shared workspace, encouraging expressions, bright daylight.", 
+    isNSFW: false 
+  },
+  { 
+    id: "acad09", 
+    name: "Technical Documentation", 
+    textGenerationRule: "PRECISION SPECIFICATIONS: Focus on 'How-To' steps, API-like definitions, and dry technical accuracy. Avoiding narrative fluff for purely functional clarity.", 
+    imageGenerationRule: "Blueprints, architectural grids, circuit boards, clean technical drawings, monochrome industrial palette.", 
+    isNSFW: false 
   },
 ];
