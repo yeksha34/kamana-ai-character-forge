@@ -8,6 +8,7 @@ import { getIdFromHash } from '../hooks/useHashRouter';
 export function ChatPage({ user, onNavigate, onSignOut }: any) {
   const [character, setCharacter] = useState<CharacterData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const currentRoute = window.location.hash;
 
   useEffect(() => {
     const id = getIdFromHash();
@@ -15,13 +16,19 @@ export function ChatPage({ user, onNavigate, onSignOut }: any) {
     if (id && id !== 'new') {
       setIsLoading(true);
       fetchCharacterById(id)
-        .then(setCharacter)
-        .catch(err => console.error("Failed to fetch character for chat:", err))
+        .then((data) => {
+          setCharacter(data);
+        })
+        .catch(err => {
+          console.error("Failed to fetch character for chat:", err);
+          setCharacter(null);
+        })
         .finally(() => setIsLoading(false));
     } else {
+      setCharacter(null);
       setIsLoading(false);
     }
-  }, []);
+  }, [currentRoute]); // Reload when the route (and thus character ID) changes
 
   if (isLoading) {
     return (
@@ -34,6 +41,7 @@ export function ChatPage({ user, onNavigate, onSignOut }: any) {
     );
   }
 
+  // Final check to see if we actually got a valid saved character
   if (!character || character.id === 'new') {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-black text-rose-500 p-8 text-center">
@@ -55,7 +63,7 @@ export function ChatPage({ user, onNavigate, onSignOut }: any) {
         user={user}
         onNavigate={onNavigate}
         onSignOut={onSignOut}
-        currentRoute={window.location.hash}
+        currentRoute={currentRoute}
       />
       <main className="flex-1 relative mt-20 md:mt-24">
         <ChatView 

@@ -21,16 +21,26 @@ export async function fetchCharacterById(id: string): Promise<CharacterData> {
         promptHistory: []
     });
 
-    if (id === 'new') return createEmptyCharacter();
+    if (id === 'new' || !id) return createEmptyCharacter();
 
     if (!supabase) {
         const record = await localDb.getById<any>('characters', id);
-        return record ? { ...createEmptyCharacter(), ...record.data } : createEmptyCharacter();
+        if (!record) return createEmptyCharacter();
+        return { 
+            ...createEmptyCharacter(), 
+            ...record.data, 
+            id: record.id // Explicitly override with primary key
+        };
     }
 
     const { data, error } = await supabase.from('characters').select('*').eq('id', id).single();
     if (error || !data) return createEmptyCharacter();
-    return { ...createEmptyCharacter(), ...(data.data as CharacterData) };
+    
+    return { 
+        ...createEmptyCharacter(), 
+        ...(data.data as CharacterData), 
+        id: data.id // Explicitly override with DB primary key
+    };
 }
 
 export async function saveCharacter(userId: string, character: CharacterData, contentHash: string) {
