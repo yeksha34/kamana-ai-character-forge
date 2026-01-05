@@ -1,4 +1,5 @@
-import { TagMeta } from "../../types";
+
+import { CharacterField, Platform, TagMeta, AIDungeonCard } from "../../types";
 import { ForgeProvider } from "./providerInterface";
 
 export class FireworksForgeProvider implements ForgeProvider {
@@ -21,7 +22,7 @@ export class FireworksForgeProvider implements ForgeProvider {
     return response.json();
   }
 
-  async refinePrompt(params: { prompt: string, tags: TagMeta[], isNSFW: boolean, modelId: string }): Promise<string> {
+  async refinePrompt(params: { prompt: string, tags: TagMeta[], isNSFW: boolean, modelId: string, useWebResearch?: boolean }): Promise<any> {
     const tagRules = params.tags.map(t => `[${t.textGenerationRule}]`).join(' ');
     const res = await this.fetchFireworks({
       model: params.modelId,
@@ -30,7 +31,16 @@ export class FireworksForgeProvider implements ForgeProvider {
     return res.choices[0].message.content.trim();
   }
 
-  async generatePlatformContent(params: any) {
+  async generatePlatformContent(params: { 
+    modifiedPrompt: string, 
+    platforms: Platform[], 
+    platformRequirements: { platform: string, fields: string[] }[],
+    existingFields: CharacterField[],
+    isNSFW: boolean,
+    tags: TagMeta[],
+    modelId: string,
+    useWebResearch?: boolean 
+  }): Promise<any> {
     const tagRules = params.tags.map((t: any) => `[${t.textGenerationRule}]`).join(' ');
     const res = await this.fetchFireworks({
       model: params.modelId,

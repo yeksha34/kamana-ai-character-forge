@@ -22,7 +22,7 @@ export class TogetherForgeProvider implements ForgeProvider {
     return response.json();
   }
 
-  async refinePrompt(params: any): Promise<string> {
+  async refinePrompt(params: { prompt: string, tags: TagMeta[], isNSFW: boolean, modelId: string, useWebResearch?: boolean }): Promise<any> {
     const res = await this.fetchTogether("chat/completions", {
       model: "meta-llama/Llama-3-70b-chat-hf",
       messages: [{ role: "user", content: `Refine this RP vision: ${params.prompt}` }]
@@ -30,7 +30,16 @@ export class TogetherForgeProvider implements ForgeProvider {
     return res.choices[0].message.content.trim();
   }
 
-  async generatePlatformContent(params: any) {
+  async generatePlatformContent(params: { 
+    modifiedPrompt: string, 
+    platforms: Platform[], 
+    platformRequirements: { platform: string, fields: string[] }[],
+    existingFields: CharacterField[],
+    isNSFW: boolean,
+    tags: TagMeta[],
+    modelId: string,
+    useWebResearch?: boolean 
+  }): Promise<any> {
     const res = await this.fetchTogether("chat/completions", {
       model: "meta-llama/Llama-3-70b-chat-hf",
       messages: [{ role: "system", content: "JSON ONLY." }, { role: "user", content: params.modifiedPrompt }]

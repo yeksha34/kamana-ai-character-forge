@@ -22,7 +22,7 @@ export class MistralForgeProvider implements ForgeProvider {
     return response.json();
   }
 
-  async refinePrompt(params: any): Promise<string> {
+  async refinePrompt(params: { prompt: string, tags: TagMeta[], isNSFW: boolean, modelId: string, useWebResearch?: boolean }): Promise<any> {
     const res = await this.fetchMistral({
       model: params.modelId,
       messages: [{ role: "system", content: "Professional Prompt Engineer." }, { role: "user", content: params.prompt }]
@@ -30,7 +30,16 @@ export class MistralForgeProvider implements ForgeProvider {
     return res.choices[0].message.content.trim();
   }
 
-  async generatePlatformContent(params: any) {
+  async generatePlatformContent(params: { 
+    modifiedPrompt: string, 
+    platforms: Platform[], 
+    platformRequirements: { platform: string, fields: string[] }[],
+    existingFields: CharacterField[],
+    isNSFW: boolean,
+    tags: TagMeta[],
+    modelId: string,
+    useWebResearch?: boolean 
+  }): Promise<any> {
     const res = await this.fetchMistral({
       model: params.modelId,
       messages: [{ role: "system", content: "Character Generation. JSON output required." }, { role: "user", content: params.modifiedPrompt }],

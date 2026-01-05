@@ -1,3 +1,4 @@
+
 import Anthropic from "@anthropic-ai/sdk";
 import { CharacterField, Platform, TagMeta, AIDungeonCard } from "../../types";
 import { ForgeProvider } from "./providerInterface";
@@ -24,7 +25,7 @@ export class ClaudeForgeProvider implements ForgeProvider {
     return instructions;
   }
 
-  async refinePrompt(params: { prompt: string, tags: TagMeta[], isNSFW: boolean, modelId: string }): Promise<string> {
+  async refinePrompt(params: { prompt: string, tags: TagMeta[], isNSFW: boolean, modelId: string, useWebResearch?: boolean }): Promise<any> {
     const client = this.getClient();
     if (!client) return params.prompt;
     const tagRules = params.tags.map(t => `[${t.textGenerationRule}]`).join(' ');
@@ -38,7 +39,16 @@ export class ClaudeForgeProvider implements ForgeProvider {
     return (response.content[0] as any).text.trim();
   }
 
-  async generatePlatformContent(params: any) {
+  async generatePlatformContent(params: { 
+    modifiedPrompt: string, 
+    platforms: Platform[], 
+    platformRequirements: { platform: string, fields: string[] }[],
+    existingFields: CharacterField[],
+    isNSFW: boolean,
+    tags: TagMeta[],
+    modelId: string,
+    useWebResearch?: boolean 
+  }): Promise<any> {
     const client = this.getClient();
     if (!client) return { name: "Error", fields: [] };
     const tagRules = params.tags.map((t: any) => `[${t.textGenerationRule}]`).join(' ');

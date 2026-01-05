@@ -1,3 +1,4 @@
+
 // Import React to resolve namespace issues
 import React, { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
@@ -49,27 +50,42 @@ export function useForgeGenerator(
 
       setStepIndex(1);
       setGenerationStep(language === 'mr' ? "प्रॉम्प्ट परिष्कृत करत आहे..." : "Refining vision...");
-      const modifiedPrompt = await txtService.refinePrompt({ 
+      // refinePrompt now formally accepts useWebResearch and can return grounding data
+      const modifiedResult = await txtService.refinePrompt({ 
         prompt, 
         tags: selectedTagMetas, 
         isNSFW: character.isNSFW,
-        modelId: textModel 
+        modelId: textModel,
+        useWebResearch: character.isWebResearchEnabled
       });
-      currentData.modifiedPrompt = modifiedPrompt;
+      
+      if (typeof modifiedResult === 'object' && modifiedResult.text) {
+        currentData.modifiedPrompt = modifiedResult.text;
+        currentData.groundingChunks = modifiedResult.groundingChunks || [];
+      } else {
+        currentData.modifiedPrompt = modifiedResult;
+      }
+
       await sleep(1000);
 
       setStepIndex(2);
       setGenerationStep(language === 'mr' ? "सामग्री तयार होत आहे..." : "Forging content...");
       const platformRequirements = selectedPlatforms.map(p => ({ platform: p, fields: PLATFORMS_CONFIG[p].fields }));
-      const textResult = await txtService.generatePlatformContent({
-        modifiedPrompt,
+      const textResultRaw = await txtService.generatePlatformContent({
+        modifiedPrompt: currentData.modifiedPrompt,
         platforms: selectedPlatforms,
         platformRequirements,
         existingFields: character.fields,
         isNSFW: character.isNSFW,
         tags: selectedTagMetas,
-        modelId: textModel
+        modelId: textModel,
+        useWebResearch: character.isWebResearchEnabled
       });
+
+      const textResult = (textResultRaw as any).data || textResultRaw;
+      if ((textResultRaw as any).groundingChunks) {
+        currentData.groundingChunks = [...(currentData.groundingChunks || []), ...(textResultRaw as any).groundingChunks];
+      }
       
       const updatedFields: CharacterField[] = [];
       const requiredLabels = new Set<string>();
@@ -132,6 +148,7 @@ export function useForgeGenerator(
 
       setCharacter({ ...currentData, status: 'draft' });
     } catch (e) {
+      console.error("Forge failed:", e);
       setErrors({ general: "Forge failed." });
     } finally {
       setIsGenerating(false);

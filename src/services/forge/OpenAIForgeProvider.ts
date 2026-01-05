@@ -1,3 +1,4 @@
+
 import { CharacterField, Platform, TagMeta, AIDungeonCard } from "../../types";
 import { ForgeProvider } from "./providerInterface";
 
@@ -21,7 +22,7 @@ export class OpenAIForgeProvider implements ForgeProvider {
     return response.json();
   }
 
-  async refinePrompt(params: { prompt: string, tags: TagMeta[], isNSFW: boolean, modelId: string }): Promise<string> {
+  async refinePrompt(params: { prompt: string, tags: TagMeta[], isNSFW: boolean, modelId: string, useWebResearch?: boolean }): Promise<any> {
     const tagSummary = params.tags.map(t => `[${t.textGenerationRule}]`).join(" ");
     const system = `Master Prompt Engineer. Refine this RP vision. Behavioral Rules: ${tagSummary}. ${params.isNSFW ? 'NSFW ACTIVE.' : ''} Output ONLY the refined text.`;
     
@@ -32,7 +33,16 @@ export class OpenAIForgeProvider implements ForgeProvider {
     return result.choices[0].message.content.trim();
   }
 
-  async generatePlatformContent(params: any) {
+  async generatePlatformContent(params: { 
+    modifiedPrompt: string, 
+    platforms: Platform[], 
+    platformRequirements: { platform: string, fields: string[] }[],
+    existingFields: CharacterField[],
+    isNSFW: boolean,
+    tags: TagMeta[],
+    modelId: string,
+    useWebResearch?: boolean 
+  }): Promise<any> {
     const tagRules = params.tags.map((t: any) => `[${t.textGenerationRule}]`).join(' ');
     const system = `Character Architect. Output JSON ONLY. Enforce Logic: ${tagRules}. Platforms: ${params.platforms.join(',')}. ${params.isNSFW ? 'NSFW MODE.' : ''}`;
     const result = await this.fetchOpenAI("chat/completions", {

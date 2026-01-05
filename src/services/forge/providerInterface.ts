@@ -8,8 +8,9 @@ export interface ForgeProvider {
     prompt: string, 
     tags: TagMeta[], 
     isNSFW: boolean, 
-    modelId: string 
-  }): Promise<string>;
+    modelId: string,
+    useWebResearch?: boolean
+  }): Promise<any>;
 
   generatePlatformContent(params: { 
     modifiedPrompt: string, 
@@ -18,8 +19,9 @@ export interface ForgeProvider {
     existingFields: CharacterField[],
     isNSFW: boolean,
     tags: TagMeta[],
-    modelId: string 
-  }): Promise<{ name: string; fields: { label: string; value: string }[] }>;
+    modelId: string,
+    useWebResearch?: boolean
+  }): Promise<any>;
 
   generateImagePrompt(params: { 
     prompt: string, 

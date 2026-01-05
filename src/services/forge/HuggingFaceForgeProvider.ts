@@ -1,4 +1,5 @@
 
+import { CharacterField, Platform, TagMeta, AIDungeonCard } from "../../types";
 import { ForgeProvider } from "./providerInterface";
 
 export class HuggingFaceForgeProvider implements ForgeProvider {
@@ -21,12 +22,22 @@ export class HuggingFaceForgeProvider implements ForgeProvider {
     return response.json();
   }
 
-  async refinePrompt(params: any): Promise<string> {
+  async refinePrompt(params: { prompt: string, tags: TagMeta[], isNSFW: boolean, modelId: string, useWebResearch?: boolean }): Promise<any> {
     const res = await this.fetchHF(params.modelId, { inputs: params.prompt });
-    return Array.isArray(res) ? res[0].generated_text : res.generated_text;
+    const text = Array.isArray(res) ? res[0].generated_text : res.generated_text;
+    return text;
   }
 
-  async generatePlatformContent(params: any) {
+  async generatePlatformContent(params: { 
+    modifiedPrompt: string, 
+    platforms: Platform[], 
+    platformRequirements: { platform: string, fields: string[] }[],
+    existingFields: CharacterField[],
+    isNSFW: boolean,
+    tags: TagMeta[],
+    modelId: string,
+    useWebResearch?: boolean 
+  }): Promise<any> {
     const res = await this.fetchHF(params.modelId, { inputs: `Generate JSON for ${params.modifiedPrompt}` });
     const text = Array.isArray(res) ? res[0].generated_text : res.generated_text;
     try {

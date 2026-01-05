@@ -22,7 +22,7 @@ export class GroqForgeProvider implements ForgeProvider {
     return response.json();
   }
 
-  async refinePrompt(params: any): Promise<string> {
+  async refinePrompt(params: { prompt: string, tags: TagMeta[], isNSFW: boolean, modelId: string, useWebResearch?: boolean }): Promise<any> {
     const res = await this.fetchGroq({
       model: params.modelId,
       messages: [{ role: "system", content: "Master Prompt Gen. Output ONLY the refined prompt text." }, { role: "user", content: params.prompt }]
@@ -30,7 +30,16 @@ export class GroqForgeProvider implements ForgeProvider {
     return res.choices[0].message.content.trim();
   }
 
-  async generatePlatformContent(params: any) {
+  async generatePlatformContent(params: { 
+    modifiedPrompt: string, 
+    platforms: Platform[], 
+    platformRequirements: { platform: string, fields: string[] }[],
+    existingFields: CharacterField[],
+    isNSFW: boolean,
+    tags: TagMeta[],
+    modelId: string,
+    useWebResearch?: boolean 
+  }): Promise<any> {
     const res = await this.fetchGroq({
       model: params.modelId,
       messages: [{ role: "system", content: "RP Character Architect. Output JSON ONLY. { name: string, fields: Array<{label, value}> }" }, { role: "user", content: params.modifiedPrompt }],

@@ -97,6 +97,13 @@ export interface AIDungeonCard {
   content: string;
 }
 
+export interface GroundingChunk {
+  web?: {
+    uri: string;
+    title: string;
+  };
+}
+
 export type CharacterStatus = 'draft' | 'finalized';
 
 export interface PromptHistoryEntry {
@@ -123,6 +130,8 @@ export interface CharacterData {
   isScenarioImageLocked: boolean;
   tags: string[];
   isNSFW: boolean;
+  isWebResearchEnabled?: boolean;
+  groundingChunks?: GroundingChunk[];
   createdAt?: number;
   originalPrompt: string; 
   modifiedPrompt?: string; 

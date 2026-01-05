@@ -20,7 +20,7 @@ import { ForgeManager } from '../services/forge/ForgeManager';
 import { AIProvider, CharacterData, CharacterStatus, Platform, AISecret } from '../types';
 import { hashData } from '../utils/helpers';
 import { downloadCharactersZip } from '../utils/exportUtils';
-import { History, Heart, Zap, RefreshCw, Check, Download, MessageSquare, X } from 'lucide-react';
+import { History, Heart, Zap, RefreshCw, Check, Download, MessageSquare, X, Globe, ExternalLink, Search } from 'lucide-react';
 
 interface StudioViewProps {
   character: CharacterData;
@@ -140,9 +140,26 @@ export const StudioView: React.FC<StudioViewProps> = ({ character, setCharacter 
                   english="Imagination" 
                   className={`text-[10px] font-black uppercase tracking-[0.5em] ${errors.prompt ? 'text-red-500' : 'text-rose-900'}`} 
                 />
-                <div onClick={() => setCharacter((p: any) => ({ ...p, isNSFW: !p.isNSFW }))} className={`w-12 h-6 rounded-full relative cursor-pointer ${character.isNSFW ? 'bg-rose-800' : 'bg-rose-950/60'}`}>
-                  <div className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full transition-transform ${character.isNSFW ? 'translate-x-6' : ''} flex items-center justify-center`}>
-                    <Heart className={`w-2.5 h-2.5 ${character.isNSFW ? 'text-rose-600' : 'text-rose-200'}`} />
+                <div className="flex items-center gap-4">
+                  {/* Browserify (Web Research) Toggle */}
+                  <div 
+                    title="Browserify (Enable Web Research)"
+                    onClick={() => setCharacter((p: any) => ({ ...p, isWebResearchEnabled: !p.isWebResearchEnabled }))} 
+                    className={`w-12 h-6 rounded-full relative cursor-pointer border border-rose-900/20 ${character.isWebResearchEnabled ? 'bg-emerald-900/40' : 'bg-rose-950/60'}`}
+                  >
+                    <div className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full transition-transform ${character.isWebResearchEnabled ? 'translate-x-6' : ''} flex items-center justify-center`}>
+                      <Globe className={`w-2.5 h-2.5 ${character.isWebResearchEnabled ? 'text-emerald-600' : 'text-rose-200'}`} />
+                    </div>
+                  </div>
+
+                  <div 
+                    title="NSFW Toggle"
+                    onClick={() => setCharacter((p: any) => ({ ...p, isNSFW: !p.isNSFW }))} 
+                    className={`w-12 h-6 rounded-full relative cursor-pointer ${character.isNSFW ? 'bg-rose-800' : 'bg-rose-950/60'}`}
+                  >
+                    <div className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full transition-transform ${character.isNSFW ? 'translate-x-6' : ''} flex items-center justify-center`}>
+                      <Heart className={`w-2.5 h-2.5 ${character.isNSFW ? 'text-rose-600' : 'text-rose-200'}`} />
+                    </div>
                   </div>
                 </div>
               </div>
@@ -181,6 +198,36 @@ export const StudioView: React.FC<StudioViewProps> = ({ character, setCharacter 
           ) : (
             <div className="space-y-24">
               <PromptSection character={character} setCharacter={setCharacter} showAssets={showAssets} setShowAssets={setShowAssets} />
+              
+              {/* Research Grounding Sources (Browserify Results) */}
+              {character.groundingChunks && character.groundingChunks.length > 0 && (
+                <GlassCard padding="md" className="rounded-[2.5rem] border-emerald-900/20 bg-emerald-950/5 animate-in fade-in slide-in-from-top-4 duration-700">
+                  <div className="flex items-center gap-3 mb-6 border-b border-emerald-900/10 pb-4">
+                    <div className="p-2 bg-emerald-900/20 rounded-lg">
+                      <Search className="w-4 h-4 text-emerald-500" />
+                    </div>
+                    <div>
+                      <span className="text-[9px] font-black uppercase tracking-widest text-emerald-800">Browserify Insights</span>
+                      <h4 className="text-sm font-bold text-emerald-100 uppercase tracking-tight">Lore Sources Identified</h4>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {character.groundingChunks.map((chunk, i) => chunk.web && (
+                      <a 
+                        key={i} 
+                        href={chunk.web.uri} 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="flex items-center justify-between p-4 bg-black/40 border border-emerald-900/20 rounded-2xl hover:bg-emerald-900/20 transition-all group"
+                      >
+                        <span className="text-[9px] font-bold text-emerald-200/60 group-hover:text-emerald-200 truncate pr-4">{chunk.web.title || 'Untitled Source'}</span>
+                        <ExternalLink className="w-3 h-3 text-emerald-900 group-hover:text-emerald-500" />
+                      </a>
+                    ))}
+                  </div>
+                </GlassCard>
+              )}
+
               <VisualAssets character={character} setCharacter={setCharacter} isImageGenEnabled={imageModel !== 'None'} isRegeneratingImage={isRegeneratingImage} isGenerating={isGenerating} regenerateSingleImage={regenerateSingleImage} />
               <GlassCard padding="xl" className="rounded-[7rem] space-y-32 relative overflow-hidden shadow-2xl border-rose-900/50">
                 <CharacterIdentity name={character.name} setName={(name) => setCharacter((p: any) => ({ ...p, name }))} isSaving={isSaving} onSave={handleSave} />

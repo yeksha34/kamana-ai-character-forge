@@ -11,8 +11,17 @@ export class StabilityForgeProvider implements ForgeProvider {
 
   async setApiKeyAsync(key: string) { this.apiKey = key; }
 
-  async refinePrompt(params: any): Promise<string> { return params.prompt; }
-  async generatePlatformContent(params: any): Promise<any> { return { name: "Stability Bot", fields: [] }; }
+  async refinePrompt(params: { prompt: string, tags: TagMeta[], isNSFW: boolean, modelId: string, useWebResearch?: boolean }): Promise<any> { return params.prompt; }
+  async generatePlatformContent(params: { 
+    modifiedPrompt: string, 
+    platforms: Platform[], 
+    platformRequirements: { platform: string, fields: string[] }[],
+    existingFields: CharacterField[],
+    isNSFW: boolean,
+    tags: TagMeta[],
+    modelId: string,
+    useWebResearch?: boolean 
+  }): Promise<any> { return { name: "Stability Bot", fields: [] }; }
   async generateImagePrompt(params: any): Promise<string> { return params.prompt; }
 
   async generateImage(params: { prompt: string, isNSFW: boolean, modelId: string }) {

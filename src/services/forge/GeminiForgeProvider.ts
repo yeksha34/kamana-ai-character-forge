@@ -1,3 +1,4 @@
+
 import { GoogleGenAI, Type } from "@google/genai";
 import { CharacterField, Platform, TagMeta, AIDungeonCard } from "../../types";
 import { ForgeProvider } from "./providerInterface";
@@ -26,24 +27,49 @@ export class GeminiForgeProvider implements ForgeProvider {
     return instructions;
   }
 
-  async refinePrompt(params: { prompt: string, tags: TagMeta[], isNSFW: boolean, modelId: string }): Promise<string> {
-    const { prompt, tags, isNSFW, modelId } = params;
+  // Updated to support useWebResearch via googleSearch tool and return grounding chunks
+  async refinePrompt(params: { prompt: string, tags: TagMeta[], isNSFW: boolean, modelId: string, useWebResearch?: boolean }): Promise<any> {
+    const { prompt, tags, isNSFW, modelId, useWebResearch } = params;
     const ai = this.getClient();
     const tagRules = tags.map(t => `[${t.textGenerationRule}]`).join(' ');
     const nsfwPart = this.constructNSFWInstruction(isNSFW, tags);
     const systemInstruction = `Prompt Engineer. Incorporate behavior logic: ${tagRules}. ${nsfwPart}. Output ONLY refined text.`;
 
-    // Use ai.models.generateContent with model name and prompt directly.
+    const config: any = { systemInstruction, temperature: 0.9 };
+    // Inject googleSearch tool if web research is enabled
+    if (useWebResearch) {
+      config.tools = [{ googleSearch: {} }];
+    }
+
     const response = await ai.models.generateContent({
       model: modelId,
       contents: `User Vision: "${prompt}"`,
-      config: { systemInstruction, temperature: 0.9 }
+      config
     });
-    return response.text?.trim() || prompt;
+
+    const text = response.text?.trim() || prompt;
+    // Extract grounding metadata if search was used
+    if (useWebResearch && response.candidates?.[0]?.groundingMetadata?.groundingChunks) {
+      return {
+        text,
+        groundingChunks: response.candidates[0].groundingMetadata.groundingChunks
+      };
+    }
+    return text;
   }
 
-  async generatePlatformContent(params: any) {
-    const { modifiedPrompt, platformRequirements, isNSFW, tags, modelId } = params;
+  // Updated to support useWebResearch and return grounding data
+  async generatePlatformContent(params: { 
+    modifiedPrompt: string, 
+    platforms: Platform[], 
+    platformRequirements: { platform: string, fields: string[] }[],
+    existingFields: CharacterField[],
+    isNSFW: boolean,
+    tags: TagMeta[],
+    modelId: string,
+    useWebResearch?: boolean 
+  }): Promise<any> {
+    const { modifiedPrompt, platformRequirements, isNSFW, tags, modelId, useWebResearch } = params;
     const ai = this.getClient();
     const fieldMapping = platformRequirements.map((p: any) => `For ${p.platform}, generate: [${p.fields.join(', ')}]`).join('. ');
     const tagRules = tags.map((t: any) => `[${t.textGenerationRule}]`).join(' ');
@@ -62,13 +88,27 @@ export class GeminiForgeProvider implements ForgeProvider {
       required: ["name", "fields"]
     };
 
+    const config: any = { systemInstruction, responseMimeType: "application/json", responseSchema: schema };
+    // Inject googleSearch tool if web research is enabled
+    if (useWebResearch) {
+      config.tools = [{ googleSearch: {} }];
+    }
+
     const response = await ai.models.generateContent({
       model: modelId,
       contents: "Generate character data.",
-      config: { systemInstruction, responseMimeType: "application/json", responseSchema: schema }
+      config
     });
 
-    return JSON.parse(response.text || '{}');
+    const result = JSON.parse(response.text || '{}');
+    // Extract grounding metadata if search was used
+    if (useWebResearch && response.candidates?.[0]?.groundingMetadata?.groundingChunks) {
+      return {
+        data: result,
+        groundingChunks: response.candidates[0].groundingMetadata.groundingChunks
+      };
+    }
+    return result;
   }
 
   async generateImagePrompt(params: any): Promise<string> {
