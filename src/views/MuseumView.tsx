@@ -2,8 +2,8 @@ import { CharacterData } from '../types';
 import { GlassCard } from '../components/ui/GlassCard';
 import { DisplayTitle } from '../components/ui/DisplayTitle';
 import { Badge } from '../components/ui/Badge';
-// Added RefreshCw to imports
-import { CheckCircle2, FileText, Grid, History, ImageIcon, Trash2, Download, CheckSquare, Square, X, RefreshCw } from 'lucide-react';
+// Added Copy to imports
+import { CheckCircle2, FileText, Grid, History, ImageIcon, Trash2, Download, CheckSquare, Square, X, RefreshCw, Copy } from 'lucide-react';
 import React, { useState } from 'react';
 import { downloadCharactersZip } from '../utils/exportUtils';
 
@@ -12,9 +12,10 @@ interface MuseumViewProps {
   onNavigate: (route: string) => void;
   onEdit: (character: CharacterData) => void;
   onDelete: (id: string) => void;
+  onDuplicate: (character: CharacterData) => void;
 }
 
-export const MuseumView: React.FC<MuseumViewProps> = ({ characters = [], onNavigate, onEdit, onDelete }) => {
+export const MuseumView: React.FC<MuseumViewProps> = ({ characters = [], onNavigate, onEdit, onDelete, onDuplicate }) => {
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [isExporting, setIsExporting] = useState(false);
 
@@ -128,6 +129,13 @@ export const MuseumView: React.FC<MuseumViewProps> = ({ characters = [], onNavig
                     className="flex-1 py-6 bg-rose-800/10 border border-rose-900/20 text-rose-500 rounded-full font-black text-[10px] uppercase tracking-widest hover:bg-rose-800 hover:text-white transition-all shadow-xl group/edit"
                   >
                     संपादन करा (Edit)
+                  </button>
+                  <button
+                    onClick={() => onDuplicate(c)}
+                    title="Duplicate Creation"
+                    className="p-6 bg-rose-950/50 text-rose-950 hover:text-rose-400 rounded-full transition-all border border-rose-900/10 hover:border-rose-700/50 active:scale-90 group/duplicate"
+                  >
+                    <Copy className="w-6 h-6 group-hover/duplicate:animate-icon-float" />
                   </button>
                   <button
                     onClick={() => onDelete(c.id!)}
