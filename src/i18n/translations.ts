@@ -29,6 +29,11 @@ export const translations = {
     scenario: "प्रसंग",
     nsfwLabel: "प्रौढ सामग्री",
     biometric: "बायोमेट्रिक प्रमाणीकरण सक्षम",
+    lengths: {
+      short: "संक्षिप्त",
+      medium: "मध्यम",
+      large: "सविस्तर"
+    },
     themes: {
       [Theme.SOFTCORE]: "कोमल",
       [Theme.DEFAULT]: "नैसर्गिक",
@@ -81,6 +86,11 @@ export const translations = {
     scenario: "Scenario",
     nsfwLabel: "NSFW Content",
     biometric: "Biometric Auth Enabled",
+    lengths: {
+      short: "Short",
+      medium: "Medium",
+      large: "Large"
+    },
     themes: {
       [Theme.SOFTCORE]: "Sensual",
       [Theme.DEFAULT]: "Natural",
@@ -133,6 +143,11 @@ export const translations = {
     scenario: "दृश्य",
     nsfwLabel: "NSFW सामग्री",
     biometric: "बायोमेट्रिक प्रमाणीकरण सक्षम",
+    lengths: {
+      short: "संक्षिप्त",
+      medium: "मध्यम",
+      large: "विस्तृत"
+    },
     themes: {
       [Theme.SOFTCORE]: "मृदुल",
       [Theme.DEFAULT]: "स्वाभाविक",

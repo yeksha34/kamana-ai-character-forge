@@ -23,9 +23,13 @@ export function useHashRouter(defaultRoute = "#/login") {
 
 
 export function getIdFromHash(): string | null {
-  const [, route, id] = window.location.hash.split('/');
-  if (route === 'studio' && id?.trim()) {
-    return id.trim();
+  const hash = window.location.hash;
+  if (!hash) return null;
+  
+  const parts = hash.split('/');
+  // Handles both #/studio/:id and #/chat/:id
+  if ((parts[1] === 'studio' || parts[1] === 'chat') && parts[2]?.trim()) {
+    return parts[2].trim();
   }
   return null;
 }

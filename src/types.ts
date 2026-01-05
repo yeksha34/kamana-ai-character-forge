@@ -44,6 +44,12 @@ export enum Target {
   SELF = 'self'
 }
 
+export enum MessageLength {
+  SHORT = 'short',
+  MEDIUM = 'medium',
+  LARGE = 'large'
+}
+
 export interface ProfanityWord {
   word: string;
   language: 'en' | 'mr' | 'hi';
