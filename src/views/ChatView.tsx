@@ -22,6 +22,7 @@ export const ChatView: React.FC<ChatViewProps> = ({ character, onNavigate, isFul
   const [selectedModel, setSelectedModel] = useState('gemini-3-flash-preview');
   const [msgLength, setMsgLength] = useState<MessageLength>(MessageLength.MEDIUM);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLTextAreaElement>(null);
 
   const replaceTags = (text: string) => {
     return text
@@ -50,6 +51,14 @@ export const ChatView: React.FC<ChatViewProps> = ({ character, onNavigate, isFul
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
   }, [messages, isTyping]);
+
+  // Handle auto-expanding textarea height
+  useEffect(() => {
+    if (inputRef.current) {
+      inputRef.current.style.height = 'auto';
+      inputRef.current.style.height = `${Math.min(inputRef.current.scrollHeight, 200)}px`;
+    }
+  }, [input]);
 
   const handleSend = async () => {
     if (!input.trim() || isTyping) return;
@@ -130,8 +139,9 @@ export const ChatView: React.FC<ChatViewProps> = ({ character, onNavigate, isFul
 
   return (
     <div className={`flex flex-col overflow-hidden bg-black relative ${isFullScreen ? 'h-full w-full' : 'h-[85vh] w-full max-w-5xl rounded-[2.5rem] border border-rose-900/30 shadow-2xl'}`}>
-      <div className="absolute inset-0 bg-cover bg-center opacity-10 pointer-events-none" style={{ backgroundImage: `url(${character.scenarioImageUrl})` }}>
-        <div className="absolute inset-0 bg-black/80" />
+      {/* Immersive Background using Scenario Image */}
+      <div className="absolute inset-0 bg-cover bg-center opacity-20 pointer-events-none z-0" style={{ backgroundImage: `url(${character.scenarioImageUrl})` }}>
+        <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/40 to-black/80" />
       </div>
 
       {/* Responsive Header */}
@@ -158,12 +168,12 @@ export const ChatView: React.FC<ChatViewProps> = ({ character, onNavigate, isFul
         </div>
 
         <div className="flex items-center gap-2 md:gap-4">
-          <div className="hidden sm:flex items-center gap-1 p-1 bg-rose-950/40 rounded-lg border border-rose-900/20">
-            <AlignLeft className="w-3 h-3 text-rose-500 ml-1" />
+          <div className="flex items-center gap-1 p-1 bg-rose-950/40 rounded-lg border border-rose-900/20">
+            <AlignLeft className="w-2.5 h-2.5 md:w-3 md:h-3 text-rose-500 ml-1" />
             <select 
               value={msgLength} 
               onChange={(e) => setMsgLength(e.target.value as MessageLength)}
-              className="bg-transparent border-none text-[8px] font-black uppercase tracking-widest text-rose-200 outline-none cursor-pointer p-1"
+              className="bg-transparent border-none text-[7px] md:text-[8px] font-black uppercase tracking-widest text-rose-200 outline-none cursor-pointer p-1"
             >
               <option value={MessageLength.SHORT} className="bg-black">{t.lengths.short}</option>
               <option value={MessageLength.MEDIUM} className="bg-black">{t.lengths.medium}</option>
@@ -175,7 +185,7 @@ export const ChatView: React.FC<ChatViewProps> = ({ character, onNavigate, isFul
             <select 
               value={selectedModel} 
               onChange={(e) => setSelectedModel(e.target.value)}
-              className="bg-transparent border-none text-[8px] font-black uppercase tracking-widest text-rose-200 outline-none cursor-pointer max-w-[80px] md:max-w-none"
+              className="bg-transparent border-none text-[7px] md:text-[8px] font-black uppercase tracking-widest text-rose-200 outline-none cursor-pointer max-w-[70px] md:max-w-none"
             >
               {dbModels.filter(m => m.type === 'text').map(m => (
                 <option key={m.id} value={m.id} className="bg-black">{m.name}</option>
@@ -187,7 +197,7 @@ export const ChatView: React.FC<ChatViewProps> = ({ character, onNavigate, isFul
 
       <div className="flex-1 min-h-0 flex relative z-10">
         {/* Desktop Side Portrait */}
-        <div className="hidden lg:flex w-1/4 flex-col items-center justify-center p-8 border-r border-rose-900/10 bg-black/20">
+        <div className="hidden lg:flex w-1/4 flex-col items-center justify-center p-8 border-r border-rose-900/10 bg-black/20 backdrop-blur-sm">
            <img src={character.characterImageUrl} className="w-48 h-48 xl:w-64 xl:h-64 rounded-[3rem] object-cover border-4 border-rose-900/20 shadow-2xl" />
            <div className="mt-8 text-center">
               <span className="text-[10px] font-black uppercase tracking-widest text-rose-900 block mb-2">IMMERSIVE MODE</span>
@@ -200,10 +210,15 @@ export const ChatView: React.FC<ChatViewProps> = ({ character, onNavigate, isFul
           {messages.map((msg, idx) => (
             <div key={idx} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'} animate-in fade-in slide-in-from-bottom-2 duration-300`}>
               <div className={`flex gap-3 max-w-[90%] md:max-w-[80%] ${msg.role === 'user' ? 'flex-row-reverse' : 'flex-row'}`}>
-                <div className={`w-8 h-8 rounded-full flex-shrink-0 flex items-center justify-center border ${msg.role === 'user' ? 'bg-rose-900/20 border-rose-500/30' : 'bg-black/60 border-rose-900/20'}`}>
-                  {msg.role === 'user' ? <UserIcon className="w-4 h-4 text-rose-500" /> : <Bot className="w-4 h-4 text-rose-400" />}
+                {/* Character Image used as Avatar for model responses */}
+                <div className={`w-8 h-8 rounded-full flex-shrink-0 flex items-center justify-center border overflow-hidden ${msg.role === 'user' ? 'bg-rose-900/20 border-rose-500/30' : 'bg-black/60 border-rose-900/20'}`}>
+                  {msg.role === 'user' ? (
+                    <UserIcon className="w-4 h-4 text-rose-50" />
+                  ) : (
+                    <img src={character.characterImageUrl} className="w-full h-full object-cover" alt={character.name} />
+                  )}
                 </div>
-                <div className={`p-4 md:p-5 rounded-2xl md:rounded-3xl text-xs md:text-sm leading-relaxed ${msg.role === 'user' ? 'bg-rose-800/10 text-rose-50 border border-rose-700/20 rounded-tr-none' : 'bg-rose-950/10 text-rose-200 border border-rose-900/10 rounded-tl-none backdrop-blur-md'}`}>
+                <div className={`p-4 md:p-5 rounded-2xl md:rounded-3xl text-xs md:text-sm leading-relaxed ${msg.role === 'user' ? 'bg-rose-800/20 text-rose-50 border border-rose-700/20 rounded-tr-none' : 'bg-rose-950/20 text-rose-200 border border-rose-900/10 rounded-tl-none backdrop-blur-md'}`}>
                   {renderMarkdown(msg.text)}
                 </div>
               </div>
@@ -211,7 +226,7 @@ export const ChatView: React.FC<ChatViewProps> = ({ character, onNavigate, isFul
           ))}
           {isTyping && (
             <div className="flex justify-start">
-               <div className="flex gap-2 items-center bg-rose-950/20 px-4 py-2 rounded-full border border-rose-900/10 text-[8px] font-black text-rose-500 uppercase tracking-widest animate-pulse">
+               <div className="flex gap-2 items-center bg-rose-950/40 px-4 py-2 rounded-full border border-rose-900/10 text-[8px] font-black text-rose-500 uppercase tracking-widest animate-pulse backdrop-blur-md">
                   <RefreshCw className="w-3 h-3 animate-spin" /> {character.name} is sculpting a response...
                </div>
             </div>
@@ -219,31 +234,37 @@ export const ChatView: React.FC<ChatViewProps> = ({ character, onNavigate, isFul
         </div>
       </div>
 
-      {/* Always Visible Footer Input */}
-      <footer className="relative z-40 p-4 md:p-6 bg-black/60 backdrop-blur-3xl border-t border-rose-900/20">
-        <div className="max-w-4xl mx-auto flex items-center gap-3">
+      {/* Always Visible Footer Input with Auto-Expanding Textarea */}
+      <footer className="relative z-40 p-4 md:p-6 bg-black/80 backdrop-blur-3xl border-t border-rose-900/20">
+        <div className="max-w-4xl mx-auto flex items-end gap-3">
           <div className="flex-1 relative">
-            <input 
-              type="text"
+            <textarea 
+              ref={inputRef}
+              rows={1}
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && handleSend()}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                  e.preventDefault();
+                  handleSend();
+                }
+              }}
               placeholder={isTyping ? `Waiting for ${character.name}...` : `Speak your desire to ${character.name}...`}
               disabled={isTyping}
-              className="w-full bg-black/40 border border-rose-950/40 rounded-2xl px-6 py-4 text-sm md:text-base text-rose-100 placeholder:text-rose-900/40 focus:border-rose-600/40 outline-none transition-all"
+              className="w-full bg-black/40 border border-rose-950/40 rounded-2xl px-6 py-4 text-sm md:text-base text-rose-100 placeholder:text-rose-900/40 focus:border-rose-600/40 outline-none transition-all resize-none max-h-[200px] custom-scrollbar"
             />
           </div>
           <button 
             onClick={handleSend}
             disabled={!input.trim() || isTyping}
-            className="p-4 bg-rose-600 text-white rounded-2xl hover:bg-rose-500 transition-all shadow-xl active:scale-95 disabled:opacity-20 flex-shrink-0"
+            className="p-4 bg-rose-600 text-white rounded-2xl hover:bg-rose-500 transition-all shadow-xl active:scale-95 disabled:opacity-20 flex-shrink-0 h-[52px] md:h-[60px]"
           >
             <Send className="w-5 h-5 md:w-6 md:h-6" />
           </button>
         </div>
         <div className="flex justify-center gap-4 mt-4 text-[7px] font-black uppercase tracking-[0.4em] text-rose-900/60">
            <span>Engine: {selectedModel}</span>
-           <span className="sm:hidden">Length: {msgLength}</span>
+           <span>Length: {msgLength}</span>
         </div>
       </footer>
     </div>

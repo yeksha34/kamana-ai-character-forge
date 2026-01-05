@@ -1,4 +1,3 @@
-
 import React from 'react';
 
 interface GlassCardProps {
@@ -17,9 +16,9 @@ export const GlassCard: React.FC<GlassCardProps> = ({
   const paddings = {
     none: 'p-0',
     sm: 'p-4',
-    md: 'p-8',
-    lg: 'p-12',
-    xl: 'p-16 md:p-24'
+    md: 'p-6 md:p-8',
+    lg: 'p-8 md:p-12',
+    xl: 'p-8 md:p-24'
   };
 
   return (

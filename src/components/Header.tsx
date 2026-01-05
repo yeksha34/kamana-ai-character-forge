@@ -132,67 +132,65 @@ export const Header: React.FC<HeaderProps> = ({
 
       {/* Mobile Menu Overlay */}
       {isMobileMenuOpen && (
-        <div className="fixed inset-0 z-[90] lg:hidden bg-black/60 backdrop-blur-3xl animate-in fade-in duration-300">
-          <div className="h-full pt-28 pb-12 px-6 flex flex-col justify-between overflow-y-auto">
-            <div className="space-y-8">
-              <div className="space-y-4">
-                <span className="text-[10px] font-black text-rose-900 uppercase tracking-[0.4em] block ml-4">Creative Theme</span>
-                <div className="grid grid-cols-1 gap-3">
-                  <button onClick={() => setTheme(Theme.SOFTCORE)} className={`flex items-center justify-between px-6 py-5 rounded-2xl border transition-all ${theme === Theme.SOFTCORE ? 'bg-rose-600 border-rose-500 text-white shadow-xl' : 'bg-rose-950/20 border-rose-900/20 text-rose-100'}`}>
+        <div className="fixed inset-0 z-[90] lg:hidden bg-black/80 backdrop-blur-3xl animate-in fade-in duration-300">
+          <div className="h-full pt-20 pb-8 px-4 flex flex-col justify-between overflow-y-auto">
+            <div className="space-y-6">
+              <div className="space-y-3">
+                <span className="text-[8px] font-black text-rose-900 uppercase tracking-[0.4em] block ml-2">Theme</span>
+                <div className="grid grid-cols-1 gap-2">
+                  <button onClick={() => setTheme(Theme.SOFTCORE)} className={`flex items-center justify-between px-5 py-3 rounded-xl border transition-all ${theme === Theme.SOFTCORE ? 'bg-rose-600 border-rose-500 text-white' : 'bg-rose-950/20 border-rose-900/20 text-rose-100'}`}>
                     <div className="flex items-center gap-3">
-                      <Sparkles className="w-4 h-4" />
-                      <span className="text-sm font-bold uppercase tracking-widest">{t.themes[Theme.SOFTCORE]}</span>
+                      <Sparkles className="w-3.5 h-3.5" />
+                      <span className="text-xs font-bold uppercase tracking-widest">{t.themes[Theme.SOFTCORE]}</span>
                     </div>
                   </button>
-                  <button onClick={() => setTheme(Theme.DEFAULT)} className={`flex items-center justify-between px-6 py-5 rounded-2xl border transition-all ${theme === Theme.DEFAULT ? 'bg-rose-600 border-rose-500 text-white shadow-xl' : 'bg-rose-950/20 border-rose-900/20 text-rose-100'}`}>
+                  <button onClick={() => setTheme(Theme.DEFAULT)} className={`flex items-center justify-between px-5 py-3 rounded-xl border transition-all ${theme === Theme.DEFAULT ? 'bg-rose-600 border-rose-500 text-white' : 'bg-rose-950/20 border-rose-900/20 text-rose-100'}`}>
                     <div className="flex items-center gap-3">
-                      <Ghost className="w-4 h-4" />
-                      <span className="text-sm font-bold uppercase tracking-widest">{t.themes[Theme.DEFAULT]}</span>
+                      <Ghost className="w-3.5 h-3.5" />
+                      <span className="text-xs font-bold uppercase tracking-widest">{t.themes[Theme.DEFAULT]}</span>
                     </div>
                   </button>
-                  <button onClick={() => setTheme(Theme.HARDCORE)} className={`flex items-center justify-between px-6 py-5 rounded-2xl border transition-all ${theme === Theme.HARDCORE ? 'bg-rose-600 border-rose-500 text-white shadow-xl' : 'bg-rose-950/20 border-rose-900/20 text-rose-100'}`}>
+                  <button onClick={() => setTheme(Theme.HARDCORE)} className={`flex items-center justify-between px-5 py-3 rounded-xl border transition-all ${theme === Theme.HARDCORE ? 'bg-rose-600 border-rose-500 text-white' : 'bg-rose-950/20 border-rose-900/20 text-rose-100'}`}>
                     <div className="flex items-center gap-3">
-                      <Skull className="w-4 h-4" />
-                      <span className="text-sm font-bold uppercase tracking-widest">{t.themes[Theme.HARDCORE]}</span>
+                      <Skull className="w-3.5 h-3.5" />
+                      <span className="text-xs font-bold uppercase tracking-widest">{t.themes[Theme.HARDCORE]}</span>
                     </div>
                   </button>
                 </div>
               </div>
 
-              <div className="space-y-4">
-                <span className="text-[10px] font-black text-rose-900 uppercase tracking-[0.4em] block ml-4">Localization & Filters</span>
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="flex justify-center bg-rose-950/20 rounded-2xl border border-rose-900/20 p-2">
+              <div className="space-y-3">
+                <span className="text-[8px] font-black text-rose-900 uppercase tracking-[0.4em] block ml-2">Config</span>
+                <div className="grid grid-cols-2 gap-2">
+                  <div className="flex justify-center bg-rose-950/20 rounded-xl border border-rose-900/20 p-1.5">
                     <LanguageToggle current={language} onChange={setLanguage} />
                   </div>
-                  <button onClick={toggleGlobalNSFW} className={`flex items-center justify-center gap-3 p-4 rounded-2xl border transition-all ${isGlobalNSFW ? 'bg-rose-950/40 border-rose-600 shadow-inner' : 'bg-rose-950/20 border-rose-900/20'}`}>
-                    <Heart className={`w-5 h-5 ${isGlobalNSFW ? 'text-rose-600 fill-rose-600 animate-icon-heartbeat' : 'text-rose-950'}`} />
-                    <span className="text-[10px] font-black uppercase tracking-widest text-rose-100">{isGlobalNSFW ? "NSFW ON" : "SFW ONLY"}</span>
+                  <button onClick={toggleGlobalNSFW} className={`flex items-center justify-center gap-2 p-3 rounded-xl border transition-all ${isGlobalNSFW ? 'bg-rose-950/40 border-rose-600 shadow-inner' : 'bg-rose-950/20 border-rose-900/20'}`}>
+                    <Heart className={`w-4 h-4 ${isGlobalNSFW ? 'text-rose-600 fill-rose-600' : 'text-rose-950'}`} />
+                    <span className="text-[8px] font-black uppercase tracking-widest text-rose-100">{isGlobalNSFW ? "NSFW ON" : "SFW ONLY"}</span>
                   </button>
                 </div>
               </div>
 
-              <div className="space-y-4">
-                <span className="text-[10px] font-black text-rose-900 uppercase tracking-[0.4em] block ml-4">Navigation</span>
-                <div className="grid grid-cols-1 gap-3">
-                  <button onClick={() => handleMobileNav(isAtMuseum ? '#/studio/new' : '#/museum')} className="flex items-center gap-4 px-6 py-5 bg-rose-950/40 border border-rose-900/20 rounded-2xl text-rose-100">
-                    {isAtMuseum ? <PenTool className="w-5 h-5 text-rose-500" /> : <Grid className="w-5 h-5 text-rose-500" />}
-                    <span className="text-sm font-bold uppercase tracking-widest">{isAtMuseum ? "Enter Studio" : "Open Gallery"}</span>
+              <div className="space-y-3">
+                <span className="text-[8px] font-black text-rose-900 uppercase tracking-[0.4em] block ml-2">Destinations</span>
+                <div className="grid grid-cols-1 gap-2">
+                  <button onClick={() => handleMobileNav(isAtMuseum ? '#/studio/new' : '#/museum')} className="flex items-center gap-3 px-5 py-4 bg-rose-950/40 border border-rose-900/20 rounded-xl text-rose-100">
+                    {isAtMuseum ? <PenTool className="w-4 h-4 text-rose-500" /> : <Grid className="w-4 h-4 text-rose-500" />}
+                    <span className="text-xs font-bold uppercase tracking-widest">{isAtMuseum ? "Studio Forge" : "Creation Gallery"}</span>
                   </button>
                 </div>
               </div>
             </div>
 
-            <div className="pt-8 border-t border-rose-950/30">
-               <div className="flex items-center gap-4 px-4">
-                  <div className="w-12 h-12 rounded-full bg-rose-950 flex items-center justify-center text-rose-500 border border-rose-900/20">
-                    <ShieldCheck className="w-6 h-6" />
-                  </div>
-                  <div>
-                    <span className="text-xs font-black text-rose-100 uppercase tracking-widest block">{user?.name}</span>
-                    <span className="text-[8px] font-bold text-rose-800 uppercase tracking-[0.2em]">Architect Domain</span>
-                  </div>
-               </div>
+            <div className="pt-4 border-t border-rose-950/30 flex items-center gap-3 px-2">
+                <div className="w-10 h-10 rounded-full bg-rose-950 flex items-center justify-center text-rose-500 border border-rose-900/20">
+                  <ShieldCheck className="w-5 h-5" />
+                </div>
+                <div className="min-w-0">
+                  <span className="text-[10px] font-black text-rose-100 uppercase tracking-widest block truncate">{user?.name}</span>
+                  <span className="text-[7px] font-bold text-rose-800 uppercase tracking-[0.2em]">Architect</span>
+                </div>
             </div>
           </div>
         </div>
