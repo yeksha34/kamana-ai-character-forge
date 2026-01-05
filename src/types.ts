@@ -1,4 +1,3 @@
-
 export enum Platform {
   CRUSHON_AI = 'CrushonAI',
   AI_DUNGEON = 'AIDungeon',
@@ -46,7 +45,6 @@ export enum Target {
 
 export interface ProfanityWord {
   word: string;
-  // Fix: Added 'hi' to the permitted language types
   language: 'en' | 'mr' | 'hi';
   contexts: Context[];
   themes: Theme[];
@@ -67,7 +65,7 @@ export interface AISecret {
   provider: AIProvider;
   encryptedKey: string;
   lastFour: string;
-  updatedAt: number; // For rotation tracking
+  updatedAt: number;
 }
 
 export interface TagMeta {
@@ -94,6 +92,11 @@ export interface AIDungeonCard {
 
 export type CharacterStatus = 'draft' | 'finalized';
 
+export interface PromptHistoryEntry {
+  text: string;
+  timestamp: number;
+}
+
 export interface CharacterData {
   id?: string;
   parentBotId?: string;
@@ -110,6 +113,7 @@ export interface CharacterData {
   createdAt?: number;
   originalPrompt: string; 
   modifiedPrompt?: string; 
+  promptHistory: PromptHistoryEntry[];
   characterImagePrompt?: string; 
   scenarioImagePrompt?: string; 
   worldInfo?: AIDungeonCard[];

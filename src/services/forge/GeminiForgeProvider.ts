@@ -3,14 +3,17 @@ import { CharacterField, Platform, TagMeta, AIDungeonCard } from "../../types";
 import { ForgeProvider } from "./providerInterface";
 
 export class GeminiForgeProvider implements ForgeProvider {
-  private apiKey: string = process.env.VITE_DEV_GEMINI_KEY || "";
+  // Guidelines: Obtaining the API key exclusively from process.env.API_KEY.
+  // The client initialization strictly uses process.env.API_KEY.
 
   setApiKey(key: string): void {
-    if (key) this.apiKey = key;
+    // Guidelines: Gemini API key must be obtained exclusively from process.env.API_KEY.
+    // External key setting is ignored for Gemini to maintain strict environmental compliance.
   }
 
   private getClient() {
-    return new GoogleGenAI({ apiKey: this.apiKey });
+    // Guidelines: Always use process.env.API_KEY directly for initializing the GoogleGenAI instance.
+    return new GoogleGenAI({ apiKey: process.env.API_KEY });
   }
 
   private constructNSFWInstruction(isNSFW: boolean, tags: TagMeta[]): string {
@@ -30,6 +33,7 @@ export class GeminiForgeProvider implements ForgeProvider {
     const nsfwPart = this.constructNSFWInstruction(isNSFW, tags);
     const systemInstruction = `Prompt Engineer. Incorporate behavior logic: ${tagRules}. ${nsfwPart}. Output ONLY refined text.`;
 
+    // Use ai.models.generateContent with model name and prompt directly.
     const response = await ai.models.generateContent({
       model: modelId,
       contents: `User Vision: "${prompt}"`,
@@ -84,7 +88,8 @@ export class GeminiForgeProvider implements ForgeProvider {
         prompt: `${prompt}. ${isNSFW ? 'NSFW allowed' : ''}. Cinematic.`,
         config: { numberOfImages: 1, aspectRatio: '1:1' },
       });
-      return `data:image/png;base64,${response.generatedImages[0].image.imageBytes}`;
+      const base64EncodeString: string = response.generatedImages[0].image.imageBytes;
+      return `data:image/png;base64,${base64EncodeString}`;
     }
     const response = await ai.models.generateContent({
       model: modelId,

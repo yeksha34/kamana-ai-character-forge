@@ -90,12 +90,13 @@ const BaseModelSelector: React.FC<BaseSelectorProps> = ({
           </div>
 
           <div className="max-h-[300px] overflow-y-auto custom-scrollbar">
-            {Object.entries(groupedModels).length === 0 ? (
+            {/* Fix: Explicitly cast Object.entries result to resolve unknown type error on .length and .map */}
+            {(Object.entries(groupedModels) as [string, AIModelMeta[]][]).length === 0 ? (
               <div className="p-8 text-center text-[9px] font-black uppercase tracking-widest text-rose-950">
                 No match found
               </div>
             ) : (
-              Object.entries(groupedModels).map(([providerName, providerModels]) => (
+              (Object.entries(groupedModels) as [string, AIModelMeta[]][]).map(([providerName, providerModels]) => (
                 <div key={providerName} className="p-2">
                   <div className="px-3 py-1.5 flex items-center gap-2 opacity-30">
                     <Cpu className="w-2.5 h-2.5 animate-pulse" />
@@ -152,7 +153,8 @@ function withModelPopulation(
     const { models, isKeyAvailable } = useAppContext();
     const { isDevelopmentBypass } = useAuth();
     
-    const isDev = (typeof import.meta !== 'undefined' && import.meta.env && import.meta.env.DEV) || isDevelopmentBypass;
+    // Fix: Cast import.meta to any to safely check for env.DEV property in environment-agnostic code
+    const isDev = (typeof import.meta !== 'undefined' && (import.meta as any).env && (import.meta as any).env.DEV) || isDevelopmentBypass;
 
     const availableModels = useMemo(() => {
       return models.filter(m => {

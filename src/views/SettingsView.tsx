@@ -19,7 +19,8 @@ export const SettingsView: React.FC<{ onNavigate?: (route: string) => void }> = 
   const [isLoading, setIsLoading] = useState(false);
   const [showSchema, setShowSchema] = useState(false);
   const [showKey, setShowKey] = useState<Record<string, boolean>>({});
-  const [form, setForm] = useState({ provider: AIProvider.GEMINI, key: '' });
+  // Default to CLAUDE or another non-Gemini provider for the manual key entry form
+  const [form, setForm] = useState({ provider: AIProvider.CLAUDE, key: '' });
 
   useEffect(() => {
     if (user) loadSecrets();
@@ -96,7 +97,7 @@ export const SettingsView: React.FC<{ onNavigate?: (route: string) => void }> = 
 
         <section className="grid grid-cols-1 lg:grid-cols-2 gap-12">
           <GlassCard padding="lg" className="rounded-[3rem] space-y-10">
-            <div className="flex items-center gap-4 border-b border-rose-900/10 pb-6">
+            <div className="flex items-center gap-4 border-b border-rose-950/10 pb-6">
               <Key className="w-5 h-5 text-rose-600" />
               <h2 className="text-2xl serif-display text-rose-100">AI Vault</h2>
             </div>
@@ -105,7 +106,9 @@ export const SettingsView: React.FC<{ onNavigate?: (route: string) => void }> = 
               <div className="space-y-3">
                 <label className="text-[9px] font-black uppercase tracking-widest text-rose-900 ml-1">Select Provider</label>
                 <div className="grid grid-cols-3 gap-2">
-                  {Object.values(AIProvider).map(p => (
+                  {Object.values(AIProvider)
+                    .filter(p => p !== AIProvider.GEMINI) // Guidelines: Do not provide UI for entering or managing the Gemini API key.
+                    .map(p => (
                     <button 
                       key={p} 
                       onClick={() => setForm({ ...form, provider: p })}
@@ -150,10 +153,10 @@ export const SettingsView: React.FC<{ onNavigate?: (route: string) => void }> = 
             <div className="space-y-4 pt-6 border-t border-rose-900/10">
               <h3 className="text-[9px] font-black uppercase tracking-widest text-rose-700">Configured Node Access</h3>
               <div className="space-y-2 max-h-[180px] overflow-y-auto custom-scrollbar pr-2">
-                {secrets.length === 0 ? (
-                  <p className="text-[10px] italic text-rose-950">No keys in vault.</p>
+                {secrets.filter(s => s.provider !== AIProvider.GEMINI).length === 0 ? (
+                  <p className="text-[10px] italic text-rose-950">No external keys in vault. Gemini is auto-managed.</p>
                 ) : (
-                  secrets.map(s => (
+                  secrets.filter(s => s.provider !== AIProvider.GEMINI).map(s => (
                     <div key={s.provider} className="flex flex-col p-4 bg-black/20 rounded-2xl border border-rose-950/20 gap-3">
                       <div className="flex items-center justify-between">
                         <div className="flex flex-col">

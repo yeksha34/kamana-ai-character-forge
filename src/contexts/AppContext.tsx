@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
 import { Language, translations } from '../i18n/translations';
 import { AIModelMeta, AIProvider, TagMeta, Theme } from '../types';
@@ -110,15 +109,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   }, [refreshModels, refreshTags, refreshSecrets]);
 
   const isKeyAvailable = useCallback((provider: AIProvider) => {
+    // Guidelines: Gemini API key must be obtained exclusively from process.env.API_KEY.
+    // Assume this variable is pre-configured, valid, and accessible.
+    if (provider === AIProvider.GEMINI) return true;
+    
     if (userSecrets[provider]) return true;
     
-    // Check specific environment variables mapping
-    switch (provider) {
-      case AIProvider.GEMINI: 
-        return !!process.env.VITE_DEV_GEMINI_KEY;
-      default: 
-        return false;
-    }
+    return false;
   }, [userSecrets]);
 
   // Dynamically calculate translations and morphing text based on theme and language (MR, HI, EN)

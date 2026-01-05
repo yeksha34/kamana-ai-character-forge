@@ -1,14 +1,22 @@
 /**
- * KAMANA FORGE: MASTER DATABASE SCHEMA (v1.1)
+ * KAMANA FORGE: MASTER DATABASE SCHEMA (v1.3)
  * 
- * Includes the "initialize_forge_schema" RPC which allows the application
- * to self-heal or run migrations remotely if the function is installed.
+ * Migration 1.3:
+ * - Added forge_migrations table for structural version tracking.
+ * - Formalized JSONB structure for modifiedPrompt history.
  */
 
 export const SCHEMA_SQL = `-- 1. INITIALIZE EXTENSIONS
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
--- 2. PUBLIC REGISTRIES
+-- 2. SYSTEM MIGRATIONS TRACKING
+CREATE TABLE IF NOT EXISTS public.forge_migrations (
+    id SERIAL PRIMARY KEY,
+    version TEXT NOT NULL UNIQUE,
+    applied_at TIMESTAMPTZ DEFAULT now()
+);
+
+-- 3. PUBLIC REGISTRIES
 CREATE TABLE IF NOT EXISTS public.tags (
     id TEXT PRIMARY KEY,
     name TEXT NOT NULL,
@@ -27,7 +35,7 @@ CREATE TABLE IF NOT EXISTS public.ai_models (
     created_at TIMESTAMPTZ DEFAULT now()
 );
 
--- 3. USER CONTENT STORAGE
+-- 4. USER CONTENT STORAGE
 CREATE TABLE IF NOT EXISTS public.characters (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
@@ -42,7 +50,7 @@ CREATE TABLE IF NOT EXISTS public.characters (
     updated_at TIMESTAMPTZ DEFAULT now()
 );
 
--- 4. SECURITY VAULT (Encrypted Keys)
+-- 5. SECURITY VAULT
 CREATE TABLE IF NOT EXISTS public.user_secrets (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
@@ -53,18 +61,18 @@ CREATE TABLE IF NOT EXISTS public.user_secrets (
     UNIQUE(user_id, provider)
 );
 
--- 5. STORAGE BUCKETS
+-- 6. STORAGE BUCKETS
 INSERT INTO storage.buckets (id, name, public) 
 VALUES ('bot-assets', 'bot-assets', true)
 ON CONFLICT (id) DO NOTHING;
 
--- 6. ENABLE ROW LEVEL SECURITY (RLS)
+-- 7. ENABLE RLS
 ALTER TABLE public.tags ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.ai_models ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.characters ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.user_secrets ENABLE ROW LEVEL SECURITY;
 
--- 7. DEFINE RLS POLICIES
+-- 8. DEFINE RLS POLICIES
 DO $$ 
 BEGIN
     IF NOT EXISTS (SELECT 1 FROM pg_policy WHERE polname = 'Allow public read on tags') THEN
@@ -81,18 +89,18 @@ BEGIN
     END IF;
 END $$;
 
--- 8. INDEXES
+-- 9. INDEXES
 CREATE INDEX IF NOT EXISTS idx_characters_user_id ON public.characters(user_id);
 CREATE INDEX IF NOT EXISTS idx_user_secrets_user_id ON public.user_secrets(user_id);
 
--- 9. ARCHITECT TOOL: SELF-INITIALIZATION RPC
--- To enable the app to run this SQL automatically, manually run this block ONCE in the SQL editor:
-/*
+-- 10. ARCHITECT TOOL: SELF-INITIALIZATION RPC
 CREATE OR REPLACE FUNCTION initialize_forge_schema(sql_code text)
 RETURNS void AS $$
 BEGIN
     EXECUTE sql_code;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
-*/
+
+-- RECORD v1.3 MIGRATION
+INSERT INTO public.forge_migrations (version) VALUES ('1.3') ON CONFLICT (version) DO NOTHING;
 `;

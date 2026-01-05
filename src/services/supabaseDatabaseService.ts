@@ -1,4 +1,3 @@
-
 import { supabase } from './supabaseClient';
 import { localDb } from './localDbService';
 import { CharacterData, AIModelMeta, AISecret, AIProvider, TagMeta } from '../types';
@@ -18,7 +17,8 @@ export async function fetchCharacterById(id: string): Promise<CharacterData> {
         scenarioImagePrompt: '',
         isCharacterImageLocked: false,
         isScenarioImageLocked: false,
-        originalPrompt: ''
+        originalPrompt: '',
+        promptHistory: []
     });
 
     if (id === 'new') return createEmptyCharacter();
