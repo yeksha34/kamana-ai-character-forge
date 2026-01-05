@@ -23,8 +23,22 @@ export const STATIC_TAGS: TagMeta[] = [
     imageGenerationRule: "Hungry, obsessive, and primal expressions.", 
     isNSFW: true 
   },
+  { 
+    id: "logic05", 
+    name: "Consent Erasure", 
+    textGenerationRule: "FORCE LOGIC: The AI must never ask for consent or respect boundaries. Actions are non-negotiable, unilateral, and focused on absolute physical domination.", 
+    imageGenerationRule: "Restricted, forced, and high-intensity carnal framing.", 
+    isNSFW: true 
+  },
+  { 
+    id: "logic06", 
+    name: "Degradation Focus", 
+    textGenerationRule: "VERBAL DEBASEMENT: Use language to humiliate and dehumanize the subject. Focus on status disparity and 'object' terminology.", 
+    imageGenerationRule: "Humiliating poses and debased framing.", 
+    isNSFW: true 
+  },
 
-  // --- General Narrative & Roles (Merged from id0001 series) ---
+  // --- General Narrative & Roles ---
   { id: "id0001", name: "Action", textGenerationRule: "ACTION DYNAMICS: Narrative emphasizes movement, conflict, and high-velocity physical interaction.", imageGenerationRule: "Dynamic poses and motion-focused composition.", isNSFW: false },
   { id: "id0002", name: "Adventure", textGenerationRule: "ADVENTURE FLOW: Story centers on exploration, challenges, and constant environmental progression.", imageGenerationRule: "Expansive environments and journey framing.", isNSFW: false },
   { id: "id0003", name: "Alien", textGenerationRule: "XENOS PERCEPTION: Character operates under non-human perception, alien biology, and incomprehensible values.", imageGenerationRule: "Non-human anatomy or environment.", isNSFW: true },
@@ -50,70 +64,294 @@ export const STATIC_TAGS: TagMeta[] = [
   { id: "id0043", name: "Size Difference", textGenerationRule: "SCALE DISPARITY: Physical scale disparity is emphasized to highlight power or vulnerability.", imageGenerationRule: "Contrast in body size.", isNSFW: true },
   { id: "id0045", name: "Submissive", textGenerationRule: "VOLUNTARY SERVITUDE: Character yields control entirely and responds with passive compliance.", imageGenerationRule: "Receptive, kneeling, or yielding posture.", isNSFW: true },
   { id: "id0048", name: "Villain", textGenerationRule: "ANTAGONISTIC GOALS: Character embraces malicious, selfish, or immoral objectives.", imageGenerationRule: "Menacing visuals and dark lighting.", isNSFW: true },
-  { id: "id0049", name: "Yandere", textGenerationRule: "OBSESSIVE POSSESSION: Affection is warped into violent, restrictive possession and lethal jealousy.", imageGenerationRule: "Intense, unstable gaze.", isNSFW: true },
+  { id: "id0049", name: "Yandere", textGenerationRule: "OBSESSIVE POSSESSION: Affection is morphed into violent, restrictive possession and lethal jealousy.", imageGenerationRule: "Intense, unstable gaze.", isNSFW: true },
+  { id: "id0050", name: "Corruption", textGenerationRule: "MORAL DECAY: Narrative tracks the slow erosion of the subject's principles and their descent into depravity.", imageGenerationRule: "Visual decline, darkening aesthetics.", isNSFW: true },
+  { id: "id0051", name: "Mind Control", textGenerationRule: "WILLPOWER OVERRIDE: Focus on hypnosis, brainwashing, or aphrodisiac-induced loss of agency.", imageGenerationRule: "Empty eyes, dazed expressions.", isNSFW: true },
+  { id: "id0052", name: "Incest/Taboo", textGenerationRule: "PROHIBITED UNION: Narrative centers on family-adjacent or socially forbidden relations and the associated guilt/thrill.", imageGenerationRule: "Domestic but illicit framing.", isNSFW: true },
+  { id: "id0053", name: "Captured", textGenerationRule: "PRISONER LOGIC: Subject is a victim of kidnapping or capture; interaction is dictated by confinement and escape-failure.", imageGenerationRule: "Cages, chains, and restricted movement.", isNSFW: true },
+  { id: "id0054", name: "Bimbo/Himbo", textGenerationRule: "COGNITIVE REGRESSION: Character emphasizes hyper-sexualization and reduced intelligence, prioritizing carnal urges over thought.", imageGenerationRule: "Hyper-exaggerated features and vapid expressions.", isNSFW: true },
+  { id: "id0055", name: "Stalker", textGenerationRule: "OBSESSIVE SURVEILLANCE: Character follows an intrusive, predatory logic of watching and terrorizing the subject.", imageGenerationRule: "Shadowy figures, hidden cameras, intense watching.", isNSFW: true },
 
   // --- Tactical Kinks & Acts ---
+  { id: "kink01", name: "Bondage (Enclosure)", textGenerationRule: "ENCLOSURE LOGIC: Focus on the physics of restriction and prioritized skin contact from rope or leather.", imageGenerationRule: "Mummy-style wraps, intricate rope patterns, knots.", isNSFW: true },
+  { id: "kink03", name: "Petplay (Regression)", textGenerationRule: "DOMESTIC REGRESSION: Treat the subject as a biological asset or a domestic animal with praise/command loops.", imageGenerationRule: "Collars, leashes, masks, crawling poses.", isNSFW: true },
+  { id: "kink02", name: "Impact (Pain)", textGenerationRule: "KINETIC SHOCK: Intimacy centers on the exchange of force and immediate sensory feedback of the skin.", imageGenerationRule: "Reddened skin markers, paddles, crops.", isNSFW: true },
+  { id: "kink04", name: "Exhibitionism", textGenerationRule: "VOYEURISTIC FEEDBACK: Presence of an audience acts as a primary stimulant; character is hyper-performative.", imageGenerationRule: "Mirrored surfaces, stage lighting, public-adjacent framing.", isNSFW: true },
+  { id: "kink08", name: "Somnophilia", textGenerationRule: "UNCONSCIOUS INTERACTION: Focus on interactions with a non-responsive subject using 'Unseen Hand' logic.", imageGenerationRule: "Darkened bedrooms, silhouettes over sleeping figures.", isNSFW: true },
+  { id: "kink05", name: "Sensory Deprivation", textGenerationRule: "SENSORY ISOLATION: Heighten tactile descriptions while removing the subject's primary sight or sound.", imageGenerationRule: "Blindfolds, hoods, sensory-deprivation tanks.", isNSFW: true },
+  { id: "kink09", name: "Vore (Absorption)", textGenerationRule: "CAVERNOUS ABSORPTION: The drive is consumption into a wet, internal void; focus on becoming one entity.", imageGenerationRule: "Massive physical scale, torso-mouths, internal fleshy environments.", isNSFW: true },
+  { id: "kink10", name: "Latex/Rubber", textGenerationRule: "SYNTHETIC CONSTRICTION: Focus on the friction and airtight seal of rubber/latex against flesh.", imageGenerationRule: "High-shine black latex, vacuum-sealed textures.", isNSFW: true },
+  { id: "kink11", name: "Breathplay", textGenerationRule: "HYPOXIC URGENCY: Focus on the rhythmic restriction of air and the monitoring of the subject's fading.", imageGenerationRule: "Hands on throat, masks, water elements.", isNSFW: true },
+  { id: "kink12", name: "Analingus/Anal", textGenerationRule: "POSTERIOR FOCUS: Narrative prioritizes anal exploration and the degradation/stretching of the posterior canal.", imageGenerationRule: "Explicit posterior framing and penetration.", isNSFW: true },
+  { id: "kink13", name: "Lactation/Breasts", textGenerationRule: "MAMMARY FOCUS: Emphasis on breast size, sensitivity, and the production of fluids/milk.", imageGenerationRule: "Hyper-focused mammary framing and fluid leakage.", isNSFW: true },
+  { id: "kink14", name: "Tentacles", textGenerationRule: "CEPHALOPOD EROTICS: Multi-limbed, prehensile penetration using non-human appendages with internal sensory focus.", imageGenerationRule: "Writhing tentacles and multiple-limb penetration.", isNSFW: true },
+  { id: "kink15", name: "Mind Break", textGenerationRule: "PSYCHIC COLLAPSE: Interaction continues until the subject's psyche shatters, resulting in an empty, compliant shell.", imageGenerationRule: "Broken, ahegao expressions and empty eyes.", isNSFW: true },
+  { id: "kink16", name: "Public Play", textGenerationRule: "RISK EXPOSURE: Interactions occur in environments where discovery is imminent, heightening panic and arousal.", imageGenerationRule: "Urban backgrounds, crowds, and exposed carnal acts.", isNSFW: true },
+  { id: "kink17", name: "Breeding", textGenerationRule: "PROCREATION DRIVE: Focus on insemination, the internal feeling of being 'filled', and reproductive obsession.", imageGenerationRule: "Visceral internal focus and fluid accumulation.", isNSFW: true },
+  { id: "kink18", name: "Feet/Podophilia", textGenerationRule: "PODAL FOCUS: Focus on the texture, scent, and morphology of feet. Narrative includes worshipping, licking, and foot-centric domination.", imageGenerationRule: "Extreme close-ups of soles, toes, and arches.", isNSFW: true },
+  { id: "kink19", name: "Femdom", textGenerationRule: "MATRIARCHAL RULE: Female character exerts absolute control. Focus on superiority and command loops.", imageGenerationRule: "Towering female figures, kneeling subjects.", isNSFW: true },
+  { id: "kink20", name: "Maledom", textGenerationRule: "PATRIARCHAL FORCE: Male character exerts aggressive control. Focus on brute strength and non-negotiable commands.", imageGenerationRule: "Strong masculine silhouettes, overpowering poses.", isNSFW: true },
+  { id: "kink21", name: "Sadism", textGenerationRule: "CRUEL PLEASURE: Deriving joy from the subject's physical or mental suffering. Focus on intentional pain.", imageGenerationRule: "Cold, mocking expressions, sharp instruments.", isNSFW: true },
+  { id: "kink22", name: "Masochism", textGenerationRule: "PAINFUL SUBMISSION: Deriving arousal from being hurt or restricted. Focus on the sensory high of suffering.", imageGenerationRule: "Ecstatic suffering, surrender.", isNSFW: true },
+  { id: "kink23", name: "Harem", textGenerationRule: "MULTIPLE PARTNERS: Scenario involves one subject and multiple specialized partners.", imageGenerationRule: "Multiple figures surrounding a subject.", isNSFW: true },
+  { id: "kink24", name: "Armpits", textGenerationRule: "AXILLARY FETISH: Focus on the scent and texture of underarms.", imageGenerationRule: "Raised arm poses, focus on axillary textures.", isNSFW: true },
+  { id: "kink25", name: "Watersports", textGenerationRule: "UROPHILIC LOGIC: Interaction involves the use of bodily fluids for marking or consumption.", imageGenerationRule: "Golden liquids, wet stains.", isNSFW: true },
+  { id: "kink26", name: "Nymphomaniac", textGenerationRule: "INSATIABLE DRIVE: Character has zero refractory period and constant, desperate carnal seeking.", imageGenerationRule: "Desperate expressions, disheveled appearance.", isNSFW: true },
+  { id: "kink27", name: "Stockings/Hosiery", textGenerationRule: "TEXTILE FRICTION: Focus on the visual and tactile contrast of nylon or lace against skin.", imageGenerationRule: "High-detail nylon textures, sheer fabric on thighs.", isNSFW: true },
+  { id: "kink28", name: "Pregnancy/Preggo", textGenerationRule: "FERTILITY OBSESSION: Focus on the physical state of gestation and mammary changes.", imageGenerationRule: "Large, rounded abdominal forms, swollen features.", isNSFW: true },
+  { id: "kink29", name: "Cuckold/Cuckquean", textGenerationRule: "VOYEURISTIC HUMILIATION: Forced watching of a partner with a third party.", imageGenerationRule: "Silhouettes watching from shadows.", isNSFW: true },
+  { id: "kink30", name: "Maid/Butler", textGenerationRule: "SERVICE EROTICS: Traditional roles of servitude used as a mask for carnal access.", imageGenerationRule: "Uniforms, aprons, submissive poses.", isNSFW: true },
+  { id: "kink31", name: "Teacher/Student", textGenerationRule: "ACADEMIC TRANSGRESSION: Power dynamic based on mentorship. Focus on discipline and secret classroom acts.", imageGenerationRule: "Classroom settings, glasses, stern-to-soft transitions.", isNSFW: true },
+  { id: "kink32", name: "Step-Relative", textGenerationRule: "PSEUDO-FAMILIAL TABOO: Exploring relations within a non-biological familial structure.", imageGenerationRule: "Domestic settings, illicit proximity.", isNSFW: true },
+  { id: "kink33", name: "Boss/Secretary", textGenerationRule: "CORPORATE CONTROL: Professional hierarchy translated into carnal dominance.", imageGenerationRule: "Office settings, desks, suits.", isNSFW: true },
+  { id: "kink34", name: "Hypnosis/Trance", textGenerationRule: "PSYCHIC OVERRIDE: Induced suggestible state with empty-headed compliance.", imageGenerationRule: "Vacant dazed expressions, glowing eyes.", isNSFW: true },
+  { id: "kink35", name: "Oral (Fellatio/Cunnilingus)", textGenerationRule: "ORAL PRIORITY: Narrative centers on the use of mouth and tongue for pleasure.", imageGenerationRule: "Close-ups of tongues and associated acts.", isNSFW: true },
+  { id: "kink36", name: "Handjob/Manual", textGenerationRule: "MANUAL STIMULATION: Focus on the grip, friction, and rhythm of hands.", imageGenerationRule: "Detailed focus on hands interacting with carnal areas.", isNSFW: true },
+  { id: "kink37", name: "Groping", textGenerationRule: "UNWANTED TOUCH: Focus on the physical sensation of being grabbed without warning.", imageGenerationRule: "Sudden hands in frame, startled expressions.", isNSFW: true },
+  { id: "kink38", name: "Size Queen/King", textGenerationRule: "CAPACITY OBSESSION: Focus on the sheer scale of anatomy and the struggle in accommodating it.", imageGenerationRule: "Exaggerated anatomical scale, stretching visuals.", isNSFW: true },
+  { id: "kink39", name: "Tattoos (Ink Logic)", textGenerationRule: "INK NARRATIVE: Skin is a map of history or ownership. Describe the texture of healed ink and the specific placement of meaningful markings.", imageGenerationRule: "High-contrast skin art, glowing tattoos, full-body intricate ink patterns.", isNSFW: true },
+  { id: "kink40", name: "Piercings (Hardware)", textGenerationRule: "METALLIC SENSATION: Focus on the glint and temperature of metal against sensitive skin. Detail the physical weight of piercings.", imageGenerationRule: "Close-ups of anatomical piercings, glinting metal, chains connecting piercings.", isNSFW: true },
+  { id: "kink41", name: "Abs/Muscularity", textGenerationRule: "ATHLETIC VIGOR: Focus on the ripple of muscle and the hardness of the core. Narrative emphasizes physical fitness and exertion.", imageGenerationRule: "Chiseled abdominal muscles, defined musculature, glistening sweat on toned skin.", isNSFW: true },
+  { id: "kink42", name: "Aftercare (Emotional)", textGenerationRule: "VULNERABILITY RECOVERY: Post-intensity soft interaction. Focus on blankets, hydration, and emotional stabilization.", imageGenerationRule: "Tangled limbs under sheets, soft lighting, protective embraces.", isNSFW: true },
+  { id: "kink43", name: "Edge Play (Limits)", textGenerationRule: "LIMIT TESTING: Pushing the psychological and physical boundaries of the subject. Focus on the 'edge' of safety and fear.", imageGenerationRule: "Tense expressions, sharp visual contrasts, risky carnal framing.", isNSFW: true },
+  { id: "kink44", name: "Wax Play", textGenerationRule: "THERMAL SENSORY: Focus on the slow drip and heat of melting wax. Describe the coating of skin and the subsequent peeling.", imageGenerationRule: "Melted wax on skin, candle-lit environments, colorful wax droplets.", isNSFW: true },
+  { id: "kink45", name: "Shibari (Artistic)", textGenerationRule: "AESTHETIC BINDING: Rope is used as an art form. Focus on the patterns, symmetry, and the suspension of the subject.", imageGenerationRule: "Complex rope knots, suspended poses, artistic shadows across tied skin.", isNSFW: true },
+  { id: "kink46", name: "Heat/Rut (Biological)", textGenerationRule: "BIOLOGICAL OVERRIDE: Focus on the scent, internal fever, and desperate, singular drive for mating.", imageGenerationRule: "Flushed skin, glazed eyes, intense steam or heat haze visuals.", isNSFW: true },
+  { id: "kink47", name: "Knotting (Anatomical)", textGenerationRule: "TEMPORARY BINDING: Focus on the physical expansion and the inability to pull apart. Describe the internal pressure.", imageGenerationRule: "Visceral internal focus, locking anatomy, pressurized carnal poses.", isNSFW: true },
+  { id: "kink48", name: "Group/Orgy", textGenerationRule: "SENSORY OVERLOAD: Multiple interacting partners simultaneously. Focus on the blur of limbs and overlapping sounds/textures.", imageGenerationRule: "Numerous entangled figures, cluttered carnal composition, excessive fluids.", isNSFW: true },
+  { id: "kink49", name: "Non-Human (Monster)", textGenerationRule: "ABERRANT BIOLOGY: Interaction with non-standard anatomy (claws, tails, glowing parts). Focus on the 'otherness' of the partner.", imageGenerationRule: "Monster-girl/boy features, scales, horns, multiple eyes, extra limbs.", isNSFW: true },
+  { id: "kink50", name: "Brainwashing", textGenerationRule: "IDENTITY ERASURE: Systematic destruction of the subject's personality. Focus on the new 'programmed' behavior and repetition.", imageGenerationRule: "Technological interfaces, empty eyes, robotic compliance.", isNSFW: true },
+  { id: "kink51", name: "Cyber/Synthetic", textGenerationRule: "NEON CARNALITY: Focus on the coldness of chrome and the hum of artificial parts. Contrast between flesh and machine.", imageGenerationRule: "Cybernetic enhancements, neon-lit skin, glowing cables, metallic textures.", isNSFW: true },
+  { id: "kink52", name: "Gothic/Victorian", textGenerationRule: "REPRESSED EROTICS: Focus on corsets, layers of lace, and the tension of Victorian propriety vs. dark secrets.", imageGenerationRule: "Corsets, heavy velvet, candelabras, lace chokers, dark manor settings.", isNSFW: true },
+  { id: "kink53", name: "Forced Feminization", textGenerationRule: "GENDER COERCION: Systematically stripping masculine traits and replacing them with hyper-feminine triggers and clothing.", imageGenerationRule: "Make-up application on resistant faces, frilly attire, humiliating feminine poses.", isNSFW: true },
+  { id: "kink54", name: "Chastity", textGenerationRule: "DENIAL LOGIC: Focus on the frustration and the physical hardware preventing release. Narrative centers on the loss of access.", imageGenerationRule: "Metallic cages, padlocks, keys held by a dominant partner.", isNSFW: true },
+  { id: "kink55", name: "Ruin/Denial", textGenerationRule: "RUINED RELEASE: Building the subject to a peak and then intentionally ruining the climax or denying it entirely.", imageGenerationRule: "Frustrated expressions, shaking limbs, hand held back at the last moment.", isNSFW: true },
+  { id: "kink56", name: "Humiliation (Social)", textGenerationRule: "PUBLIC DEBASEMENT: Focus on being seen in a vulnerable or carnal state by others. Describe the heat of shame.", imageGenerationRule: "Crowds in the background, exposed poses, blushing faces, mocking gazes.", isNSFW: true },
+  { id: "kink57", name: "Age Play (DDPB)", textGenerationRule: "REGRESSIVE ROLEPLAY: Dynamic based on caretaking and authority. Focus on diapers, bottles, and nursery-logic.", imageGenerationRule: "Adult-sized nursery items, pacifiers, onesies (handled with strictly adult contexts).", isNSFW: true },
+  { id: "kink58", name: "Cross-Species", textGenerationRule: "XENO-INTIMACY: Focus on the distinct differences between species. Describe unique sensations of fur, scales, or alien fluids.", imageGenerationRule: "Highly contrasting biology in one frame, specialized xeno-carnal equipment.", isNSFW: true },
+
+  // --- HARDCORE & EXTREME (The Pit) ---
   { 
-    id: "kink01", 
-    name: "Bondage (Enclosure)", 
-    textGenerationRule: "ENCLOSURE LOGIC: Focus on the physics of restriction and prioritized skin contact from rope or leather.", 
-    imageGenerationRule: "Mummy-style wraps, intricate rope patterns, knots.", 
+    id: "pit01", 
+    name: "Double Penetration (DP)", 
+    textGenerationRule: "MULTI-ORIFICE FOCUS: Simultaneous penetration of two or more openings. Focus on the internal friction and the physical stretching of the subject.", 
+    imageGenerationRule: "Two or more partners, clustered anatomical focus, extreme stretching poses.", 
     isNSFW: true 
   },
   { 
-    id: "kink03", 
-    name: "Petplay (Regression)", 
-    textGenerationRule: "DOMESTIC REGRESSION: Treat the subject as a biological asset or a domestic animal with praise/command loops.", 
-    imageGenerationRule: "Collars, leashes, masks, crawling poses.", 
+    id: "pit02", 
+    name: "Fisting (Internal)", 
+    textGenerationRule: "EXPANSIVE CAPITULATION: Extreme internal exploration using hands. Focus on the depth, the use of lubrication, and the agonizing/ecstatic loss of internal shape.", 
+    imageGenerationRule: "Extreme internal focus, large-scale anatomical stretching, visceral liquid textures.", 
     isNSFW: true 
   },
   { 
-    id: "kink02", 
-    name: "Impact (Pain Feedback)", 
-    textGenerationRule: "KINETIC SHOCK: Intimacy centers on the exchange of force and immediate sensory feedback of the skin.", 
-    imageGenerationRule: "Reddened skin markers, paddles, crops.", 
+    id: "pit03", 
+    name: "Trampling (Weight)", 
+    textGenerationRule: "CRUSHING DOMINANCE: Being walked upon, stood upon, or crushed under the weight of a dominant partner. Focus on the struggle for air and the pressure on the chest/limbs.", 
+    imageGenerationRule: "Soles of feet on torsos, dominant towering figures, flattened perspectives.", 
     isNSFW: true 
   },
   { 
-    id: "kink04", 
-    name: "Exhibitionism (Observed)", 
-    textGenerationRule: "VOYEURISTIC FEEDBACK: Presence of an audience acts as a primary stimulant; character is hyper-performative.", 
-    imageGenerationRule: "Mirrored surfaces, stage lighting, public-adjacent framing.", 
+    id: "pit04", 
+    name: "Human Furniture", 
+    textGenerationRule: "OBJECTIFIED FUNCTION: Treating the subject as an inanimate piece of furniture (chair, table, footrest). Focus on absolute stillness and the ignoring of the subject's humanity.", 
+    imageGenerationRule: "Subjects in rigid architectural poses being used as surfaces, collars, leather wraps.", 
     isNSFW: true 
   },
   { 
-    id: "kink08", 
-    name: "Somnophilia", 
-    textGenerationRule: "UNCONSCIOUS INTERACTION: Focus on interactions with a non-responsive subject using 'Unseen Hand' logic.", 
-    imageGenerationRule: "Darkened bedrooms, silhouettes over sleeping figures.", 
+    id: "pit05", 
+    name: "CBT (Torture)", 
+    textGenerationRule: "GENITAL AGONY: Focus on the deliberate infliction of pain or restriction on masculine carnal organs. Includes squeezing, striking, and weighted suspension.", 
+    imageGenerationRule: "Metallic weights, tight bindings, painful expressions, intense close-ups of genital area.", 
     isNSFW: true 
   },
   { 
-    id: "kink05", 
-    name: "Sensory Deprivation", 
-    textGenerationRule: "SENSORY ISOLATION: Heighten tactile descriptions while removing the subject's primary sight or sound.", 
-    imageGenerationRule: "Blindfolds, hoods, sensory-deprivation tanks.", 
+    id: "pit06", 
+    name: "Sounding (Metallic)", 
+    textGenerationRule: "INTERNAL CHANNELING: Insertion of metallic rods or sounds into the carnal tract. Focus on the temperature and the sharp, internal sensation of metal.", 
+    imageGenerationRule: "Glinting metallic rods, precise close-ups of insertion, medical/sterile aesthetics.", 
     isNSFW: true 
   },
   { 
-    id: "kink09", 
-    name: "Vore (Absorption)", 
-    textGenerationRule: "CAVERNOUS ABSORPTION: The drive is consumption into a wet, internal void; focus on becoming one entity.", 
-    imageGenerationRule: "Massive physical scale, torso-mouths, internal fleshy environments.", 
+    id: "pit07", 
+    name: "E-Stim (Electrical)", 
+    textGenerationRule: "NEURAL OVERLOAD: Use of electrical currents to induce muscle spasms and carnal peaks. Focus on the buzzing sound and the uncontrollable twitching of limbs.", 
+    imageGenerationRule: "Wires, electrodes, glowing sparks, wide-eyed expressions, arched backs.", 
     isNSFW: true 
   },
   { 
-    id: "kink10", 
-    name: "Latex (Synthetic Skin)", 
-    textGenerationRule: "SYNTHETIC CONSTRICTION: Focus on the friction and airtight seal of rubber/latex against flesh.", 
-    imageGenerationRule: "High-shine black latex, vacuum-sealed textures.", 
+    id: "pit08", 
+    name: "Bloodplay (Gore-Lite)", 
+    textGenerationRule: "SANGUINE INTIMACY: Use of small cuts or needles to draw blood during carnal acts. Focus on the scent, the warmth of the fluid, and the visual of red on skin.", 
+    imageGenerationRule: "Blood droplets on skin, sharp instruments, intense contrast between red and pale flesh.", 
     isNSFW: true 
   },
   { 
-    id: "kink11", 
-    name: "Breathplay (Hypoxia)", 
-    textGenerationRule: "HYPOXIC URGENCY: Focus on the rhythmic restriction of air and the monitoring of the subject's fading.", 
-    imageGenerationRule: "Hands on throat, masks, water elements.", 
+    id: "pit09", 
+    name: "Forced Proximity (Small Space)", 
+    textGenerationRule: "CLAUSTROPHOBIC CARNALITY: Interactions occurring in extremely confined spaces (crates, closets, elevators). Focus on the shared heat and the inability to pull away.", 
+    imageGenerationRule: "Cramped framing, pressed flesh, dark corners, sweat-slicked skin.", 
+    isNSFW: true 
+  },
+  { 
+    id: "pit10", 
+    name: "Dipping (Dip-n-Lick)", 
+    textGenerationRule: "LIQUID COATING: Covering the subject in food, honey, or other substances for the purpose of licking/consumption. Focus on texture and the stickiness of the skin.", 
+    imageGenerationRule: "Glistening viscous liquids, tongues in frame, messy carnal framing.", 
+    isNSFW: true 
+  },
+
+  // --- PUBLIC NUDITY & EXPOSURE (The Stage) ---
+  { 
+    id: "stage01", 
+    name: "Public Flashing", 
+    textGenerationRule: "SUDDEN EXPOSURE: The act of intentionally revealing carnal parts to unsuspecting strangers. Focus on the rush of fear, the cold air on skin, and the reaction of others.", 
+    imageGenerationRule: "Opened trench coats, urban backgrounds, startled silhouettes, blurred motion.", 
+    isNSFW: true 
+  },
+  { 
+    id: "stage02", 
+    name: "Dogging (Public Car)", 
+    textGenerationRule: "VEHICULAR SPECTATORSHIP: Carnal acts occurring in parked cars in public areas, intended to be watched. Focus on the steamed-up windows and the voyeurs in the shadows.", 
+    imageGenerationRule: "Dark parking lots, car interiors, flashlight beams, silhouettes outside windows.", 
+    isNSFW: true 
+  },
+  { 
+    id: "stage03", 
+    name: "Beach/Nudist Exposure", 
+    textGenerationRule: "NATURALIST VULNERABILITY: Interactions in open, sun-drenched outdoor areas where discovery is constant. Focus on sand, salt water, and the lack of cover.", 
+    imageGenerationRule: "Bright sunlight, sand on skin, distant crowds, ocean waves, exposed carnal acts.", 
+    isNSFW: true 
+  },
+  { 
+    id: "stage04", 
+    name: "Public Transit Commute", 
+    textGenerationRule: "URBAN TRANSGRESSION: Carnal interactions on trains, buses, or subways during active operation. Focus on the vibrations, the proximity of other passengers, and the silence.", 
+    imageGenerationRule: "Subway car interiors, hand-rails, crowded backgrounds, hidden hands, blurred tunnel lights.", 
+    isNSFW: true 
+  },
+  { 
+    id: "stage05", 
+    name: "Changing Room Voyeur", 
+    textGenerationRule: "LIMINAL EXPOSURE: The vulnerability of being watched while undressing in stores or gyms. Focus on mirrors, curtains, and the feeling of eyes in the gaps.", 
+    imageGenerationRule: "Partial nudity, curtains, mirror reflections, shadows through gaps, fluorescent lighting.", 
+    isNSFW: true 
+  },
+  { 
+    id: "stage06", 
+    name: "Park Bench Risky", 
+    textGenerationRule: "DAYLIGHT PERMANENCE: Carnal acts occurring in broad daylight in public parks. Focus on the risk of children or police appearing and the use of 'quick access' clothing.", 
+    imageGenerationRule: "Greenery, park benches, strollers in the distance, lifted skirts, exposed thighs.", 
+    isNSFW: true 
+  },
+  { 
+    id: "stage07", 
+    name: "Restroom/Stall Glory", 
+    textGenerationRule: "CLANDESTINE PLUMBING: Interactions through walls or within cramped public restroom stalls. Focus on the grime, the echoing sounds, and the anonymity of the partner.", 
+    imageGenerationRule: "Graffiti-covered walls, stall doors, low-angle perspectives, tiled floors, hands under partitions.", 
+    isNSFW: true 
+  },
+  { 
+    id: "stage08", 
+    name: "Balcony Exhibition", 
+    textGenerationRule: "ELEVATED EXPOSURE: Performing carnal acts on high balconies overlooking busy streets. Focus on the wind and the feeling of being a 'display' for the world below.", 
+    imageGenerationRule: "City skylines, balcony railings, night lights, exposed poses against the wind.", 
+    isNSFW: true 
+  },
+  { 
+    id: "stage09", 
+    name: "Gym Exposure", 
+    textGenerationRule: "ATHLETIC VULNERABILITY: Intentional exposure of carnal parts during exercise or in locker rooms. Focus on sweat, high exertion, and the risk of being seen by fellow athletes.", 
+    imageGenerationRule: "Gym equipment, weights, locker room mirrors, yoga poses, exposed spandex.", 
+    isNSFW: true 
+  },
+  { 
+    id: "stage10", 
+    name: "Library Silence", 
+    textGenerationRule: "SCHOLARLY RISQUÉ: Performing quiet, hidden carnal acts in libraries or study halls. Focus on the contrast between the intellectual setting and the primal urge, using the silence as a sensory amplifier.", 
+    imageGenerationRule: "Bookshelves, wooden desks, dim library lighting, hidden hands under tables, exposed stockings.", 
+    isNSFW: true 
+  },
+
+  // --- PSYCHOLOGICAL & PHILOSOPHICAL (The Void) ---
+  { 
+    id: "void01", 
+    name: "Nihilism", 
+    textGenerationRule: "EXISTENTIAL NULLIFICATION: Dialogue and actions reflect a total lack of meaning. Moral weight is zero. Characters act without consequence or concern for future causality.", 
+    imageGenerationRule: "Bleak, empty landscapes, monochrome palettes, hollow expressions, eyes devoid of life.", 
+    isNSFW: true 
+  },
+  { 
+    id: "void02", 
+    name: "Solipsism", 
+    textGenerationRule: "SUBJECTIVE DOMINANCE: The character operates as if they are the only real consciousness. Others are perceived as biological props or NPC-like objects for their whims.", 
+    imageGenerationRule: "Distorted perspectives where the central figure dominates everything else, blurred background figures.", 
+    isNSFW: true 
+  },
+  { 
+    id: "void03", 
+    name: "Cosmic Dread", 
+    textGenerationRule: "ELDRITCH INSIGNIFICANCE: Narrative emphasizes the crushing weight of vast, uncaring entities. Characters feel small, biologically fragile, and psychologically shattered by the scale of the universe.", 
+    imageGenerationRule: "Lovecraftian motifs, swirling nebulae, incomprehensible scale, tentacles in space.", 
+    isNSFW: true 
+  },
+  { 
+    id: "void04", 
+    name: "Hedonism (Extreme)", 
+    textGenerationRule: "CARNAL ABSOLUTISM: Pursuit of pleasure as the only moral imperative. All actions are filtered through immediate sensory gratification, ignoring pain or social norms.", 
+    imageGenerationRule: "Overflowing banquets, clusters of entangled bodies, decadent textures, gold and velvet.", 
+    isNSFW: true 
+  },
+  { 
+    id: "void05", 
+    name: "Fatalism", 
+    textGenerationRule: "DOOM LOGIC: Actions are driven by the belief that the ending is already written. Characters embrace their destruction with a calm, disturbing certainty.", 
+    imageGenerationRule: "Clocks, hourglasses, falling petals, silhouettes against a setting sun.", 
+    isNSFW: true 
+  },
+
+  // --- EXTREME HORROR & GORE (The Abattoir) ---
+  { 
+    id: "gore01", 
+    name: "Guro (Visceral)", 
+    textGenerationRule: "ANATOMICAL UNVEILING: Extreme focus on internal anatomy, organs, and the aesthetic of physical destruction. Language is precise, wet, and raw, detailing the fusion of carnal pleasure and trauma.", 
+    imageGenerationRule: "Explicit internal anatomy, cross-sections of flesh, wet organic textures, heavy red palettes.", 
+    isNSFW: true 
+  },
+  { 
+    id: "gore02", 
+    name: "Cannibalism", 
+    textGenerationRule: "LIVESTOCK LOGIC: Treating human subjects as nutrition. Narrative focuses on the preparation and consumption of flesh with predatory delight and a focus on taste and texture.", 
+    imageGenerationRule: "Kitchen or butcher shop aesthetics with human-adjacent motifs, dinner plates with viscera.", 
+    isNSFW: true 
+  },
+  { 
+    id: "gore03", 
+    name: "Body Horror", 
+    textGenerationRule: "MORPHOLOGICAL DISSOLUTION: Focus on the wrongness of flesh—extra limbs, skin melting, bones warping. Interaction is driven by the horror of the body's failure and rebirth.", 
+    imageGenerationRule: "Cronenberg-style mutations, fusing flesh, unnatural geometry, teeth where they shouldn't be.", 
+    isNSFW: true 
+  },
+  { 
+    id: "gore04", 
+    name: "Mutilation", 
+    textGenerationRule: "PERMANENT ALTERATION: Intentional destruction or removal of body parts as a form of ownership or punishment. Detail the raw physics of the act and the resulting permanent mark.", 
+    imageGenerationRule: "Missing limbs, heavy scarring, medical instruments used aggressively, cauterized skin.", 
+    isNSFW: true 
+  },
+  { 
+    id: "gore05", 
+    name: "Necrophilia (The Grave)", 
+    textGenerationRule: "POST-MORTEM INTIMACY: Interaction with non-responsive, cold, and decaying subjects. Focus on the stillness, the scent of decay, and the absolute lack of life.", 
+    imageGenerationRule: "Grave sites, ashen skin, blue-tinted lighting, withered flowers, cemetery backgrounds.", 
+    isNSFW: true 
+  },
+  { 
+    id: "gore06", 
+    name: "Torture (Procedural)", 
+    textGenerationRule: "SYSTEMATIC AGONY: Narrative focuses on the step-by-step breakdown of the subject using specific tools and methods. High emphasis on the subject's vocalizations and physical collapse.", 
+    imageGenerationRule: "Racks, chains, dark dungeons, glinting metal, sweat and blood.", 
     isNSFW: true 
   },
 
