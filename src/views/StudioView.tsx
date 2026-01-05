@@ -141,9 +141,9 @@ export const StudioView: React.FC<StudioViewProps> = ({ character, setCharacter 
                   className={`text-[10px] font-black uppercase tracking-[0.5em] ${errors.prompt ? 'text-red-500' : 'text-rose-900'}`} 
                 />
                 <div className="flex items-center gap-4">
-                  {/* Browserify (Web Research) Toggle */}
+                  {/* Web Research (Grounding) Toggle */}
                   <div 
-                    title="Browserify (Enable Web Research)"
+                    title="Deep Lore Research (Web Grounding)"
                     onClick={() => setCharacter((p: any) => ({ ...p, isWebResearchEnabled: !p.isWebResearchEnabled }))} 
                     className={`w-12 h-6 rounded-full relative cursor-pointer border border-rose-900/20 ${character.isWebResearchEnabled ? 'bg-emerald-900/40' : 'bg-rose-950/60'}`}
                   >
@@ -199,7 +199,7 @@ export const StudioView: React.FC<StudioViewProps> = ({ character, setCharacter 
             <div className="space-y-24">
               <PromptSection character={character} setCharacter={setCharacter} showAssets={showAssets} setShowAssets={setShowAssets} />
               
-              {/* Research Grounding Sources (Browserify Results) */}
+              {/* Research Grounding Sources */}
               {character.groundingChunks && character.groundingChunks.length > 0 && (
                 <GlassCard padding="md" className="rounded-[2.5rem] border-emerald-900/20 bg-emerald-950/5 animate-in fade-in slide-in-from-top-4 duration-700">
                   <div className="flex items-center gap-3 mb-6 border-b border-emerald-900/10 pb-4">
@@ -207,8 +207,8 @@ export const StudioView: React.FC<StudioViewProps> = ({ character, setCharacter 
                       <Search className="w-4 h-4 text-emerald-500" />
                     </div>
                     <div>
-                      <span className="text-[9px] font-black uppercase tracking-widest text-emerald-800">Browserify Insights</span>
-                      <h4 className="text-sm font-bold text-emerald-100 uppercase tracking-tight">Lore Sources Identified</h4>
+                      <span className="text-[9px] font-black uppercase tracking-widest text-emerald-800">Research Insights</span>
+                      <h4 className="text-sm font-bold text-emerald-100 uppercase tracking-tight">Verified Lore Sources</h4>
                     </div>
                   </div>
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
