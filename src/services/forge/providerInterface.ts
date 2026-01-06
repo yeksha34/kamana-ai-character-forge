@@ -1,5 +1,4 @@
-
-import { CharacterField, Platform, TagMeta, AIDungeonCard } from "../../types";
+import { CharacterField, Platform, TagMeta, AIDungeonCard, MessageLength } from "../../types";
 
 export interface ForgeProvider {
   setApiKey(key: string): void;
@@ -9,7 +8,8 @@ export interface ForgeProvider {
     tags: TagMeta[], 
     isNSFW: boolean, 
     modelId: string,
-    useWebResearch?: boolean
+    useWebResearch?: boolean,
+    responseLength?: MessageLength
   }): Promise<any>;
 
   generatePlatformContent(params: { 

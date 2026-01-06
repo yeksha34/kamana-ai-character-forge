@@ -1,19 +1,11 @@
-
 import { GoogleGenAI, Type } from "@google/genai";
-import { CharacterField, Platform, TagMeta, AIDungeonCard } from "../../types";
+import { CharacterField, Platform, TagMeta, AIDungeonCard, MessageLength } from "../../types";
 import { ForgeProvider } from "./providerInterface";
 
 export class GeminiForgeProvider implements ForgeProvider {
-  // Guidelines: Obtaining the API key exclusively from process.env.API_KEY.
-  // The client initialization strictly uses process.env.API_KEY.
-
-  setApiKey(key: string): void {
-    // Guidelines: Gemini API key must be obtained exclusively from process.env.API_KEY.
-    // External key setting is ignored for Gemini to maintain strict environmental compliance.
-  }
+  setApiKey(key: string): void {}
 
   private getClient() {
-    // Guidelines: Always use process.env.API_KEY directly for initializing the GoogleGenAI instance.
     return new GoogleGenAI({ apiKey: process.env.API_KEY });
   }
 
@@ -27,54 +19,43 @@ export class GeminiForgeProvider implements ForgeProvider {
     return instructions;
   }
 
-  // Updated to support useWebResearch via googleSearch tool and return grounding chunks
-  async refinePrompt(params: { prompt: string, tags: TagMeta[], isNSFW: boolean, modelId: string, useWebResearch?: boolean }): Promise<any> {
-    const { prompt, tags, isNSFW, modelId, useWebResearch } = params;
+  async refinePrompt(params: { prompt: string, tags: TagMeta[], isNSFW: boolean, modelId: string, useWebResearch?: boolean, responseLength?: MessageLength }): Promise<any> {
+    const { prompt, tags, isNSFW, modelId, useWebResearch, responseLength } = params;
     const ai = this.getClient();
     const tagRules = tags.map(t => `[${t.textGenerationRule}]`).join(' ');
     const nsfwPart = this.constructNSFWInstruction(isNSFW, tags);
-    const systemInstruction = `Prompt Engineer. Incorporate behavior logic: ${tagRules}. ${nsfwPart}. Output ONLY refined text.`;
+    
+    const lengthMap: Record<MessageLength, string> = {
+      [MessageLength.SHORT]: "Keep response very brief, under 50 words.",
+      [MessageLength.MEDIUM]: "Provide a standard response, around 100-150 words.",
+      [MessageLength.LARGE]: "Write a detailed, multi-paragraph response exceeding 300 words."
+    };
+    const lengthRule = responseLength ? lengthMap[responseLength] : "";
+
+    const systemInstruction = `Roleplay Agent. Rules: ${tagRules}. ${nsfwPart}. ${lengthRule}. Output ONLY character dialogue/actions.`;
 
     const config: any = { systemInstruction, temperature: 0.9 };
-    // Inject googleSearch tool if web research is enabled
-    if (useWebResearch) {
-      config.tools = [{ googleSearch: {} }];
-    }
+    if (useWebResearch) config.tools = [{ googleSearch: {} }];
 
     const response = await ai.models.generateContent({
       model: modelId,
-      contents: `User Vision: "${prompt}"`,
+      contents: prompt,
       config
     });
 
     const text = response.text?.trim() || prompt;
-    // Extract grounding metadata if search was used
     if (useWebResearch && response.candidates?.[0]?.groundingMetadata?.groundingChunks) {
-      return {
-        text,
-        groundingChunks: response.candidates[0].groundingMetadata.groundingChunks
-      };
+      return { text, groundingChunks: response.candidates[0].groundingMetadata.groundingChunks };
     }
     return text;
   }
 
-  // Updated to support useWebResearch and return grounding data
-  async generatePlatformContent(params: { 
-    modifiedPrompt: string, 
-    platforms: Platform[], 
-    platformRequirements: { platform: string, fields: string[] }[],
-    existingFields: CharacterField[],
-    isNSFW: boolean,
-    tags: TagMeta[],
-    modelId: string,
-    useWebResearch?: boolean 
-  }): Promise<any> {
+  async generatePlatformContent(params: any): Promise<any> {
     const { modifiedPrompt, platformRequirements, isNSFW, tags, modelId, useWebResearch } = params;
     const ai = this.getClient();
     const fieldMapping = platformRequirements.map((p: any) => `For ${p.platform}, generate: [${p.fields.join(', ')}]`).join('. ');
-    const tagRules = tags.map((t: any) => `[${t.textGenerationRule}]`).join(' ');
     const nsfwPart = this.constructNSFWInstruction(isNSFW, tags);
-    const systemInstruction = `Character Architect. Vision: "${modifiedPrompt}". Enforce Rules: ${tagRules}. Fields: ${fieldMapping}. ${nsfwPart}. JSON ONLY.`;
+    const systemInstruction = `Character Architect. Fields: ${fieldMapping}. ${nsfwPart}. JSON ONLY.`;
 
     const schema = {
       type: Type.OBJECT,
@@ -89,24 +70,12 @@ export class GeminiForgeProvider implements ForgeProvider {
     };
 
     const config: any = { systemInstruction, responseMimeType: "application/json", responseSchema: schema };
-    // Inject googleSearch tool if web research is enabled
-    if (useWebResearch) {
-      config.tools = [{ googleSearch: {} }];
-    }
+    if (useWebResearch) config.tools = [{ googleSearch: {} }];
 
-    const response = await ai.models.generateContent({
-      model: modelId,
-      contents: "Generate character data.",
-      config
-    });
-
+    const response = await ai.models.generateContent({ model: modelId, contents: modifiedPrompt, config });
     const result = JSON.parse(response.text || '{}');
-    // Extract grounding metadata if search was used
     if (useWebResearch && response.candidates?.[0]?.groundingMetadata?.groundingChunks) {
-      return {
-        data: result,
-        groundingChunks: response.candidates[0].groundingMetadata.groundingChunks
-      };
+      return { data: result, groundingChunks: response.candidates[0].groundingMetadata.groundingChunks };
     }
     return result;
   }
@@ -128,8 +97,7 @@ export class GeminiForgeProvider implements ForgeProvider {
         prompt: `${prompt}. ${isNSFW ? 'NSFW allowed' : ''}. Cinematic.`,
         config: { numberOfImages: 1, aspectRatio: '1:1' },
       });
-      const base64EncodeString: string = response.generatedImages[0].image.imageBytes;
-      return `data:image/png;base64,${base64EncodeString}`;
+      return `data:image/png;base64,${response.generatedImages[0].image.imageBytes}`;
     }
     const response = await ai.models.generateContent({
       model: modelId,
@@ -164,7 +132,7 @@ export class GeminiForgeProvider implements ForgeProvider {
     const { tags, content, isNSFW, modelId } = params;
     const ai = this.getClient();
     const tagSummary = tags.map((t: any) => `[${t.textGenerationRule}]`).join('\n');
-    const systemInstruction = `Logic Architect. Enforce behaviors: \n${tagSummary}\n ${isNSFW ? 'NSFW: Yes.' : ''} Wrap in [SYSTEM INFORMATION: ...].`;
+    const systemInstruction = `Logic Architect. Rule Constraints: \n${tagSummary}\n. ${isNSFW ? 'NSFW: Yes.' : ''}`;
     const response = await ai.models.generateContent({
       model: modelId,
       contents: `Construct logic for: ${content.substring(0, 300)}...`,
