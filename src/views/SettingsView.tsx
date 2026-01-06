@@ -58,6 +58,9 @@ export const SettingsView: React.FC<{ onNavigate?: (route: string) => void }> = 
     } finally { setIsLoading(false); }
   };
 
+  // Exclude Gemini as it uses process.env.API_KEY exclusively
+  const availableProviders = Object.values(AIProvider).filter(p => p !== AIProvider.GEMINI);
+
   return (
     <div className={`min-h-screen flex flex-col items-center animate-in fade-in slide-in-from-bottom-4 duration-1000 ${isMobile ? 'pt-24 px-6 pb-40' : 'pt-48 px-16 pb-64'}`}>
       <div className="max-w-6xl w-full space-y-12">
@@ -71,8 +74,8 @@ export const SettingsView: React.FC<{ onNavigate?: (route: string) => void }> = 
             <div className="flex items-center gap-4 border-b border-rose-950/10 pb-6 text-rose-100 uppercase tracking-widest font-black text-sm"><Key className="w-5 h-5 text-rose-600" /> Secret Vault</div>
             <div className="space-y-6">
                <div className="grid grid-cols-3 gap-2">
-                 {[AIProvider.CLAUDE, AIProvider.OPENAI, AIProvider.GROQ, AIProvider.MISTRAL, AIProvider.TOGETHER, AIProvider.STABILITY].map(p => (
-                   <button key={p} onClick={() => setForm({ ...form, provider: p })} className={`py-3 rounded-xl text-[7px] font-black uppercase transition-all border ${form.provider === p ? 'bg-rose-700 text-white border-rose-500' : 'bg-black/40 text-rose-900 border-rose-950/20'}`}>{p}</button>
+                 {availableProviders.map(p => (
+                   <button key={p} onClick={() => setForm({ ...form, provider: p })} className={`py-3 rounded-xl text-[7px] font-black uppercase transition-all border truncate px-1 ${form.provider === p ? 'bg-rose-700 text-white border-rose-500' : 'bg-black/40 text-rose-900 border-rose-950/20'}`}>{p}</button>
                  ))}
                </div>
                <div className="relative">
@@ -95,7 +98,7 @@ export const SettingsView: React.FC<{ onNavigate?: (route: string) => void }> = 
             <GlassCard padding="lg" className="rounded-[3rem] border-rose-900/30">
               <div className="flex items-center gap-4 border-b border-rose-950/10 pb-6 text-rose-100 uppercase tracking-widest font-black text-sm"><Database className="w-5 h-5 text-rose-600" /> System Axis</div>
               <div className="space-y-6">
-                <button onClick={handleSync} disabled={isLoading} className="w-full py-8 bg-rose-950/20 border border-rose-900/30 text-rose-500 rounded-3xl flex flex-col items-center gap-4 hover:bg-rose-900/30 transition-all active:scale-95">
+                <button onClick={handleSync} disabled={isLoading} className="w-full py-8 bg-rose-950/20 border border-rose-900/30 text-rose-50 rounded-3xl flex flex-col items-center gap-4 hover:bg-rose-900/30 transition-all active:scale-95">
                   <RefreshCw className={`w-8 h-8 ${isLoading ? 'animate-spin' : ''}`} /> <span className="text-[10px] font-black uppercase tracking-[0.4em]">Resync Registries</span>
                 </button>
                 <button onClick={() => setShowSchema(!showSchema)} className="w-full p-4 bg-black/40 border border-rose-950/20 text-rose-900 rounded-2xl text-[8px] font-black uppercase tracking-widest">Inspect Master Schema</button>

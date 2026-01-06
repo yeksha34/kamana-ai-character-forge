@@ -4,6 +4,7 @@ import { MuseumView } from "../views/MuseumView";
 import { CharacterData } from '../types';
 import { getRawCharactersByUser, deleteRecord, saveCharacter } from '../services/supabaseDatabaseService';
 import { hashData } from '../utils/helpers';
+import { parseImportFile } from '../utils/exportUtils';
 
 interface MuseumPageProps {
   user: any;
@@ -49,22 +50,19 @@ export function MuseumPage({
   const handleDuplicate = async (character: CharacterData) => {
     if (!user) return;
     try {
-      // Create a fresh clone object
       const duplicate: CharacterData = {
         ...character,
-        id: 'new', // Flag as new record
+        id: 'new',
         name: `${character.name} (Duplicate)`,
         version: 1,
         status: 'draft',
         createdAt: Date.now(),
       };
       
-      // Generate a new content hash to avoid duplicate detection if that logic exists
       const hash = await hashData(duplicate.originalPrompt + Date.now().toString());
       const res = await saveCharacter(user.id, duplicate, hash);
       
       if (res) {
-        // Refresh the gallery list to show the new duplicate
         await loadCharacters();
       }
     } catch (err) {
@@ -80,6 +78,29 @@ export function MuseumPage({
       setCharacters(prev => prev.filter(c => c.id !== id));
     } catch (err) {
       console.error("Delete failed:", err);
+    }
+  };
+
+  const handleImport = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !user) return;
+    try {
+      const imported = await parseImportFile(file);
+      if (imported.length === 0) {
+        alert("No valid character data found in file.");
+        return;
+      }
+
+      for (const char of imported) {
+        const hash = await hashData(char.originalPrompt + Date.now().toString());
+        await saveCharacter(user.id, { ...char, id: 'new' }, hash);
+      }
+      
+      await loadCharacters();
+      alert(`Successfully imported ${imported.length} archetypes.`);
+    } catch (err) {
+      console.error("Import failed:", err);
+      alert("Import failed. Ensure the file is a valid .json or .zip archive.");
     }
   };
 
@@ -105,6 +126,7 @@ export function MuseumPage({
         onEdit={handleEdit}
         onDelete={handleDelete}
         onDuplicate={handleDuplicate}
+        onImport={handleImport}
       />
     </>
   );

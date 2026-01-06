@@ -1,10 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { CharacterData } from '../types';
 import { GlassCard } from '../components/ui/GlassCard';
 import { DisplayTitle } from '../components/ui/DisplayTitle';
 import { Badge } from '../components/ui/Badge';
 import { useAppContext } from '../contexts/AppContext';
-import { ImageIcon, Trash2, Download, CheckSquare, Square, RefreshCw, MessageSquareShare, FileEdit } from 'lucide-react';
+import { ImageIcon, Trash2, Download, Upload, CheckSquare, Square, RefreshCw, MessageSquareShare, FileEdit } from 'lucide-react';
 import { downloadCharactersZip } from '../utils/exportUtils';
 import { useViewport } from '../hooks/useViewport';
 
@@ -14,6 +14,7 @@ interface MuseumViewProps {
   onEdit: (character: CharacterData) => void;
   onDelete: (id: string) => void;
   onDuplicate: (character: CharacterData) => void;
+  onImport: (e: React.ChangeEvent<HTMLInputElement>) => Promise<void>;
 }
 
 export const MuseumView: React.FC<MuseumViewProps> = (props) => {
@@ -21,8 +22,11 @@ export const MuseumView: React.FC<MuseumViewProps> = (props) => {
   const { language } = useAppContext();
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [isExporting, setIsExporting] = useState(false);
+  const [isImporting, setIsImporting] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const toggleSelect = (id: string) => setSelectedIds(p => p.includes(id) ? p.filter(i => i !== id) : [...p, id]);
+  
   const handleBulkExport = async () => {
     if (selectedIds.length === 0) return;
     setIsExporting(true);
@@ -34,19 +38,46 @@ export const MuseumView: React.FC<MuseumViewProps> = (props) => {
     }
   };
 
+  const handleImportClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    setIsImporting(true);
+    try {
+      await props.onImport(e);
+    } finally {
+      setIsImporting(false);
+      if (fileInputRef.current) fileInputRef.current.value = '';
+    }
+  };
+
   return (
     <div className={`min-h-screen flex flex-col animate-in fade-in slide-in-from-right-10 duration-1000 ${isMobile ? 'p-6 pt-24' : 'p-16 pt-32'}`}>
       <div className={`flex items-end justify-between border-b border-rose-950/20 ${isMobile ? 'pb-6 mb-8' : 'pb-12 mb-16'}`}>
         <DisplayTitle marathi="दालन" english="Gallery Museum" size={isMobile ? 'sm' : 'md'} />
-        <div className="flex items-center gap-6">
-          {!isMobile && selectedIds.length > 0 && (
-            <button onClick={handleBulkExport} disabled={isExporting} className="flex items-center gap-3 px-8 py-3.5 bg-rose-600 text-white rounded-full font-black text-[10px] uppercase tracking-widest shadow-2xl active:scale-95 disabled:opacity-20 transition-all">
-              {isExporting ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />} Export {selectedIds.length}
+        <div className="flex items-center gap-4 lg:gap-6">
+          <div className="flex gap-2">
+            <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" accept=".json,.zip" />
+            <button 
+              onClick={handleImportClick} 
+              disabled={isImporting}
+              className="flex items-center gap-3 px-4 lg:px-8 py-3 lg:py-3.5 bg-rose-950/20 border border-rose-900/20 text-rose-500 rounded-full font-black text-[9px] lg:text-[10px] uppercase tracking-widest hover:bg-rose-900/40 transition-all active:scale-95 disabled:opacity-20"
+            >
+              {isImporting ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />} 
+              <span className="hidden sm:inline">Import</span>
             </button>
-          )}
-          <div className="text-right">
-            <p className="text-[10px] font-black uppercase text-rose-900 tracking-widest">Total Collection</p>
-            <p className={`${isMobile ? 'text-2xl' : 'text-3xl'} serif-display italic text-rose-500`}>{props.characters.length} Archetypes</p>
+            {selectedIds.length > 0 && (
+              <button onClick={handleBulkExport} disabled={isExporting} className="flex items-center gap-3 px-4 lg:px-8 py-3 lg:py-3.5 bg-rose-600 text-white rounded-full font-black text-[9px] lg:text-[10px] uppercase tracking-widest shadow-2xl active:scale-95 disabled:opacity-20 transition-all">
+                {isExporting ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />} 
+                <span className="hidden sm:inline">Export {selectedIds.length}</span>
+                <span className="sm:hidden">{selectedIds.length}</span>
+              </button>
+            )}
+          </div>
+          <div className="text-right hidden xs:block">
+            <p className="text-[10px] font-black uppercase text-rose-900 tracking-widest">Collection</p>
+            <p className={`${isMobile ? 'text-xl' : 'text-3xl'} serif-display italic text-rose-500`}>{props.characters.length}</p>
           </div>
         </div>
       </div>
@@ -69,7 +100,7 @@ export const MuseumView: React.FC<MuseumViewProps> = (props) => {
               </div>
               <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
               <div className="absolute bottom-8 left-8 right-8">
-                <h4 className={`${isMobile ? 'text-2xl' : 'text-4xl'} serif-display italic text-rose-50 mb-1`}>{c.name}</h4>
+                <h4 className={`${isMobile ? 'text-2xl' : 'text-4xl'} serif-display italic text-rose-50 mb-1 truncate`}>{c.name}</h4>
                 <div className="flex gap-2"><span className="text-[7px] font-black uppercase text-rose-500/60 border border-rose-500/20 px-2 py-0.5 rounded-full">Meta Manifest</span></div>
               </div>
             </div>

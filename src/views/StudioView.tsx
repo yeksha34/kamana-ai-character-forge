@@ -166,7 +166,9 @@ export const StudioView: React.FC<StudioViewProps> = ({ character, setCharacter 
                         <span className="text-[7px] font-black uppercase text-rose-900 block mb-1">
                           {node.role === 'user' ? userName : character.name}
                         </span>
-                        <p className="text-[10px] text-rose-100/60 italic line-clamp-2">{node.text}</p>
+                        <p className="text-[10px] text-rose-100/60 italic line-clamp-2">
+                          {node.text.replace(/\{\{user\}\}/gi, userName)}
+                        </p>
                       </div>
                     ))}
                   </div>
