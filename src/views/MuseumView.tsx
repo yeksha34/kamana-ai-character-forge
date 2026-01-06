@@ -1,12 +1,12 @@
+import React, { useState } from 'react';
 import { CharacterData } from '../types';
 import { GlassCard } from '../components/ui/GlassCard';
 import { DisplayTitle } from '../components/ui/DisplayTitle';
 import { Badge } from '../components/ui/Badge';
-import { MorphingText } from '../components/MorphingText';
 import { useAppContext } from '../contexts/AppContext';
-import { CheckCircle2, FileText, Grid, History, ImageIcon, Trash2, Download, CheckSquare, Square, X, RefreshCw, Copy, MessageSquareShare } from 'lucide-react';
-import React, { useState } from 'react';
+import { ImageIcon, Trash2, Download, CheckSquare, Square, RefreshCw, MessageSquareShare, FileEdit } from 'lucide-react';
 import { downloadCharactersZip } from '../utils/exportUtils';
+import { useViewport } from '../hooks/useViewport';
 
 interface MuseumViewProps {
   characters: CharacterData[];
@@ -16,152 +16,81 @@ interface MuseumViewProps {
   onDuplicate: (character: CharacterData) => void;
 }
 
-export const MuseumView: React.FC<MuseumViewProps> = ({ characters = [], onNavigate, onEdit, onDelete, onDuplicate }) => {
+export const MuseumView: React.FC<MuseumViewProps> = (props) => {
+  const { isMobile } = useViewport();
   const { language } = useAppContext();
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [isExporting, setIsExporting] = useState(false);
 
-  const toggleSelect = (id: string) => {
-    setSelectedIds(prev => 
-      prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]
-    );
-  };
-
+  const toggleSelect = (id: string) => setSelectedIds(p => p.includes(id) ? p.filter(i => i !== id) : [...p, id]);
   const handleBulkExport = async () => {
     if (selectedIds.length === 0) return;
     setIsExporting(true);
-    try {
-      const exportList = characters.filter(c => selectedIds.includes(c.id!));
-      const filename = `Forge_Museum_Export_${Date.now()}.zip`;
-      await downloadCharactersZip(exportList, filename);
-    } finally {
-      setIsExporting(false);
-      setSelectedIds([]);
+    try { 
+      await downloadCharactersZip(props.characters.filter(c => selectedIds.includes(c.id!)), `Museum_Backup_${Date.now()}.zip`); 
+    } finally { 
+      setIsExporting(false); 
+      setSelectedIds([]); 
     }
   };
 
   return (
-    <div className="min-h-screen flex flex-col p-8 md:p-16 pt-72 animate-in fade-in slide-in-from-right-10 duration-1000">
-      <div className="flex flex-col lg:flex-row lg:items-end justify-between mb-24 border-b border-rose-950/30 pb-20 gap-12">
-        <DisplayTitle marathi="दालन" english="Gallery Museum" size="lg" />
-        
-        <div className="flex items-center gap-8 self-start lg:self-end">
-          {selectedIds.length > 0 && (
-            <div className="flex items-center gap-4 animate-in slide-in-from-bottom-4 duration-500">
-              <button 
-                onClick={handleBulkExport}
-                disabled={isExporting}
-                className="flex items-center gap-3 px-8 py-4 bg-rose-600 text-white rounded-full font-black text-[10px] uppercase tracking-widest hover:bg-rose-500 transition-all shadow-2xl disabled:opacity-50"
-              >
-                {isExporting ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
-                Export {selectedIds.length} Selected
-              </button>
-              <button 
-                onClick={() => setSelectedIds([])}
-                className="p-4 bg-rose-950/40 text-rose-500 border border-rose-900/20 rounded-full hover:bg-rose-900/40 transition-all"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
+    <div className={`min-h-screen flex flex-col animate-in fade-in slide-in-from-right-10 duration-1000 ${isMobile ? 'p-6 pt-24' : 'p-16 pt-32'}`}>
+      <div className={`flex items-end justify-between border-b border-rose-950/20 ${isMobile ? 'pb-6 mb-8' : 'pb-12 mb-16'}`}>
+        <DisplayTitle marathi="दालन" english="Gallery Museum" size={isMobile ? 'sm' : 'md'} />
+        <div className="flex items-center gap-6">
+          {!isMobile && selectedIds.length > 0 && (
+            <button onClick={handleBulkExport} disabled={isExporting} className="flex items-center gap-3 px-8 py-3.5 bg-rose-600 text-white rounded-full font-black text-[10px] uppercase tracking-widest shadow-2xl active:scale-95 disabled:opacity-20 transition-all">
+              {isExporting ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />} Export {selectedIds.length}
+            </button>
           )}
-
           <div className="text-right">
-            <p className="text-[10px] font-black uppercase tracking-widest text-rose-900 mb-1">संग्रह संख्या (Total)</p>
-            <p className="text-3xl serif-display italic text-rose-500">{characters.length} पात्रे</p>
+            <p className="text-[10px] font-black uppercase text-rose-900 tracking-widest">Total Collection</p>
+            <p className={`${isMobile ? 'text-2xl' : 'text-3xl'} serif-display italic text-rose-500`}>{props.characters.length} Archetypes</p>
           </div>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-16">
-        {characters.length === 0 ? (
-          <div className="col-span-full h-[600px] flex flex-col items-center justify-center opacity-10">
-            <Grid className="w-48 h-48 mb-10 animate-icon-float" />
-            <p className="text-5xl serif-display italic tracking-widest text-center">अद्याप काहीही जतन केलेले नाही...</p>
-          </div>
-        ) : (
-          characters.map(c => (
-            <GlassCard 
-              key={c.id} 
-              hoverable 
-              padding="none" 
-              className={`rounded-[4rem] overflow-hidden flex flex-col shadow-2xl group hover-animate transition-all duration-500 ${selectedIds.includes(c.id!) ? 'ring-4 ring-rose-500/50 scale-[0.98]' : ''}`}
-            >
-              <div className="aspect-square relative overflow-hidden bg-rose-950/10">
-                {/* Selection Overlay */}
-                <button 
-                  onClick={() => toggleSelect(c.id!)}
-                  className="absolute top-8 left-8 z-30 p-4 rounded-full backdrop-blur-xl border border-white/10 bg-black/40 text-white transition-all hover:bg-rose-600 active:scale-90"
-                >
-                  {selectedIds.includes(c.id!) ? <CheckSquare className="w-6 h-6 text-white" /> : <Square className="w-6 h-6 opacity-40" />}
-                </button>
-
-                {c.characterImageUrl ? (
-                  <img src={c.characterImageUrl} className="w-full h-full object-cover transition-transform duration-[12s] group-hover:scale-110" />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center opacity-10">
-                    <ImageIcon className="w-24 h-24 animate-pulse" />
-                  </div>
-                )}
-
-                <div className="absolute top-8 right-8 z-20 flex flex-col gap-2 items-end">
-                  <Badge 
-                    label={c.status} 
-                    icon={c.status === 'finalized' ? CheckCircle2 : FileText} 
-                    variant={c.status === 'finalized' ? 'green' : 'rose'} 
-                    className={c.status === 'finalized' ? 'animate-icon-glow' : ''}
-                  />
-                  <Badge label={`v${c.version}`} icon={History} variant="neutral" />
-                </div>
-
-                <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-90" />
-                <div className="absolute bottom-12 left-12 right-12">
-                  <h4 className="text-6xl serif-display italic text-rose-50 glow-text drop-shadow-2xl mb-4">{c.name}</h4>
-                  <p className="text-[10px] text-rose-200/40 line-clamp-2 italic mb-6">"{c.originalPrompt}"</p>
-                  <div className="flex gap-2 mt-4 overflow-hidden">
-                    {c.tags.slice(0, 3).map(t => (
-                      <span key={t} className="text-[8px] font-black uppercase tracking-widest text-rose-500/60 border border-rose-500/20 px-3 py-1 rounded-full">{t}</span>
-                    ))}
-                  </div>
-                </div>
+      <div className={`grid gap-8 lg:gap-12 ${isMobile ? 'grid-cols-1' : 'grid-cols-2 xl:grid-cols-3'}`}>
+        {props.characters.map(c => (
+          <GlassCard key={c.id} hoverable padding="none" className={`rounded-[3rem] overflow-hidden flex flex-col shadow-2xl group transition-all ${selectedIds.includes(c.id!) ? 'ring-2 ring-rose-500' : ''}`}>
+            <div className="aspect-square relative overflow-hidden bg-rose-950/10">
+              <button onClick={() => toggleSelect(c.id!)} className="absolute top-6 left-6 z-30 p-3 rounded-full backdrop-blur-xl bg-black/40 border border-white/10 text-white outline-none">
+                {selectedIds.includes(c.id!) ? <CheckSquare className="w-5 h-5 text-rose-500" /> : <Square className="w-5 h-5 opacity-40" />}
+              </button>
+              {c.characterImageUrl ? (
+                <img src={c.characterImageUrl} className="w-full h-full object-cover transition-transform duration-[10s] group-hover:scale-110" alt={c.name} />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center opacity-10"><ImageIcon className="w-20 h-20" /></div>
+              )}
+              <div className="absolute top-6 right-6 z-20 flex flex-col gap-2 items-end">
+                <Badge label={c.status} variant={c.status === 'finalized' ? 'green' : 'rose'} />
+                <Badge label={`v${c.version}`} variant="neutral" />
               </div>
-              <div className="p-12 flex-1 flex flex-col justify-between bg-black/20">
-                <div className="space-y-4">
-                  <button
-                    onClick={() => onNavigate(`#/chat/${c.id}`)}
-                    className="w-full py-5 bg-rose-600 text-white rounded-full font-black transition-all shadow-xl flex items-center justify-center gap-3 group/chat overflow-hidden"
-                  >
-                    <MessageSquareShare className="w-5 h-5 group-hover/chat:animate-icon-heartbeat" />
-                    <MorphingText language={language} value="chatNow" english="Chat Now" className="text-[11px] uppercase tracking-widest" />
-                  </button>
-                  <div className="flex gap-4">
-                    <button
-                      onClick={() => onEdit(c)}
-                      className="flex-1 py-5 bg-rose-800/10 border border-rose-900/20 text-rose-500 rounded-full font-black transition-all group/edit overflow-hidden"
-                    >
-                      <div className="flex items-center justify-center gap-2">
-                        <MorphingText language={language} value="edit" english="Edit" className="text-[10px] uppercase tracking-widest" />
-                      </div>
-                    </button>
-                    <button
-                      onClick={() => onDuplicate(c)}
-                      title="Duplicate Creation"
-                      className="p-5 bg-rose-950/50 text-rose-950 hover:text-rose-400 rounded-full transition-all border border-rose-900/10 hover:border-rose-700/50 active:scale-90 group/duplicate"
-                    >
-                      <Copy className="w-5 h-5 group-hover/duplicate:animate-icon-float" />
-                    </button>
-                    <button
-                      onClick={() => onDelete(c.id!)}
-                      className="p-5 bg-rose-950/50 text-rose-950 hover:text-rose-500 rounded-full transition-all border border-rose-900/10 hover:border-rose-700/50 active:scale-90 group/delete overflow-hidden"
-                    >
-                      <Trash2 className="w-5 h-5 group-hover/delete:animate-icon-wiggle" />
-                    </button>
-                  </div>
-                </div>
+              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
+              <div className="absolute bottom-8 left-8 right-8">
+                <h4 className={`${isMobile ? 'text-2xl' : 'text-4xl'} serif-display italic text-rose-50 mb-1`}>{c.name}</h4>
+                <div className="flex gap-2"><span className="text-[7px] font-black uppercase text-rose-500/60 border border-rose-500/20 px-2 py-0.5 rounded-full">Meta Manifest</span></div>
               </div>
-            </GlassCard>
-          ))
-        )}
+            </div>
+            <div className="p-8 bg-black/40 space-y-4">
+              <button onClick={() => props.onNavigate(`#/chat/${c.id}`)} className="w-full py-4 bg-rose-600 text-white rounded-full font-black text-[10px] uppercase tracking-widest flex items-center justify-center gap-3 hover:bg-rose-500 active:scale-95 transition-all"><MessageSquareShare className="w-4 h-4" /> Interact</button>
+              <div className="flex gap-3">
+                <button onClick={() => props.onEdit(c)} className="flex-1 py-3 bg-rose-900/10 border border-rose-900/20 text-rose-500 rounded-full font-black text-[9px] uppercase tracking-widest hover:bg-rose-900/30 transition-all flex items-center justify-center gap-2"><FileEdit className="w-3.5 h-3.5" /> Edit</button>
+                <button onClick={() => props.onDelete(c.id!)} className="p-3 bg-rose-950/40 text-rose-900 hover:text-rose-600 rounded-full transition-all active:scale-90"><Trash2 className="w-4 h-4" /></button>
+              </div>
+            </div>
+          </GlassCard>
+        ))}
       </div>
+      
+      {isMobile && selectedIds.length > 0 && (
+        <div className="fixed bottom-24 left-1/2 -translate-x-1/2 z-[100] w-full px-6">
+          <button onClick={handleBulkExport} className="w-full py-5 bg-rose-600 text-white rounded-2xl font-black text-xs uppercase tracking-widest shadow-2xl flex items-center justify-center gap-4">
+             <Download className="w-5 h-5" /> Export {selectedIds.length} Archetypes
+          </button>
+        </div>
+      )}
     </div>
   );
 };

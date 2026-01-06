@@ -1,10 +1,11 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { CharacterData, ChatMessage, AIProvider, MessageLength } from '../types';
-import { GlassCard } from '../components/ui/GlassCard';
-import { Send, ArrowLeft, Maximize2, User as UserIcon, Bot, RefreshCw, Sparkles, UserCircle, AlignLeft } from 'lucide-react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
+import { CharacterData, ChatNode, ChatSession, AIProvider, MessageLength } from '../types';
+import { Send, ArrowLeft, User as UserIcon, RefreshCw, Sparkles, UserCheck, GitFork, History, X } from 'lucide-react';
 import { ForgeManager } from '../services/forge/ForgeManager';
 import { useAppContext } from '../contexts/AppContext';
 import { useAuth } from '../contexts/AuthContext';
+import { fetchChatSession, saveChatSession } from '../services/supabaseDatabaseService';
+import { useViewport } from '../hooks/useViewport';
 
 interface ChatViewProps {
   character: CharacterData;
@@ -12,259 +13,140 @@ interface ChatViewProps {
   isFullScreen?: boolean;
 }
 
-export const ChatView: React.FC<ChatViewProps> = ({ character, onNavigate, isFullScreen = false }) => {
+export const ChatView: React.FC<ChatViewProps> = (props) => {
+  const { isMobile } = useViewport();
   const { user: authUser } = useAuth();
-  const { userSecrets, models: dbModels, t } = useAppContext();
-  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const { userSecrets, models: dbModels } = useAppContext();
+  
+  const [session, setSession] = useState<ChatSession | null>(null);
   const [input, setInput] = useState('');
-  const [userName, setUserName] = useState(authUser?.name || 'User');
   const [isTyping, setIsTyping] = useState(false);
   const [selectedModel, setSelectedModel] = useState('gemini-3-flash-preview');
-  const [msgLength, setMsgLength] = useState<MessageLength>(MessageLength.MEDIUM);
+  const [userName, setUserName] = useState(() => localStorage.getItem('kamana_user_name') || authUser?.name || 'User');
+  
   const scrollRef = useRef<HTMLDivElement>(null);
-  const inputRef = useRef<HTMLTextAreaElement>(null);
 
-  const replaceTags = (text: string) => {
-    return text
-      .replace(/\{\{user\}\}/gi, userName)
-      .replace(/\{\{chat\}\}/gi, character.name);
-  };
+  useEffect(() => { localStorage.setItem('kamana_user_name', userName); }, [userName]);
+
+  const activeMessages = useMemo(() => {
+    if (!session || !session.activeNodeId) return [];
+    const path: ChatNode[] = [];
+    let currId: string | null = session.activeNodeId;
+    const nodeMap = new Map<string, ChatNode>(session.nodes.map(n => [n.id, n]));
+    while (currId) {
+      const node = nodeMap.get(currId);
+      if (!node) break;
+      path.unshift(node);
+      currId = node.parentId;
+    }
+    return path;
+  }, [session]);
 
   useEffect(() => {
-    const firstMsgField = character.fields.find(f => 
-      f.label.toLowerCase().includes('first message') || 
-      f.label.toLowerCase().includes('initial message') ||
-      f.label.toLowerCase().includes('initial prompt')
-    );
-    
-    if (firstMsgField && messages.length === 0) {
-      setMessages([{
-        role: 'model',
-        text: firstMsgField.value,
-        timestamp: Date.now()
-      }]);
-    }
-  }, [character]);
+    if (!authUser || !props.character.id) return;
+    fetchChatSession(props.character.id, authUser.id).then(saved => {
+      if (saved) setSession(saved);
+      else {
+        const initial: ChatNode = { id: crypto.randomUUID(), parentId: null, role: 'model', text: props.character.fields.find(f => f.label.toLowerCase().includes('message'))?.value || "*The character awaits your soul...*", timestamp: Date.now() };
+        const sess: ChatSession = { id: `chat-${authUser.id}-${props.character.id}`, characterId: props.character.id!, userId: authUser.id, nodes: [initial], activeNodeId: initial.id, updatedAt: Date.now() };
+        setSession(sess);
+        saveChatSession(sess);
+      }
+    });
+  }, [props.character.id, authUser?.id]);
 
-  useEffect(() => {
-    if (scrollRef.current) {
-      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
-    }
-  }, [messages, isTyping]);
-
-  // Handle auto-expanding textarea height
-  useEffect(() => {
-    if (inputRef.current) {
-      inputRef.current.style.height = 'auto';
-      inputRef.current.style.height = `${Math.min(inputRef.current.scrollHeight, 200)}px`;
-    }
-  }, [input]);
-
-  const handleSend = async () => {
-    if (!input.trim() || isTyping) return;
-
-    const userMsg: ChatMessage = { role: 'user', text: input, timestamp: Date.now() };
-    setMessages(prev => [...prev, userMsg]);
-    setInput('');
-    setIsTyping(true);
-
+  const handleSend = async (parentIdOverride?: string) => {
+    if (!input.trim() || isTyping || !session) return;
+    const parentId = parentIdOverride || session.activeNodeId;
+    const userNode: ChatNode = { id: crypto.randomUUID(), parentId, role: 'user', text: input, timestamp: Date.now() };
+    setSession(p => p ? { ...p, nodes: [...p.nodes, userNode], activeNodeId: userNode.id, updatedAt: Date.now() } : null);
+    const userText = input; setInput(''); setIsTyping(true);
     try {
-      const modelData = dbModels.find(m => m.id === selectedModel);
-      const provider = modelData?.provider || AIProvider.GEMINI;
+      const modelMeta = dbModels.find(m => m.id === selectedModel);
+      const provider = modelMeta?.provider || AIProvider.GEMINI;
       const service = ForgeManager.getProvider(provider, userSecrets[provider]);
-
-      const characterContext = character.fields
-        .map(f => `${f.label}: ${replaceTags(f.value)}`)
-        .join('\n');
-      
-      const lengthInstruction = {
-        [MessageLength.SHORT]: "Keep your response very brief, ideally 1-2 sentences. Focus on immediate reaction.",
-        [MessageLength.MEDIUM]: "Provide a balanced response of 2-3 paragraphs with narrative detail.",
-        [MessageLength.LARGE]: "Write an extensive, highly descriptive, multi-paragraph literary response."
-      }[msgLength];
-
-      const systemPrompt = `You are playing the character ${character.name}. 
-      RULES: ${replaceTags(character.systemRules || '')}
-      LENGTH: ${lengthInstruction}
-      CONTEXT:
-      ${characterContext}
-      STAY IN CHARACTER. IMMERSION IS PARAMOUNT. Use the specific vocabulary defined above.
-      Speaking to: ${userName}.
-      Respond as the character directly.`;
-
-      const conversationHistory = messages
-        .slice(-10) // Limit context for performance/tokens
-        .map(m => `${m.role === 'user' ? userName : character.name}: ${replaceTags(m.text)}`)
-        .join('\n');
-      
-      const fullPrompt = `${systemPrompt}\n\nCONVERSATION:\n${conversationHistory}\n${userName}: ${input}\n${character.name}:`;
-
-      const response = await service.refinePrompt({
-        prompt: fullPrompt,
-        tags: [], 
-        isNSFW: character.isNSFW,
-        modelId: selectedModel
-      });
-
-      setMessages(prev => [...prev, {
-        role: 'model',
-        text: response.replace(new RegExp(`^${character.name}:`, 'i'), '').trim(),
-        timestamp: Date.now()
-      }]);
-    } catch (err) {
-      console.error("Chat failed:", err);
-      setMessages(prev => [...prev, {
-        role: 'model',
-        text: "*The connection flickers... a brief silence ensues.*",
-        timestamp: Date.now()
-      }]);
-    } finally {
-      setIsTyping(false);
-    }
+      const history = activeMessages.slice(-5).map(m => `${m.role === 'user' ? userName : props.character.name}: ${m.text}`).join('\n');
+      const prompt = `You are ${props.character.name}.\nRules: ${props.character.systemRules}\nContext: ${history}\n${userName}: ${userText}\nResponse:`;
+      const response = await service.refinePrompt({ prompt, tags: [], isNSFW: props.character.isNSFW, modelId: selectedModel });
+      const modelNode: ChatNode = { id: crypto.randomUUID(), parentId: userNode.id, role: 'model', text: response.trim(), timestamp: Date.now() };
+      setSession(p => p ? { ...p, nodes: [...p.nodes, modelNode], activeNodeId: modelNode.id, updatedAt: Date.now() } : null);
+    } finally { setIsTyping(false); }
   };
 
-  const renderMarkdown = (text: string) => {
-    const processedText = replaceTags(text);
-    return processedText.split('\n').map((line, i) => (
-      <React.Fragment key={i}>
-        {line.split(/(\*\*.*?\*\*|\*.*?\*)/).map((part, j) => {
-          if (part.startsWith('**') && part.endsWith('**')) return <strong key={j} className="text-rose-200">{part.slice(2, -2)}</strong>;
-          if (part.startsWith('*') && part.endsWith('*')) return <em key={j} className="text-rose-400/80 italic">{part.slice(1, -1)}</em>;
-          return part;
-        })}
-        <br />
-      </React.Fragment>
-    ));
-  };
+  useEffect(() => {
+    if (scrollRef.current) scrollRef.current.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'smooth' });
+  }, [activeMessages, isTyping]);
 
   return (
-    <div className={`flex flex-col overflow-hidden bg-black relative ${isFullScreen ? 'h-full w-full' : 'h-[85vh] w-full max-w-5xl rounded-[2.5rem] border border-rose-900/30 shadow-2xl'}`}>
-      {/* Immersive Background using Scenario Image */}
-      <div className="absolute inset-0 bg-cover bg-center opacity-20 pointer-events-none z-0" style={{ backgroundImage: `url(${character.scenarioImageUrl})` }}>
-        <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/40 to-black/80" />
-      </div>
-
-      {/* Responsive Header */}
-      <header className="relative z-40 p-4 md:p-6 flex items-center justify-between border-b border-rose-900/20 bg-black/40 backdrop-blur-2xl">
-        <div className="flex items-center gap-3 min-w-0">
-          {onNavigate && (
-            <button onClick={() => onNavigate('#/museum')} className="p-2 hover:bg-rose-900/20 rounded-full text-rose-500 transition-all">
-              <ArrowLeft className="w-5 h-5" />
-            </button>
-          )}
-          <div className="w-10 h-10 md:w-12 md:h-12 rounded-full border-2 border-rose-600/30 overflow-hidden flex-shrink-0">
-            <img src={character.characterImageUrl} className="w-full h-full object-cover" alt={character.name} />
-          </div>
+    <div className={`flex flex-col bg-black relative overflow-hidden ${props.isFullScreen ? 'h-full w-full' : 'h-[85vh] max-w-6xl mx-auto rounded-[3rem] border border-rose-900/30 shadow-2xl'}`}>
+      {/* IMMERSIVE SCENARIO BACKGROUND */}
+      <div className="absolute inset-0 z-0 bg-cover bg-center transition-all duration-[5s]" style={{ backgroundImage: `url(${props.character.scenarioImageUrl})` }} />
+      <div className="absolute inset-0 z-[1] bg-black/60 backdrop-blur-sm" />
+      
+      <header className="relative z-20 flex-shrink-0 flex items-center justify-between p-4 lg:p-8 bg-black/40 border-b border-rose-950/20 backdrop-blur-xl">
+        <div className="flex items-center gap-4 min-w-0">
+          <div className="w-12 h-12 lg:w-16 lg:h-16 rounded-2xl border-2 border-rose-600/30 overflow-hidden shadow-xl flex-shrink-0"><img src={props.character.characterImageUrl} className="w-full h-full object-cover" alt="" /></div>
           <div className="min-w-0">
-            <h3 className="text-sm md:text-lg serif-display italic text-rose-50 truncate leading-none">{character.name}</h3>
-            <input 
-              type="text" 
-              value={userName} 
-              onChange={(e) => setUserName(e.target.value)}
-              className="bg-transparent border-none text-[7px] md:text-[8px] font-black uppercase tracking-widest text-rose-500/60 outline-none w-full"
-              placeholder="YOUR NAME"
-            />
+            <h3 className="text-lg lg:text-2xl serif-display italic text-rose-50 truncate">{props.character.name}</h3>
+            <div className="flex items-center gap-3 opacity-40">
+               <span className="text-[7px] lg:text-[8px] font-black uppercase text-rose-100 tracking-widest flex items-center gap-1.5"><History className="w-2.5 h-2.5" /> {session?.nodes.length} Nodes</span>
+            </div>
           </div>
         </div>
 
-        <div className="flex items-center gap-2 md:gap-4">
-          <div className="flex items-center gap-1 p-1 bg-rose-950/40 rounded-lg border border-rose-900/20">
-            <AlignLeft className="w-2.5 h-2.5 md:w-3 md:h-3 text-rose-500 ml-1" />
-            <select 
-              value={msgLength} 
-              onChange={(e) => setMsgLength(e.target.value as MessageLength)}
-              className="bg-transparent border-none text-[7px] md:text-[8px] font-black uppercase tracking-widest text-rose-200 outline-none cursor-pointer p-1"
-            >
-              <option value={MessageLength.SHORT} className="bg-black">{t.lengths.short}</option>
-              <option value={MessageLength.MEDIUM} className="bg-black">{t.lengths.medium}</option>
-              <option value={MessageLength.LARGE} className="bg-black">{t.lengths.large}</option>
-            </select>
+        <div className="flex items-center gap-4 lg:gap-6">
+          <div className="hidden sm:flex items-center gap-3 px-4 py-2.5 bg-rose-950/20 rounded-full border border-rose-900/20">
+            <UserCheck className="w-3.5 h-3.5 text-rose-500" />
+            <input value={userName} onChange={(e) => setUserName(e.target.value)} className="bg-transparent border-none text-[9px] font-black uppercase text-rose-200 outline-none w-20" placeholder="User Name" />
           </div>
-          <div className="flex items-center gap-2 px-3 py-2 bg-rose-950/40 rounded-full border border-rose-900/20">
-            <Sparkles className="w-3 h-3 text-amber-500 hidden md:block" />
-            <select 
-              value={selectedModel} 
-              onChange={(e) => setSelectedModel(e.target.value)}
-              className="bg-transparent border-none text-[7px] md:text-[8px] font-black uppercase tracking-widest text-rose-200 outline-none cursor-pointer max-w-[70px] md:max-w-none"
-            >
-              {dbModels.filter(m => m.type === 'text').map(m => (
-                <option key={m.id} value={m.id} className="bg-black">{m.name}</option>
-              ))}
+          <div className="flex items-center gap-3 px-4 py-2.5 bg-rose-950/20 rounded-full border border-rose-900/20">
+            <Sparkles className="w-3.5 h-3.5 text-amber-500" />
+            <select value={selectedModel} onChange={(e) => setSelectedModel(e.target.value)} className="bg-transparent border-none text-[9px] font-black uppercase text-rose-200 outline-none cursor-pointer">
+              {dbModels.filter(m => m.type === 'text').map(m => <option key={m.id} value={m.id} className="bg-black">{m.name}</option>)}
             </select>
           </div>
         </div>
       </header>
 
-      <div className="flex-1 min-h-0 flex relative z-10">
-        {/* Desktop Side Portrait */}
-        <div className="hidden lg:flex w-1/4 flex-col items-center justify-center p-8 border-r border-rose-900/10 bg-black/20 backdrop-blur-sm">
-           <img src={character.characterImageUrl} className="w-48 h-48 xl:w-64 xl:h-64 rounded-[3rem] object-cover border-4 border-rose-900/20 shadow-2xl" />
-           <div className="mt-8 text-center">
-              <span className="text-[10px] font-black uppercase tracking-widest text-rose-900 block mb-2">IMMERSIVE MODE</span>
-              <h4 className="text-2xl serif-display italic text-rose-50">{character.name}</h4>
-           </div>
-        </div>
-
-        {/* Scrollable Message List */}
-        <div ref={scrollRef} className="flex-1 overflow-y-auto p-4 md:p-8 space-y-6 custom-scrollbar bg-black/30">
-          {messages.map((msg, idx) => (
-            <div key={idx} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'} animate-in fade-in slide-in-from-bottom-2 duration-300`}>
-              <div className={`flex gap-3 max-w-[90%] md:max-w-[80%] ${msg.role === 'user' ? 'flex-row-reverse' : 'flex-row'}`}>
-                {/* Character Image used as Avatar for model responses */}
-                <div className={`w-8 h-8 rounded-full flex-shrink-0 flex items-center justify-center border overflow-hidden ${msg.role === 'user' ? 'bg-rose-900/20 border-rose-500/30' : 'bg-black/60 border-rose-900/20'}`}>
-                  {msg.role === 'user' ? (
-                    <UserIcon className="w-4 h-4 text-rose-50" />
-                  ) : (
-                    <img src={character.characterImageUrl} className="w-full h-full object-cover" alt={character.name} />
-                  )}
+      <div ref={scrollRef} className="flex-1 overflow-y-auto p-6 lg:p-12 space-y-10 relative z-10 custom-scrollbar scroll-smooth pb-32">
+        {activeMessages.map((msg) => (
+          <div key={msg.id} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'} group/msg animate-in fade-in slide-in-from-bottom-2 duration-500`}>
+            <div className={`flex gap-4 lg:gap-6 max-w-[90%] lg:max-w-[75%] ${msg.role === 'user' ? 'flex-row-reverse' : 'flex-row'}`}>
+              <div className={`w-10 h-10 lg:w-14 lg:h-14 rounded-2xl flex-shrink-0 flex items-center justify-center border shadow-xl ${msg.role === 'user' ? 'bg-rose-900/20 border-rose-500/40' : 'bg-black/80 border-rose-900/30'}`}>
+                {msg.role === 'user' ? <UserIcon className="w-5 h-5 lg:w-7 lg:h-7 text-rose-50" /> : <img src={props.character.characterImageUrl} className="w-full h-full object-cover" alt="" />}
+              </div>
+              <div className="flex flex-col gap-3">
+                <div className={`p-5 lg:p-10 rounded-[1.5rem] lg:rounded-[3rem] text-sm lg:text-lg leading-relaxed shadow-2xl ${msg.role === 'user' ? 'bg-rose-800/10 text-rose-50 border border-rose-700/30 rounded-tr-none' : 'bg-rose-950/40 text-rose-100 border border-rose-900/30 rounded-tl-none backdrop-blur-md'}`}>
+                   {msg.text.split('\n').map((l, i) => <p key={i} className="mb-2 last:mb-0">{l}</p>)}
                 </div>
-                <div className={`p-4 md:p-5 rounded-2xl md:rounded-3xl text-xs md:text-sm leading-relaxed ${msg.role === 'user' ? 'bg-rose-800/20 text-rose-50 border border-rose-700/20 rounded-tr-none' : 'bg-rose-950/20 text-rose-200 border border-rose-900/10 rounded-tl-none backdrop-blur-md'}`}>
-                  {renderMarkdown(msg.text)}
+                <div className={`flex transition-all duration-300 ${msg.role === 'user' ? 'justify-end' : 'justify-start'} ${session?.activeNodeId === msg.id ? 'opacity-100' : 'opacity-0 group-hover/msg:opacity-100'}`}>
+                   <button onClick={() => setSession(p => p ? ({ ...p, activeNodeId: msg.id }) : null)} className={`flex items-center gap-2 px-4 py-2 rounded-full text-[8px] font-black uppercase tracking-widest ${session?.activeNodeId === msg.id ? 'bg-rose-600 text-white' : 'bg-black/60 border border-rose-900/30 text-rose-500 hover:bg-rose-950/40'}`}>
+                      <GitFork className="w-3 h-3" /> {session?.activeNodeId === msg.id ? 'Timeline Anchor' : 'Branch Here'}
+                   </button>
                 </div>
               </div>
             </div>
-          ))}
-          {isTyping && (
-            <div className="flex justify-start">
-               <div className="flex gap-2 items-center bg-rose-950/40 px-4 py-2 rounded-full border border-rose-900/10 text-[8px] font-black text-rose-500 uppercase tracking-widest animate-pulse backdrop-blur-md">
-                  <RefreshCw className="w-3 h-3 animate-spin" /> {character.name} is sculpting a response...
-               </div>
-            </div>
-          )}
-        </div>
+          </div>
+        ))}
+        {isTyping && <div className="text-[10px] font-black uppercase tracking-[0.4em] text-rose-500 animate-pulse ml-16 lg:ml-20 flex items-center gap-3"><RefreshCw className="w-4 h-4 animate-spin" /> Awakening...</div>}
       </div>
 
-      {/* Always Visible Footer Input with Auto-Expanding Textarea */}
-      <footer className="relative z-40 p-4 md:p-6 bg-black/80 backdrop-blur-3xl border-t border-rose-900/20">
-        <div className="max-w-4xl mx-auto flex items-end gap-3">
-          <div className="flex-1 relative">
-            <textarea 
-              ref={inputRef}
-              rows={1}
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' && !e.shiftKey) {
-                  e.preventDefault();
-                  handleSend();
-                }
-              }}
-              placeholder={isTyping ? `Waiting for ${character.name}...` : `Speak your desire to ${character.name}...`}
-              disabled={isTyping}
-              className="w-full bg-black/40 border border-rose-950/40 rounded-2xl px-6 py-4 text-sm md:text-base text-rose-100 placeholder:text-rose-900/40 focus:border-rose-600/40 outline-none transition-all resize-none max-h-[200px] custom-scrollbar"
-            />
-          </div>
-          <button 
-            onClick={handleSend}
-            disabled={!input.trim() || isTyping}
-            className="p-4 bg-rose-600 text-white rounded-2xl hover:bg-rose-500 transition-all shadow-xl active:scale-95 disabled:opacity-20 flex-shrink-0 h-[52px] md:h-[60px]"
-          >
-            <Send className="w-5 h-5 md:w-6 md:h-6" />
-          </button>
-        </div>
-        <div className="flex justify-center gap-4 mt-4 text-[7px] font-black uppercase tracking-[0.4em] text-rose-900/60">
-           <span>Engine: {selectedModel}</span>
-           <span>Length: {msgLength}</span>
+      <footer className="relative z-30 p-6 lg:p-10 bg-black/90 border-t border-rose-950/40 shadow-2xl pb-10 lg:pb-12">
+        <div className="max-w-4xl mx-auto flex items-end gap-4 lg:gap-8">
+           {isMobile && (
+             <input value={userName} onChange={(e) => setUserName(e.target.value)} className="bg-rose-950/20 border border-rose-900/20 rounded-xl px-3 py-3 text-[8px] font-black uppercase text-rose-200 outline-none w-16 mb-2" placeholder="User" />
+           )}
+           <textarea 
+             rows={1} 
+             value={input} 
+             onChange={(e) => setInput(e.target.value)} 
+             onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend(); } }} 
+             placeholder={`Speak with ${props.character.name}...`} 
+             className="flex-1 bg-black/40 border border-rose-950/60 rounded-[1.5rem] lg:rounded-[2.5rem] px-6 lg:px-10 py-5 lg:py-8 text-base lg:text-xl text-rose-100 focus:border-rose-600/50 outline-none transition-all resize-none max-h-40 custom-scrollbar" 
+           />
+           <button onClick={() => handleSend()} disabled={!input.trim() || isTyping} className="p-6 lg:p-9 bg-rose-600 text-white rounded-[1.5rem] lg:rounded-[2.5rem] hover:bg-rose-500 shadow-2xl active:scale-90 disabled:opacity-20 transition-all flex-shrink-0">
+             <Send className="w-6 h-6 lg:w-8 lg:h-8" />
+           </button>
         </div>
       </footer>
     </div>

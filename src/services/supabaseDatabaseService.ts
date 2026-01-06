@@ -1,6 +1,6 @@
 import { supabase } from './supabaseClient';
 import { localDb } from './localDbService';
-import { CharacterData, AIModelMeta, AISecret, AIProvider, TagMeta } from '../types';
+import { CharacterData, AIModelMeta, AISecret, AIProvider, TagMeta, ChatSession } from '../types';
 
 export async function fetchCharacterById(id: string): Promise<CharacterData> {
     const createEmptyCharacter = (): CharacterData => ({
@@ -26,11 +26,7 @@ export async function fetchCharacterById(id: string): Promise<CharacterData> {
     if (!supabase) {
         const record = await localDb.getById<any>('characters', id);
         if (!record) return createEmptyCharacter();
-        return { 
-            ...createEmptyCharacter(), 
-            ...record.data, 
-            id: record.id // Explicitly override with primary key
-        };
+        return { ...createEmptyCharacter(), ...record.data, id: record.id };
     }
 
     const { data, error } = await supabase.from('characters').select('*').eq('id', id).single();
@@ -39,7 +35,7 @@ export async function fetchCharacterById(id: string): Promise<CharacterData> {
     return { 
         ...createEmptyCharacter(), 
         ...(data.data as CharacterData), 
-        id: data.id // Explicitly override with DB primary key
+        id: data.id 
     };
 }
 
@@ -95,6 +91,47 @@ export async function getRawCharactersByUser(userId: string) {
     return data || [];
 }
 
+// --- Chat Session Branching Service ---
+export async function fetchChatSession(characterId: string, userId: string): Promise<ChatSession | null> {
+  const sessionId = `chat-${userId}-${characterId}`;
+  
+  // Try local first for instant speed
+  const local = await localDb.getById<ChatSession>('chat_sessions', sessionId);
+  if (local) return local;
+
+  if (!supabase) return null;
+
+  const { data, error } = await supabase
+    .from('chat_sessions')
+    .select('data')
+    .eq('id', sessionId)
+    .single();
+
+  if (error || !data) return null;
+  return data.data as ChatSession;
+}
+
+export async function saveChatSession(session: ChatSession) {
+  // Always save local first
+  await localDb.save('chat_sessions', session);
+
+  if (!supabase) return;
+
+  const { error } = await supabase
+    .from('chat_sessions')
+    .upsert({
+      id: session.id,
+      user_id: session.userId,
+      character_id: session.characterId,
+      data: session,
+      updated_at: new Date().toISOString()
+    });
+
+  if (error) {
+    console.warn("Supabase chat sync deferred:", error.message);
+  }
+}
+
 export async function fetchAllModels(): Promise<AIModelMeta[]> {
   if (!supabase) return localDb.getAll<AIModelMeta>('models');
   const { data, error } = await supabase.from('ai_models').select('*');
@@ -103,13 +140,9 @@ export async function fetchAllModels(): Promise<AIModelMeta[]> {
 }
 
 export async function saveModelsBulk(models: AIModelMeta[]) {
-  if (!supabase) {
-    await localDb.saveBulk('models', models);
-    return;
-  }
+  if (!supabase) return;
   const payload = models.map(m => ({ id: m.id, name: m.name, is_free: m.isFree, provider: m.provider, type: m.type }));
-  const { error } = await supabase.from('ai_models').upsert(payload, { onConflict: 'id' });
-  if (error) throw error;
+  await supabase.from('ai_models').upsert(payload, { onConflict: 'id' });
 }
 
 export async function fetchAllTags(): Promise<TagMeta[]> {
@@ -126,10 +159,7 @@ export async function fetchAllTags(): Promise<TagMeta[]> {
 }
 
 export async function saveTagsBulk(tags: TagMeta[]) {
-  if (!supabase) {
-    await localDb.saveBulk('tags', tags);
-    return;
-  }
+  if (!supabase) return;
   const payload = tags.map(t => ({
     id: t.id,
     name: t.name,
@@ -137,8 +167,7 @@ export async function saveTagsBulk(tags: TagMeta[]) {
     image_generation_rule: t.imageGenerationRule,
     disable_ethics: t.isNSFW
   }));
-  const { error } = await supabase.from('tags').upsert(payload, { onConflict: 'id' });
-  if (error) throw error;
+  await supabase.from('tags').upsert(payload, { onConflict: 'id' });
 }
 
 export async function fetchUserSecrets(userId: string): Promise<AISecret[]> {
@@ -164,14 +193,13 @@ export async function saveUserSecret(userId: string, provider: AIProvider, encry
     await localDb.save('secrets', secret);
     return;
   }
-  const { error } = await supabase.from('user_secrets').upsert({
+  await supabase.from('user_secrets').upsert({
     user_id: userId,
     provider,
     encrypted_key: encryptedKey,
     last_four: lastFour,
     updated_at: updatedAt
   }, { onConflict: 'user_id,provider' });
-  if (error) throw error;
 }
 
 export async function deleteUserSecret(userId: string, provider: AIProvider) {
@@ -179,8 +207,7 @@ export async function deleteUserSecret(userId: string, provider: AIProvider) {
     await localDb.delete('secrets', provider);
     return;
   }
-  const { error } = await supabase.from('user_secrets').delete().eq('user_id', userId).eq('provider', provider);
-  if (error) throw error;
+  await supabase.from('user_secrets').delete().eq('user_id', userId).eq('provider', provider);
 }
 
 export async function deleteRecord(id: string) {
@@ -188,6 +215,5 @@ export async function deleteRecord(id: string) {
         await localDb.delete('characters', id);
         return;
     }
-    const { error } = await supabase.from('characters').delete().eq('id', id);
-    if (error) throw error;
+    await supabase.from('characters').delete().eq('id', id);
 }

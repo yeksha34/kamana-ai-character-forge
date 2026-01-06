@@ -1,5 +1,4 @@
-import React, { useMemo, useState, useEffect, useCallback } from 'react';
-import { MorphingText } from '../components/MorphingText';
+import React, { useState, useEffect } from 'react';
 import { TagSelector } from '../components/TagSelector';
 import { TextModelSelector, ImageModelSelector } from '../components/ModelSelector';
 import { PlatformSelector } from '../components/PlatformSelector';
@@ -19,8 +18,9 @@ import { uploadImageToStorage } from '../services/supabaseStorageService';
 import { ForgeManager } from '../services/forge/ForgeManager';
 import { AIProvider, CharacterData, CharacterStatus, Platform, AISecret } from '../types';
 import { hashData } from '../utils/helpers';
-import { downloadCharactersZip } from '../utils/exportUtils';
-import { History, Heart, Zap, RefreshCw, Check, Download, MessageSquare, X, Globe, ExternalLink, Search } from 'lucide-react';
+import { downloadCharactersZip, parseImportFile } from '../utils/exportUtils';
+import { History, Zap, RefreshCw, Check, Download, MessageSquare, X, Globe, Heart, Sparkles, Upload } from 'lucide-react';
+import { useViewport } from '../hooks/useViewport';
 
 interface StudioViewProps {
   character: CharacterData;
@@ -28,9 +28,9 @@ interface StudioViewProps {
 }
 
 export const StudioView: React.FC<StudioViewProps> = ({ character, setCharacter }) => {
+  const { isMobile } = useViewport();
   const { user } = useAuth();
-  const { language, models: dbModels, t, userSecrets } = useAppContext();
-
+  const { models: dbModels, t, userSecrets } = useAppContext();
   const [promptInput, setPromptInput] = useState(character.originalPrompt || '');
   const [showAssets, setShowAssets] = useState(false);
   const [selectedPlatforms, setSelectedPlatforms] = useState<Platform[]>([Platform.CRUSHON_AI]);
@@ -42,10 +42,7 @@ export const StudioView: React.FC<StudioViewProps> = ({ character, setCharacter 
   const [secretsList, setSecretsList] = useState<AISecret[]>([]);
   const [isChatOpen, setIsChatOpen] = useState(false);
 
-  const { generate, isGenerating, generationStep, stepIndex, errors } = useForgeGenerator(
-    character, setCharacter, textModel, imageModel, selectedPlatforms
-  );
-
+  const { generate, isGenerating, generationStep } = useForgeGenerator(character, setCharacter, textModel, imageModel, selectedPlatforms);
   useEffect(() => { if (user) fetchUserSecrets(user.id).then(setSecretsList); }, [user]);
 
   const regenerateSingleImage = async (type: 'character' | 'scenario') => {
@@ -68,188 +65,120 @@ export const StudioView: React.FC<StudioViewProps> = ({ character, setCharacter 
     if (!user || !character.name) return;
     setIsSaving(status);
     try {
-      const charToSave = { ...character, status, version: character.status === 'finalized' && status === 'draft' ? character.version + 1 : character.version };
-      const res = await saveCharacter(user.id, charToSave, await hashData(charToSave.originalPrompt));
+      const res = await saveCharacter(user.id, { ...character, status }, await hashData(character.originalPrompt));
       if (res) {
-        setCharacter({ ...charToSave, id: res.id });
+        setCharacter((p: any) => ({ ...p, id: res.id }));
         setShowSaveSuccess(true);
         setTimeout(() => setShowSaveSuccess(false), 3000);
-        if (character.id === 'new') window.location.hash = `#/studio/${res.id}`;
+        if (!window.location.hash.includes(res.id)) window.location.hash = `#/studio/${res.id}`;
       }
     } finally { setIsSaving(null); }
   };
 
-  const handleExport = () => {
-    const filename = `${character.name.replace(/\s+/g, '_')}_Forge_Bundle.zip`;
-    downloadCharactersZip([character], filename);
+  const handleExport = () => downloadCharactersZip([character], `${character.name || 'Archetype'}_Manifest.zip`);
+  const handleImport = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const imported = await parseImportFile(file);
+    if (imported.length > 0) setCharacter({ ...imported[0], id: 'new' });
   };
 
+  const commonProps = { character, setCharacter, promptInput, setPromptInput, showAssets, setShowAssets, selectedPlatforms, setSelectedPlatforms, isSaving, handleSave, handleExport, isRegeneratingImage, isGenerating, generationStep, textModel, setTextModel, imageModel, setImageModel, setIsChatOpen, t, regenerateSingleImage };
+
   return (
-    <div className="min-h-screen flex flex-col pt-24 md:pt-36 pb-48 md:pb-64 animate-in fade-in duration-1000">
+    <div className={`min-h-screen animate-in fade-in duration-700 relative ${isMobile ? 'pt-24' : 'pt-32'}`}>
       <KeyRotationBanner secrets={secretsList} onDismiss={() => {}} onNavigateToSettings={() => window.location.hash = '#/settings'} />
       
-      {/* Chat Now Popup Overlay */}
       {isChatOpen && (
-        <div className="fixed inset-0 z-[300] flex items-center justify-center p-4 md:p-8 bg-black/60 backdrop-blur-md animate-in fade-in duration-500">
-           <div className="relative w-full max-w-5xl h-[90vh] md:h-[85vh] art-glass rounded-[2rem] md:rounded-[4rem] overflow-hidden shadow-[0_0_100px_rgba(0,0,0,0.8)] border-rose-900/40">
-              <button 
-                onClick={() => setIsChatOpen(false)}
-                className="absolute top-4 right-4 md:top-8 md:right-8 z-[310] p-3 md:p-4 rounded-full bg-black/40 text-rose-500 hover:bg-rose-900/40 transition-all border border-rose-900/20"
-              >
-                <X className="w-5 h-5 md:w-6 md:h-6" />
+        <div className="fixed inset-0 z-[400] flex items-center justify-center p-4 bg-black/90 backdrop-blur-3xl animate-in fade-in">
+           <div className="relative w-full max-w-6xl h-[90vh] bg-black rounded-[3rem] overflow-hidden border border-rose-900/40 shadow-2xl">
+              <button onClick={() => setIsChatOpen(false)} className="absolute top-8 right-8 z-[410] p-4 rounded-full bg-rose-600 text-white shadow-2xl hover:bg-rose-500 active:scale-90 transition-all">
+                <X className="w-6 h-6" />
               </button>
-              <ChatView character={character} onNavigate={(route) => { setIsChatOpen(false); window.location.hash = route; }} />
+              <ChatView character={character} isFullScreen={true} onNavigate={(r) => { setIsChatOpen(false); window.location.hash = r; }} />
            </div>
         </div>
       )}
 
-      <main className="max-w-[1700px] mx-auto px-4 sm:px-8 lg:px-16 flex-1 grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-24">
-        <section className="lg:col-span-4 space-y-8 md:space-y-12">
-          <GlassCard padding="md" className="rounded-[2rem] md:rounded-[2.5rem] flex items-center justify-between border-rose-900/40 hover-animate">
-            <div className="flex items-center gap-3 md:gap-4">
-              <History className="w-8 h-8 md:w-10 md:h-10 p-2 rounded-full bg-rose-950/40 text-rose-500" />
-              <div className="flex flex-col">
-                <span className="text-[8px] md:text-[10px] font-black uppercase tracking-widest text-rose-800">Version</span>
-                <span className="text-lg md:text-xl serif-display italic text-rose-100">v{character.version} • {character.status.toUpperCase()}</span>
-              </div>
-            </div>
-            <div className="flex gap-2">
-              <button 
-                onClick={() => setIsChatOpen(true)}
-                title="Chat Now"
-                className="p-3 md:p-4 bg-rose-600 text-white rounded-xl md:rounded-2xl hover:bg-rose-500 transition-all active:scale-90 shadow-lg"
-              >
-                <MessageSquare className="w-4 h-4 md:w-5 md:h-5" />
-              </button>
-              <button 
-                onClick={handleExport}
-                title="Export Character Bundle"
-                className="p-3 md:p-4 bg-rose-950/20 text-rose-500 rounded-xl md:rounded-2xl hover:bg-rose-900/40 transition-all active:scale-90"
-              >
-                <Download className="w-4 h-4 md:w-5 md:h-5" />
-              </button>
-            </div>
-          </GlassCard>
-          <GlassCard padding="lg" className="rounded-[2.5rem] md:rounded-[3rem] space-y-8 md:space-y-10 border-rose-900/40">
-            <DisplayTitle marathi="कार्यशाळा" english="Forge Studio" size="md" />
-            <div className="space-y-4 md:space-y-6">
-              <div className="flex items-center justify-between ml-2 md:ml-4">
-                <MorphingText 
-                  language={language} 
-                  value="imagination" 
-                  english="Imagination" 
-                  className={`text-[8px] md:text-[10px] font-black uppercase tracking-[0.3em] md:tracking-[0.5em] ${errors.prompt ? 'text-red-500' : 'text-rose-900'}`} 
-                />
-                <div className="flex items-center gap-3 md:gap-4">
-                  <div 
-                    title="Deep Lore Research (Web Grounding)"
-                    onClick={() => setCharacter((p: any) => ({ ...p, isWebResearchEnabled: !p.isWebResearchEnabled }))} 
-                    className={`w-10 md:w-12 h-5 md:h-6 rounded-full relative cursor-pointer border border-rose-900/20 ${character.isWebResearchEnabled ? 'bg-emerald-900/40' : 'bg-rose-950/60'}`}
-                  >
-                    <div className={`absolute top-0.5 left-0.5 w-4 md:w-5 h-4 md:h-5 bg-white rounded-full transition-transform ${character.isWebResearchEnabled ? 'translate-x-5 md:translate-x-6' : ''} flex items-center justify-center`}>
-                      <Globe className={`w-2 md:w-2.5 h-2 md:h-2.5 ${character.isWebResearchEnabled ? 'text-emerald-600' : 'text-rose-200'}`} />
-                    </div>
-                  </div>
+      {/* Uniform Heading Bar */}
+      <div className={`max-w-[1700px] mx-auto w-full border-b border-rose-950/20 mb-12 flex items-end justify-between ${isMobile ? 'px-6 pb-6' : 'px-12 pb-10'}`}>
+        <DisplayTitle marathi="कार्यशाला" english="Forge Studio" size={isMobile ? 'sm' : 'md'} />
+        <div className="flex items-center gap-6">
+          <div className="flex gap-3">
+             <label className="p-3 lg:px-6 lg:py-3 bg-rose-950/20 border border-rose-900/20 text-rose-500 rounded-full cursor-pointer hover:bg-rose-900/40 transition-all flex items-center gap-3">
+                <Upload className="w-4 h-4" /> <span className="text-[9px] font-black uppercase tracking-widest hidden sm:block">Import</span>
+                <input type="file" className="hidden" onChange={handleImport} accept=".json,.zip" />
+             </label>
+             <button onClick={handleExport} className="p-3 lg:px-6 lg:py-3 bg-rose-950/20 border border-rose-900/20 text-rose-500 rounded-full hover:bg-rose-900/40 transition-all flex items-center gap-3">
+                <Download className="w-4 h-4" /> <span className="text-[9px] font-black uppercase tracking-widest hidden sm:block">Export</span>
+             </button>
+          </div>
+          {character.name && (
+            <button onClick={() => setIsChatOpen(true)} className="px-8 py-3.5 bg-rose-600 text-white rounded-full font-black text-[10px] uppercase tracking-widest hover:bg-rose-500 shadow-xl flex items-center gap-3 active:scale-95 transition-all">
+               <MessageSquare className="w-4 h-4" /> Preview
+            </button>
+          )}
+        </div>
+      </div>
 
-                  <div 
-                    title="NSFW Toggle"
-                    onClick={() => setCharacter((p: any) => ({ ...p, isNSFW: !p.isNSFW }))} 
-                    className={`w-10 md:w-12 h-5 md:h-6 rounded-full relative cursor-pointer ${character.isNSFW ? 'bg-rose-800' : 'bg-rose-950/60'}`}
-                  >
-                    <div className={`absolute top-0.5 left-0.5 w-4 md:w-5 h-4 md:h-5 bg-white rounded-full transition-transform ${character.isNSFW ? 'translate-x-5 md:translate-x-6' : ''} flex items-center justify-center`}>
-                      <Heart className={`w-2 md:w-2.5 h-2 md:h-2.5 ${character.isNSFW ? 'text-rose-600' : 'text-rose-200'}`} />
-                    </div>
-                  </div>
+      <main className={`max-w-[1700px] mx-auto grid gap-12 lg:gap-20 ${isMobile ? 'px-6 pb-48 grid-cols-1' : 'px-12 grid-cols-12'}`}>
+        <section className={`${isMobile ? '' : 'col-span-4'} space-y-10`}>
+          <GlassCard padding="lg" className="rounded-[2.5rem] space-y-10 border-rose-900/30">
+            <div className="space-y-6">
+              <div className="flex items-center justify-between">
+                <span className="text-[9px] font-black uppercase tracking-[0.3em] text-rose-950">Axis Controls</span>
+                <div className="flex gap-3">
+                  <button onClick={() => setCharacter((p: any) => ({ ...p, isNSFW: !p.isNSFW }))} className={`flex items-center gap-2 px-3 py-2 rounded-xl transition-all border ${character.isNSFW ? 'bg-rose-600 border-rose-500 text-white' : 'bg-rose-950/20 border-rose-900/20 text-rose-900'}`}>
+                    <Heart className={`w-3.5 h-3.5 ${character.isNSFW ? 'fill-current' : ''}`} />
+                    <span className="text-[8px] font-black uppercase tracking-widest">NSFW</span>
+                  </button>
+                  <button onClick={() => setCharacter((p: any) => ({ ...p, isWebResearchEnabled: !p.isWebResearchEnabled }))} className={`p-2.5 rounded-xl border transition-all ${character.isWebResearchEnabled ? 'bg-emerald-600 border-emerald-500 text-white' : 'bg-rose-950/20 border-rose-900/20 text-rose-900'}`}><Globe className="w-4 h-4" /></button>
                 </div>
               </div>
-              <textarea value={promptInput} onChange={(e) => setPromptInput(e.target.value)} className="w-full h-[150px] md:h-[250px] rounded-[1.5rem] md:rounded-[2rem] p-5 md:p-8 text-base md:text-lg serif-display italic" placeholder={t.placeholderPrompt} />
+              <textarea value={promptInput} onChange={(e) => setPromptInput(e.target.value)} className={`w-full ${isMobile ? 'h-40' : 'h-[250px]'} rounded-2xl p-6 text-base serif-display italic leading-relaxed custom-scrollbar`} placeholder={t.placeholderPrompt} />
             </div>
-            <TagSelector 
-              label="Attributes"
-              selectedTags={character.tags} 
-              isNSFW={character.isNSFW} 
-              onToggle={(tag) => setCharacter((p: any) => ({ ...p, tags: p.tags.includes(tag) ? p.tags.filter((t: string) => t !== tag) : [...p.tags, tag] }))} 
-            />
-            <PlatformSelector 
-              label="Platforms" 
-              selectedPlatforms={selectedPlatforms} 
-              onToggle={(p) => setSelectedPlatforms(prev => prev.includes(p) ? prev.filter(sp => sp !== p) : [...prev, p])} 
-            />
-            <div className="p-6 md:p-8 rounded-[2rem] md:rounded-[2.5rem] bg-rose-950/20 border border-rose-900/10 space-y-4 md:space-y-6">
-              <div>
-                <MorphingText language={language} value="intelligence" english="Intelligence Engine" className="mb-2" />
-                <TextModelSelector label="" value={textModel} onSelect={setTextModel} />
-              </div>
-              <div>
-                <MorphingText language={language} value="visual" english="Visual Engine" className="mb-2" />
-                <ImageModelSelector label="" value={imageModel} onSelect={setImageModel} />
+            <div className="space-y-10">
+              <TagSelector label="Soul Attributes" selectedTags={character.tags} isNSFW={character.isNSFW} onToggle={(tag) => setCharacter((p: any) => ({ ...p, tags: p.tags.includes(tag) ? p.tags.filter((t: string) => t !== tag) : [...p.tags, tag] }))} />
+              <div className="grid grid-cols-1 gap-4 p-6 bg-black/20 rounded-[2rem] border border-rose-950/20">
+                <TextModelSelector label="Logic Core" value={textModel} onSelect={setTextModel} />
+                <ImageModelSelector label="Visual Core" value={imageModel} onSelect={setImageModel} />
               </div>
             </div>
           </GlassCard>
         </section>
 
-        <section className="lg:col-span-8 space-y-12 md:space-y-24">
+        <section className={`${isMobile ? '' : 'col-span-8'} space-y-16 pb-40`}>
           {!character.name && !isGenerating ? (
-            <div className="h-[400px] md:h-[800px] flex flex-col items-center justify-center border border-rose-950/10 rounded-[3rem] md:rounded-[6rem] bg-rose-950/[0.02] p-8">
-              <Heart className="w-24 md:w-48 h-24 md:h-48 mb-6 md:mb-10 opacity-5" />
-              <div className="text-2xl md:text-5xl serif-display italic tracking-[0.1em] md:tracking-[0.3em] text-center leading-relaxed">The canvas awaits your crave...</div>
+            <div className="h-full min-h-[500px] flex flex-col items-center justify-center border border-dashed border-rose-900/20 rounded-[4rem] bg-rose-950/[0.02] p-12">
+              <Sparkles className="w-20 h-20 mb-6 text-rose-950" />
+              <div className="text-4xl serif-display italic tracking-widest text-center opacity-30">The forge awaits your ink…</div>
             </div>
           ) : (
-            <div className="space-y-12 md:space-y-24">
-              <PromptSection character={character} setCharacter={setCharacter} showAssets={showAssets} setShowAssets={setShowAssets} />
-              
-              {/* Research Grounding Sources */}
-              {character.groundingChunks && character.groundingChunks.length > 0 && (
-                <GlassCard padding="md" className="rounded-[1.5rem] md:rounded-[2.5rem] border-emerald-900/20 bg-emerald-950/5 animate-in fade-in slide-in-from-top-4 duration-700">
-                  <div className="flex items-center gap-3 mb-4 md:mb-6 border-b border-emerald-900/10 pb-3 md:pb-4">
-                    <div className="p-2 bg-emerald-900/20 rounded-lg">
-                      <Search className="w-4 h-4 text-emerald-500" />
-                    </div>
-                    <div>
-                      <span className="text-[8px] md:text-[9px] font-black uppercase tracking-widest text-emerald-800">Research Insights</span>
-                      <h4 className="text-xs md:text-sm font-bold text-emerald-100 uppercase tracking-tight">Verified Lore Sources</h4>
-                    </div>
-                  </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4">
-                    {character.groundingChunks.map((chunk, i) => chunk.web && (
-                      <a 
-                        key={i} 
-                        href={chunk.web.uri} 
-                        target="_blank" 
-                        rel="noopener noreferrer"
-                        className="flex items-center justify-between p-3 md:p-4 bg-black/40 border border-emerald-900/20 rounded-xl md:rounded-2xl hover:bg-emerald-900/20 transition-all group"
-                      >
-                        <span className="text-[8px] md:text-[9px] font-bold text-emerald-200/60 group-hover:text-emerald-200 truncate pr-4">{chunk.web.title || 'Untitled Source'}</span>
-                        <ExternalLink className="w-3 h-3 text-emerald-900 group-hover:text-emerald-500" />
-                      </a>
-                    ))}
-                  </div>
-                </GlassCard>
-              )}
-
+            <div className="space-y-16 animate-in fade-in duration-1000">
               <VisualAssets character={character} setCharacter={setCharacter} isImageGenEnabled={imageModel !== 'None'} isRegeneratingImage={isRegeneratingImage} isGenerating={isGenerating} regenerateSingleImage={regenerateSingleImage} />
-              <GlassCard padding="xl" className="rounded-[3rem] md:rounded-[7rem] space-y-16 md:space-y-32 relative overflow-hidden shadow-2xl border-rose-900/50">
-                <CharacterIdentity name={character.name} setName={(name) => setCharacter((p: any) => ({ ...p, name }))} isSaving={isSaving} onSave={handleSave} />
-                <CharacterFields fields={character.fields} onToggleLock={(id) => setCharacter((p: any) => ({ ...p, fields: p.fields.map((f: any) => f.id === id ? { ...f, isLocked: !f.isLocked } : f) }))} onUpdateValue={(id, val) => setCharacter((p: any) => ({ ...p, fields: p.fields.map((f: any) => f.id === id ? { ...f, value: val } : f) }))} worldInfo={character.worldInfo} />
-              </GlassCard>
+              <div className="space-y-16 bg-black/40 border border-rose-900/20 rounded-[4rem] p-10 lg:p-16 shadow-2xl">
+                <CharacterIdentity name={character.name} setName={(name: string) => setCharacter((p: any) => ({ ...p, name }))} isSaving={isSaving} onSave={handleSave} />
+                <CharacterFields fields={character.fields} onToggleLock={(id: string) => setCharacter((p: any) => ({ ...p, fields: p.fields.map((f: any) => f.id === id ? { ...f, isLocked: !f.isLocked } : f) }))} onUpdateValue={(id: string, val: string) => setCharacter((p: any) => ({ ...p, fields: p.fields.map((f: any) => f.id === id ? { ...f, value: val } : f) }))} worldInfo={character.worldInfo} />
+              </div>
+              <PromptSection character={character} setCharacter={setCharacter} showAssets={showAssets} setShowAssets={setShowAssets} />
             </div>
           )}
         </section>
       </main>
-      
-      <div className="fixed bottom-6 md:bottom-10 left-1/2 -translate-x-1/2 z-[200] flex flex-col items-center gap-3 md:gap-4 w-full px-4">
-         {isGenerating && <GlassCard padding="sm" className="rounded-full flex items-center gap-4 md:gap-6 px-6 md:px-10 border-rose-500/30 bg-black/90"><div className="flex gap-1 md:gap-1.5">{[1,2,3,4,5,6,7,8].map(i => <div key={i} className={`w-2 md:w-2.5 h-2 md:h-2.5 rounded-full ${stepIndex >= i ? 'bg-rose-500' : 'bg-rose-950'}`} />)}</div><span className="text-[8px] md:text-[10px] font-black uppercase tracking-[0.2em] md:tracking-[0.5em] text-rose-100 animate-pulse truncate max-w-[150px] md:max-w-none">{generationStep}</span></GlassCard>}
-         <button onClick={() => generate(promptInput)} disabled={isGenerating || !promptInput.trim()} className="w-56 md:w-64 h-20 md:h-24 bg-rose-800 text-white rounded-full font-black text-[12px] md:text-[14px] uppercase tracking-[0.3em] md:tracking-[0.4em] flex items-center justify-center gap-3 md:gap-4 hover:bg-rose-700 shadow-2xl disabled:opacity-5 border-2 border-rose-950/40 group/breathe transition-all active:scale-90">
-           {isGenerating ? <RefreshCw className="animate-spin w-6 h-6 md:w-8 md:h-8" /> : (
-             <div className="flex items-center gap-3 md:gap-4">
-               <Zap className="w-6 h-6 md:w-8 md:h-8 group-hover/breathe:animate-icon-glow" />
-               <MorphingText language={language} value="breatheLife" english="Breathe Life" className="serif-display italic font-thin text-2xl md:text-3xl" />
-             </div>
-           )}
+
+      {/* CIRCULAR FAB FORGE BUTTON */}
+      <div className="fixed bottom-10 left-1/2 -translate-x-1/2 z-[300] flex flex-col items-center gap-6 w-full max-w-sm px-6">
+         {isGenerating && <div className="w-full bg-black/90 backdrop-blur-3xl border border-rose-500/30 rounded-full px-8 py-3 text-[10px] font-black uppercase text-rose-100 animate-pulse shadow-2xl flex justify-between"><span>{generationStep}</span></div>}
+         <button 
+           onClick={() => generate(promptInput)} 
+           disabled={isGenerating || !promptInput.trim()} 
+           className="w-28 h-28 lg:w-36 lg:h-36 bg-rose-700 text-white rounded-full font-black text-[10px] uppercase tracking-[0.3em] flex flex-col items-center justify-center gap-2 hover:bg-rose-600 shadow-[0_20px_60px_rgba(225,29,72,0.4)] transition-all active:scale-90 group disabled:opacity-20 border-b-4 border-rose-900"
+         >
+           {isGenerating ? <RefreshCw className="animate-spin w-8 h-8" /> : <><Zap className="w-8 h-8 lg:w-10 lg:h-10 group-hover:animate-icon-glow" /> <span>Forge</span></>}
          </button>
       </div>
-      
-      {showSaveSuccess && <div className="fixed bottom-32 right-4 md:right-12 z-[200] animate-in fade-in"><GlassCard padding="sm" className="rounded-full bg-green-950/80 border-green-500/30 flex items-center gap-3 px-6"><Check className="w-4 h-4 text-green-500" /><span className="text-[10px] font-black uppercase tracking-[0.4em] text-green-100">Saved!</span></GlassCard></div>}
+
+      {showSaveSuccess && <div className="fixed bottom-36 right-8 z-[350] bg-emerald-600 text-white px-8 py-3 rounded-full text-[10px] font-black uppercase shadow-2xl animate-in fade-in slide-in-from-right-4">Archetype Anchored</div>}
     </div>
   );
 };

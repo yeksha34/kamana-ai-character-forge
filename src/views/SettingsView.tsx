@@ -1,37 +1,33 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useAppContext } from '../contexts/AppContext';
-import { AIProvider, AISecret, CharacterData } from '../types';
-import { saveUserSecret, fetchUserSecrets, deleteUserSecret, getRawCharactersByUser, saveCharacter } from '../services/supabaseDatabaseService';
+import { AIProvider, AISecret } from '../types';
+import { saveUserSecret, fetchUserSecrets, deleteUserSecret } from '../services/supabaseDatabaseService';
 import { MigrationService } from '../services/migrationService';
-import { DEFAULT_MODELS } from '../data/defaultModels';
-import { STATIC_TAGS } from '../data/staticTags';
 import { SCHEMA_SQL } from '../data/schemaSql';
 import { encryptSecret } from '../utils/encryption';
 import { GlassCard } from '../components/ui/GlassCard';
 import { DisplayTitle } from '../components/ui/DisplayTitle';
-import { hashData } from '../utils/helpers';
-import { downloadCharactersZip, parseImportFile } from '../utils/exportUtils';
-import { Key, Shield, Database, RefreshCw, Save, Trash2, Eye, EyeOff, Hash, ArrowLeft, CheckCircle, Calendar, Code, ChevronRight, Download, Upload, Box } from 'lucide-react';
+import { Key, Database, RefreshCw, Save, Trash2, Eye, EyeOff, ArrowLeft } from 'lucide-react';
+import { useViewport } from '../hooks/useViewport';
 
 export const SettingsView: React.FC<{ onNavigate?: (route: string) => void }> = ({ onNavigate }) => {
+  const { isMobile } = useViewport();
   const { user } = useAuth();
-  const { refreshModels, refreshTags, isKeyAvailable } = useAppContext();
+  const { refreshSecrets, refreshModels, refreshTags } = useAppContext();
   const [secrets, setSecrets] = useState<AISecret[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [showSchema, setShowSchema] = useState(false);
   const [showKey, setShowKey] = useState<Record<string, boolean>>({});
   const [form, setForm] = useState({ provider: AIProvider.CLAUDE, key: '' });
-  const fileInputRef = useRef<HTMLInputElement>(null);
 
-  useEffect(() => {
-    if (user) loadSecrets();
-  }, [user]);
+  useEffect(() => { if (user) loadSecrets(); }, [user]);
 
   const loadSecrets = async () => {
     if (!user) return;
     const data = await fetchUserSecrets(user.id);
     setSecrets(data);
+    await refreshSecrets();
   };
 
   const handleSaveSecret = async () => {
@@ -43,300 +39,69 @@ export const SettingsView: React.FC<{ onNavigate?: (route: string) => void }> = 
       await saveUserSecret(user.id, form.provider, encrypted, lastFour);
       setForm({ ...form, key: '' });
       await loadSecrets();
-    } catch (e) {
-      console.error(e);
-    } finally {
-      setIsLoading(false);
-    }
+    } catch (e) { console.error(e); } finally { setIsLoading(false); }
   };
 
   const handleDeleteSecret = async (provider: AIProvider) => {
-    if (!user) return;
+    if (!user || !confirm(`Purge ${provider} from vault?`)) return;
     await deleteUserSecret(user.id, provider);
     await loadSecrets();
   };
 
-  const handleSyncRegistry = async () => {
+  const handleSync = async () => {
     setIsLoading(true);
     try {
       await MigrationService.forceSyncRegistry();
       await refreshModels();
       await refreshTags();
-      alert("Creative Axis synchronized with the central repository!");
-    } catch (e) {
-      console.error("Sync failed:", e);
-      alert("Failed to synchronize axis. Check database connection.");
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleExportAll = async () => {
-    if (!user) return;
-    setIsLoading(true);
-    try {
-      const raw = await getRawCharactersByUser(user.id);
-      const characters: CharacterData[] = raw.map((r: any) => ({ ...r.data, id: r.id }));
-      if (characters.length === 0) {
-        alert("No creations found to export.");
-        return;
-      }
-      await downloadCharactersZip(characters, `Full_Forge_Backup_${Date.now()}.zip`);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleImportClick = () => {
-    fileInputRef.current?.click();
-  };
-
-  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file || !user) return;
-
-    setIsLoading(true);
-    try {
-      const characters = await parseImportFile(file);
-      if (characters.length === 0) {
-        alert("No valid character data found in file.");
-        return;
-      }
-
-      let successCount = 0;
-      for (const char of characters) {
-        try {
-          const hash = await hashData(char.originalPrompt);
-          await saveCharacter(user.id, { ...char, id: 'new' }, hash);
-          successCount++;
-        } catch (err) {
-          console.error(`Failed to import character ${char.name}:`, err);
-        }
-      }
-      alert(`Import complete! ${successCount} creation(s) added to museum.`);
-      if (onNavigate) onNavigate('#/museum');
-    } catch (err) {
-      console.error("Import failed:", err);
-      alert("Import failed. Ensure you selected a valid Forge JSON or ZIP bundle.");
-    } finally {
-      setIsLoading(false);
-      if (fileInputRef.current) fileInputRef.current.value = '';
-    }
-  };
-
-  const formatDate = (ts: number) => {
-    return new Date(ts).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
-  };
-
-  const getStaleStatus = (ts: number) => {
-    const diffDays = (Date.now() - ts) / (1000 * 60 * 60 * 24);
-    if (diffDays > 30) return 'text-amber-500';
-    return 'text-rose-900/40';
+      alert("Creative Axis Synchronized.");
+    } finally { setIsLoading(false); }
   };
 
   return (
-    <div className="min-h-screen pt-48 pb-64 px-8 md:px-16 flex flex-col items-center animate-in fade-in slide-in-from-bottom-4 duration-1000">
-      <div className="max-w-6xl w-full space-y-16">
-        <div className="flex items-center justify-between border-b border-rose-950/30 pb-12">
-          <DisplayTitle marathi="संरचना" english="System Architect" size="lg" />
-          {onNavigate && (
-            <button 
-              onClick={() => onNavigate('#/studio/new')}
-              className="flex items-center gap-3 px-6 py-3 bg-rose-950/20 border border-rose-900/20 rounded-full text-[10px] font-black uppercase tracking-widest text-rose-500 hover:bg-rose-900/40 transition-all group"
-            >
-              <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
-              Return to Studio
-            </button>
-          )}
+    <div className={`min-h-screen flex flex-col items-center animate-in fade-in slide-in-from-bottom-4 duration-1000 ${isMobile ? 'pt-24 px-6 pb-40' : 'pt-48 px-16 pb-64'}`}>
+      <div className="max-w-6xl w-full space-y-12">
+        <div className="flex items-center justify-between border-b border-rose-950/20 pb-10">
+          <DisplayTitle marathi="संरचना" english="Architect Settings" size={isMobile ? 'sm' : 'md'} />
+          <button onClick={() => onNavigate?.('#/studio/new')} className="flex items-center gap-3 px-6 py-3 bg-rose-950/20 border border-rose-900/20 rounded-full text-[9px] font-black uppercase tracking-widest text-rose-500 shadow-lg active:scale-95"><ArrowLeft className="w-4 h-4" /> Return</button>
         </div>
 
-        <section className="grid grid-cols-1 lg:grid-cols-2 gap-12">
-          <GlassCard padding="lg" className="rounded-[3rem] space-y-10">
-            <div className="flex items-center gap-4 border-b border-rose-950/10 pb-6">
-              <Key className="w-5 h-5 text-rose-600" />
-              <h2 className="text-2xl serif-display text-rose-100">AI Vault</h2>
-            </div>
-
+        <section className={`grid gap-10 ${isMobile ? 'grid-cols-1' : 'grid-cols-2'}`}>
+          <GlassCard padding="lg" className="rounded-[3rem] space-y-8 border-rose-900/30">
+            <div className="flex items-center gap-4 border-b border-rose-950/10 pb-6 text-rose-100 uppercase tracking-widest font-black text-sm"><Key className="w-5 h-5 text-rose-600" /> Secret Vault</div>
             <div className="space-y-6">
-              <div className="space-y-3">
-                <label className="text-[9px] font-black uppercase tracking-widest text-rose-900 ml-1">Select Provider</label>
-                <div className="grid grid-cols-3 gap-2">
-                  {Object.values(AIProvider)
-                    .filter(p => p !== AIProvider.GEMINI)
-                    .map(p => (
-                    <button 
-                      key={p} 
-                      onClick={() => setForm({ ...form, provider: p })}
-                      className={`py-2.5 rounded-xl text-[8px] font-black uppercase tracking-tighter transition-all border flex flex-col items-center gap-1 ${form.provider === p ? 'bg-rose-800 text-white border-rose-600' : 'bg-black/40 text-rose-900 border-rose-950/20'}`}
-                    >
-                      {p}
-                      {isKeyAvailable(p) && <CheckCircle className="w-2 h-2 text-green-500" />}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <label className="text-[9px] font-black uppercase tracking-widest text-rose-900 ml-1">Key for {form.provider}</label>
-                <div className="relative">
-                  <input 
-                    type={showKey[form.provider] ? 'text' : 'password'}
-                    value={form.key}
-                    onChange={(e) => setForm({ ...form, key: e.target.value })}
-                    className="w-full bg-black/40 border border-rose-950/40 rounded-xl px-6 py-4 text-[11px] text-rose-100 focus:border-rose-700/50 outline-none"
-                    placeholder={`Enter ${form.provider} API key...`}
-                  />
-                  <button 
-                    onClick={() => setShowKey({ ...showKey, [form.provider]: !showKey[form.provider] })}
-                    className="absolute right-4 top-1/2 -translate-y-1/2 text-rose-900 hover:text-rose-500 transition-colors"
-                  >
-                    {showKey[form.provider] ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                  </button>
-                </div>
-              </div>
-
-              <button 
-                onClick={handleSaveSecret}
-                disabled={isLoading || !form.key}
-                className="w-full py-4 bg-rose-600 text-white rounded-xl text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-3 hover:bg-rose-500 transition-all shadow-xl disabled:opacity-20"
-              >
-                {isLoading ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-                Vault Key
-              </button>
+               <div className="grid grid-cols-3 gap-2">
+                 {[AIProvider.CLAUDE, AIProvider.OPENAI, AIProvider.GROQ, AIProvider.MISTRAL, AIProvider.TOGETHER, AIProvider.STABILITY].map(p => (
+                   <button key={p} onClick={() => setForm({ ...form, provider: p })} className={`py-3 rounded-xl text-[7px] font-black uppercase transition-all border ${form.provider === p ? 'bg-rose-700 text-white border-rose-500' : 'bg-black/40 text-rose-900 border-rose-950/20'}`}>{p}</button>
+                 ))}
+               </div>
+               <div className="relative">
+                 <input type={showKey[form.provider] ? 'text' : 'password'} value={form.key} onChange={(e) => setForm({ ...form, key: e.target.value })} className="w-full bg-black/60 border border-rose-950/40 rounded-2xl px-6 py-4 text-xs text-rose-100 outline-none" placeholder={`Enter ${form.provider} API key...`} />
+                 <button onClick={() => setShowKey({ ...showKey, [form.provider]: !showKey[form.provider] })} className="absolute right-4 top-1/2 -translate-y-1/2 text-rose-900">{showKey[form.provider] ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}</button>
+               </div>
+               <button onClick={handleSaveSecret} disabled={isLoading || !form.key} className="w-full py-4 bg-rose-600 text-white rounded-2xl text-[9px] font-black uppercase flex items-center justify-center gap-3 active:scale-95 disabled:opacity-20"><Save className="w-4 h-4" /> Vault Secret</button>
             </div>
-
-            <div className="space-y-4 pt-6 border-t border-rose-900/10">
-              <h3 className="text-[9px] font-black uppercase tracking-widest text-rose-700">Configured Node Access</h3>
-              <div className="space-y-2 max-h-[180px] overflow-y-auto custom-scrollbar pr-2">
-                {secrets.filter(s => s.provider !== AIProvider.GEMINI).length === 0 ? (
-                  <p className="text-[10px] italic text-rose-950">No external keys in vault. Gemini is auto-managed.</p>
-                ) : (
-                  secrets.filter(s => s.provider !== AIProvider.GEMINI).map(s => (
-                    <div key={s.provider} className="flex flex-col p-4 bg-black/20 rounded-2xl border border-rose-950/20 gap-3">
-                      <div className="flex items-center justify-between">
-                        <div className="flex flex-col">
-                          <span className="text-[9px] font-bold text-rose-100 uppercase tracking-widest">{s.provider}</span>
-                          <span className="text-[7px] text-rose-900 font-mono tracking-tighter">Vaulted: ...{s.lastFour}</span>
-                        </div>
-                        <button 
-                          onClick={() => handleDeleteSecret(s.provider)}
-                          className="p-1.5 text-rose-950 hover:text-red-500 transition-colors"
-                        >
-                          <Trash2 className="w-3.5 h-3.5" />
-                        </button>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Calendar className={`w-2.5 h-2.5 ${getStaleStatus(s.updatedAt)}`} />
-                        <span className={`text-[7px] font-black uppercase tracking-widest ${getStaleStatus(s.updatedAt)}`}>
-                          Last Rotated: {formatDate(s.updatedAt)}
-                        </span>
-                      </div>
-                    </div>
-                  ))
-                )}
-              </div>
+            <div className="space-y-3 pt-6 border-t border-rose-900/10 max-h-[250px] overflow-y-auto custom-scrollbar">
+              {secrets.filter(s => s.provider !== AIProvider.GEMINI).map(s => (
+                <div key={s.provider} className="flex items-center justify-between p-4 bg-black/40 rounded-2xl border border-rose-950/20">
+                  <div className="flex flex-col"><span className="text-[9px] font-bold text-rose-200 uppercase">{s.provider}</span><span className="text-[7px] text-rose-900 tracking-widest">...{s.lastFour}</span></div>
+                  <button onClick={() => handleDeleteSecret(s.provider)} className="p-2 text-rose-950 hover:text-red-600 transition-colors"><Trash2 className="w-4 h-4" /></button>
+                </div>
+              ))}
             </div>
           </GlassCard>
 
-          <div className="space-y-12">
-            <GlassCard padding="lg" className="rounded-[3rem] space-y-10">
-              <div className="flex items-center gap-4 border-b border-rose-950/10 pb-6">
-                <Box className="w-5 h-5 text-rose-600" />
-                <h2 className="text-2xl serif-display text-rose-100">Backup & Restore</h2>
-              </div>
-              
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                <button 
-                  onClick={handleExportAll}
-                  disabled={isLoading}
-                  className="flex flex-col items-center justify-center gap-4 p-8 bg-black/40 border border-rose-950/20 rounded-[2rem] hover:bg-rose-900/10 hover:border-rose-700/40 transition-all group"
-                >
-                  <Download className="w-8 h-8 text-rose-500 group-hover:scale-110 transition-transform" />
-                  <div className="text-center">
-                    <span className="text-[10px] font-black uppercase tracking-widest text-rose-100 block">Export All</span>
-                    <span className="text-[8px] font-bold text-rose-900 uppercase block mt-1">Full Museum Backup</span>
-                  </div>
+          <div className="space-y-10">
+            <GlassCard padding="lg" className="rounded-[3rem] border-rose-900/30">
+              <div className="flex items-center gap-4 border-b border-rose-950/10 pb-6 text-rose-100 uppercase tracking-widest font-black text-sm"><Database className="w-5 h-5 text-rose-600" /> System Axis</div>
+              <div className="space-y-6">
+                <button onClick={handleSync} disabled={isLoading} className="w-full py-8 bg-rose-950/20 border border-rose-900/30 text-rose-500 rounded-3xl flex flex-col items-center gap-4 hover:bg-rose-900/30 transition-all active:scale-95">
+                  <RefreshCw className={`w-8 h-8 ${isLoading ? 'animate-spin' : ''}`} /> <span className="text-[10px] font-black uppercase tracking-[0.4em]">Resync Registries</span>
                 </button>
-
-                <button 
-                  onClick={handleImportClick}
-                  disabled={isLoading}
-                  className="flex flex-col items-center justify-center gap-4 p-8 bg-black/40 border border-rose-950/20 rounded-[2rem] hover:bg-rose-900/10 hover:border-rose-700/40 transition-all group"
-                >
-                  <Upload className="w-8 h-8 text-rose-500 group-hover:scale-110 transition-transform" />
-                  <div className="text-center">
-                    <span className="text-[10px] font-black uppercase tracking-widest text-rose-100 block">Import Bundle</span>
-                    <span className="text-[8px] font-bold text-rose-900 uppercase block mt-1">JSON or ZIP Archive</span>
-                  </div>
-                </button>
-              </div>
-
-              <input 
-                type="file" 
-                ref={fileInputRef} 
-                onChange={handleFileChange} 
-                className="hidden" 
-                accept=".json,.zip"
-              />
-
-              <div className="p-6 bg-rose-950/10 border border-rose-900/20 rounded-2xl">
-                <p className="text-[9px] text-rose-900 leading-relaxed italic">
-                  ZIP backups create a structured repository with readable Markdown files for your prompts and character content.
-                </p>
+                <button onClick={() => setShowSchema(!showSchema)} className="w-full p-4 bg-black/40 border border-rose-950/20 text-rose-900 rounded-2xl text-[8px] font-black uppercase tracking-widest">Inspect Master Schema</button>
               </div>
             </GlassCard>
-
-            <GlassCard padding="lg" className="rounded-[3rem] space-y-10">
-              <div className="flex items-center gap-4 border-b border-rose-900/10 pb-6">
-                <Database className="w-5 h-5 text-rose-600" />
-                <h2 className="text-2xl serif-display text-rose-100">Intelligence Index</h2>
-              </div>
-              <div className="space-y-4">
-                 <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3"><Database className="w-3 h-3 text-rose-800" /><span className="text-[9px] font-black uppercase tracking-widest text-rose-200">Total Models</span></div>
-                    <span className="text-[9px] font-mono text-rose-900">{DEFAULT_MODELS.length} nodes</span>
-                 </div>
-                 <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3"><Hash className="w-3 h-3 text-rose-800" /><span className="text-[9px] font-black uppercase tracking-widest text-rose-200">Behavioral Rules</span></div>
-                    <span className="text-[9px] font-mono text-rose-900">{STATIC_TAGS.length} tags</span>
-                 </div>
-              </div>
-              
-              <div className="space-y-4">
-                <button 
-                  onClick={handleSyncRegistry}
-                  disabled={isLoading}
-                  className="w-full py-6 bg-rose-950/40 border border-rose-900/30 text-rose-500 rounded-2xl text-[11px] font-black uppercase tracking-[0.3em] flex flex-col items-center justify-center gap-3 hover:bg-rose-900/20 transition-all group"
-                >
-                  <div className="relative">
-                    <RefreshCw className={`w-10 h-10 transition-all duration-700 ${isLoading ? 'animate-architect-spin' : 'group-hover:rotate-180'}`} />
-                  </div>
-                  <span className="mt-2">Re-Sync Creative Axis</span>
-                </button>
-
-                <button 
-                  onClick={() => setShowSchema(!showSchema)}
-                  className="w-full py-4 bg-black/40 border border-rose-950/20 text-rose-900 rounded-xl text-[9px] font-black uppercase tracking-widest flex items-center justify-center gap-3 hover:text-rose-500 hover:border-rose-900/40 transition-all"
-                >
-                  <Code className="w-3 h-3" />
-                  {showSchema ? 'Hide Database Blueprint' : 'View Database Blueprint'}
-                  <ChevronRight className={`w-3 h-3 transition-transform duration-300 ${showSchema ? 'rotate-90' : ''}`} />
-                </button>
-              </div>
-
-              {showSchema && (
-                <div className="animate-in fade-in slide-in-from-top-4 duration-500">
-                  <div className="relative group">
-                    <div className="absolute -inset-0.5 bg-gradient-to-r from-rose-500 to-rose-900 rounded-xl blur opacity-10 group-hover:opacity-20 transition duration-1000"></div>
-                    <textarea 
-                      readOnly
-                      className="relative w-full h-[200px] bg-black/60 border border-rose-950/40 rounded-xl p-4 font-mono text-[9px] text-rose-300/60 custom-scrollbar focus:ring-0"
-                      value={SCHEMA_SQL}
-                    />
-                  </div>
-                </div>
-              )}
-            </GlassCard>
+            {showSchema && <textarea readOnly className="w-full h-48 bg-black/60 border border-rose-950/40 rounded-2xl p-4 font-mono text-[8px] text-rose-300/40 animate-in fade-in" value={SCHEMA_SQL} />}
           </div>
         </section>
       </div>

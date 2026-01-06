@@ -1,7 +1,6 @@
-
 const DB_NAME = 'kamana_db';
-const DB_VERSION = 1;
-const STORES = ['characters', 'models', 'tags', 'secrets'];
+const DB_VERSION = 2; 
+const STORES = ['characters', 'models', 'tags', 'secrets', 'chat_sessions'];
 
 class LocalDbService {
   private db: IDBDatabase | null = null;
@@ -38,7 +37,6 @@ class LocalDbService {
       const transaction = db.transaction(storeName, 'readonly');
       const store = transaction.objectStore(storeName);
       const request = store.getAll();
-
       request.onsuccess = () => resolve(request.result);
       request.onerror = () => reject(request.error);
     });
@@ -50,7 +48,6 @@ class LocalDbService {
       const transaction = db.transaction(storeName, 'readonly');
       const store = transaction.objectStore(storeName);
       const request = store.get(id);
-
       request.onsuccess = () => resolve(request.result || null);
       request.onerror = () => reject(request.error);
     });
@@ -62,22 +59,8 @@ class LocalDbService {
       const transaction = db.transaction(storeName, 'readwrite');
       const store = transaction.objectStore(storeName);
       const request = store.put(item);
-
       request.onsuccess = () => resolve(item);
       request.onerror = () => reject(request.error);
-    });
-  }
-
-  async saveBulk<T extends { id: any }>(storeName: string, items: T[]): Promise<void> {
-    const db = await this.getDb();
-    return new Promise((resolve, reject) => {
-      const transaction = db.transaction(storeName, 'readwrite');
-      const store = transaction.objectStore(storeName);
-      
-      items.forEach(item => store.put(item));
-
-      transaction.oncomplete = () => resolve();
-      transaction.onerror = () => reject(transaction.error);
     });
   }
 
@@ -87,7 +70,6 @@ class LocalDbService {
       const transaction = db.transaction(storeName, 'readwrite');
       const store = transaction.objectStore(storeName);
       const request = store.delete(id);
-
       request.onsuccess = () => resolve();
       request.onerror = () => reject(request.error);
     });

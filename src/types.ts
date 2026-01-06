@@ -111,6 +111,24 @@ export interface PromptHistoryEntry {
   timestamp: number;
 }
 
+// Branching Chat Types
+export interface ChatNode {
+  id: string;
+  parentId: string | null;
+  role: 'user' | 'model';
+  text: string;
+  timestamp: number;
+}
+
+export interface ChatSession {
+  id: string;
+  characterId: string;
+  userId: string;
+  nodes: ChatNode[];
+  activeNodeId: string | null;
+  updatedAt: number;
+}
+
 export interface ChatMessage {
   role: 'user' | 'model';
   text: string;
