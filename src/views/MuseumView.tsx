@@ -4,7 +4,7 @@ import { GlassCard } from '../components/ui/GlassCard';
 import { DisplayTitle } from '../components/ui/DisplayTitle';
 import { Badge } from '../components/ui/Badge';
 import { useAppContext } from '../contexts/AppContext';
-import { ImageIcon, Trash2, Download, Upload, CheckSquare, Square, RefreshCw, MessageSquareShare, FileEdit } from 'lucide-react';
+import { ImageIcon, Trash2, Download, Upload, CheckSquare, Square, RefreshCw, MessageSquareShare, FileEdit, Archive } from 'lucide-react';
 import { downloadCharactersZip } from '../utils/exportUtils';
 import { useViewport } from '../hooks/useViewport';
 
@@ -31,10 +31,20 @@ export const MuseumView: React.FC<MuseumViewProps> = (props) => {
     if (selectedIds.length === 0) return;
     setIsExporting(true);
     try { 
-      await downloadCharactersZip(props.characters.filter(c => selectedIds.includes(c.id!)), `Museum_Backup_${Date.now()}.zip`); 
+      await downloadCharactersZip(props.characters.filter(c => selectedIds.includes(c.id!)), `Museum_Selection_${Date.now()}.zip`); 
     } finally { 
       setIsExporting(false); 
       setSelectedIds([]); 
+    }
+  };
+
+  const handleExportAll = async () => {
+    if (props.characters.length === 0) return;
+    setIsExporting(true);
+    try {
+      await downloadCharactersZip(props.characters, `Museum_Full_Backup_${Date.now()}.zip`);
+    } finally {
+      setIsExporting(false);
     }
   };
 
@@ -65,14 +75,22 @@ export const MuseumView: React.FC<MuseumViewProps> = (props) => {
               className="flex items-center gap-3 px-4 lg:px-8 py-3 lg:py-3.5 bg-rose-950/20 border border-rose-900/20 text-rose-500 rounded-full font-black text-[9px] lg:text-[10px] uppercase tracking-widest hover:bg-rose-900/40 transition-all active:scale-95 disabled:opacity-20"
             >
               {isImporting ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />} 
-              <span className="hidden sm:inline">Import</span>
+              <span className="hidden sm:inline">Import Archive</span>
             </button>
-            {selectedIds.length > 0 && (
+            
+            {selectedIds.length > 0 ? (
               <button onClick={handleBulkExport} disabled={isExporting} className="flex items-center gap-3 px-4 lg:px-8 py-3 lg:py-3.5 bg-rose-600 text-white rounded-full font-black text-[9px] lg:text-[10px] uppercase tracking-widest shadow-2xl active:scale-95 disabled:opacity-20 transition-all">
                 {isExporting ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />} 
-                <span className="hidden sm:inline">Export {selectedIds.length}</span>
+                <span className="hidden sm:inline">Export Selected ({selectedIds.length})</span>
                 <span className="sm:hidden">{selectedIds.length}</span>
               </button>
+            ) : (
+              props.characters.length > 0 && (
+                <button onClick={handleExportAll} disabled={isExporting} className="flex items-center gap-3 px-4 lg:px-8 py-3 lg:py-3.5 bg-rose-950/20 border border-rose-900/20 text-rose-500 rounded-full font-black text-[9px] lg:text-[10px] uppercase tracking-widest hover:bg-rose-900/40 transition-all active:scale-95 disabled:opacity-20">
+                  {isExporting ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Archive className="w-4 h-4" />} 
+                  <span className="hidden sm:inline">Export All</span>
+                </button>
+              )
             )}
           </div>
           <div className="text-right hidden xs:block">
@@ -118,7 +136,7 @@ export const MuseumView: React.FC<MuseumViewProps> = (props) => {
       {isMobile && selectedIds.length > 0 && (
         <div className="fixed bottom-24 left-1/2 -translate-x-1/2 z-[100] w-full px-6">
           <button onClick={handleBulkExport} className="w-full py-5 bg-rose-600 text-white rounded-2xl font-black text-xs uppercase tracking-widest shadow-2xl flex items-center justify-center gap-4">
-             <Download className="w-5 h-5" /> Export {selectedIds.length} Archetypes
+             <Download className="w-5 h-5" /> Export Selection ({selectedIds.length})
           </button>
         </div>
       )}

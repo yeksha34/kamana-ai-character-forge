@@ -84,23 +84,28 @@ export function MuseumPage({
   const handleImport = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file || !user) return;
+    
     try {
       const imported = await parseImportFile(file);
       if (imported.length === 0) {
-        alert("No valid character data found in file.");
+        alert("No valid character data found in the selected file.");
         return;
       }
 
-      for (const char of imported) {
-        const hash = await hashData(char.originalPrompt + Date.now().toString());
+      // Sequential import to avoid race conditions and ensure unique hashes
+      for (let i = 0; i < imported.length; i++) {
+        const char = imported[i];
+        // Ensure unique hash even if imported rapidly
+        const salt = `${i}-${Math.random().toString(36).substring(7)}`;
+        const hash = await hashData(char.originalPrompt + salt + Date.now().toString());
         await saveCharacter(user.id, { ...char, id: 'new' }, hash);
       }
       
       await loadCharacters();
-      alert(`Successfully imported ${imported.length} archetypes.`);
+      alert(`Successfully imported ${imported.length} archetypes into your collection.`);
     } catch (err) {
       console.error("Import failed:", err);
-      alert("Import failed. Ensure the file is a valid .json or .zip archive.");
+      alert("Import failed. Ensure the file is a valid .json or .zip archive exported from Kamana Forge.");
     }
   };
 
