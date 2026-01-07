@@ -33,12 +33,12 @@ export const StudioView: React.FC<StudioViewProps> = ({ character, setCharacter 
   const { models: dbModels, t, userSecrets } = useAppContext();
   const [promptInput, setPromptInput] = useState(character.originalPrompt || '');
   const [showAssets, setShowAssets] = useState(false);
-  const [selectedPlatforms, setSelectedPlatforms] = useState<Platform[]>([Platform.CRUSHON_AI]);
+  const [selectedPlatforms, setSelectedPlatforms] = useState<Platform[]>(character.platforms || [Platform.CRUSHON_AI]);
   const [isSaving, setIsSaving] = useState<CharacterStatus | null>(null);
   const [showSaveSuccess, setShowSaveSuccess] = useState(false);
   const [isRegeneratingImage, setIsRegeneratingImage] = useState<'character' | 'scenario' | null>(null);
-  const [textModel, setTextModel] = useState('gemini-3-flash-preview');
-  const [imageModel, setImageModel] = useState('gemini-2.5-flash-image');
+  const [textModel, setTextModel] = useState(character.textModelId || 'gemini-3-flash-preview');
+  const [imageModel, setImageModel] = useState(character.imageModelId || 'gemini-2.5-flash-image');
   const [secretsList, setSecretsList] = useState<AISecret[]>([]);
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [activeSession, setActiveSession] = useState<ChatSession | null>(null);
@@ -74,9 +74,16 @@ export const StudioView: React.FC<StudioViewProps> = ({ character, setCharacter 
     if (!user || !character.name) return;
     setIsSaving(status);
     try {
-      const res = await saveCharacter(user.id, { ...character, status }, await hashData(character.originalPrompt));
+      const payload: CharacterData = { 
+        ...character, 
+        status,
+        platforms: selectedPlatforms,
+        textModelId: textModel,
+        imageModelId: imageModel
+      };
+      const res = await saveCharacter(user.id, payload, await hashData(character.originalPrompt));
       if (res) {
-        setCharacter((p: any) => ({ ...p, id: res.id }));
+        setCharacter((p: any) => ({ ...p, id: res.id, ...payload }));
         setShowSaveSuccess(true);
         setTimeout(() => setShowSaveSuccess(false), 3000);
         if (!window.location.hash.includes(res.id)) window.location.hash = `#/studio/${res.id}`;
@@ -84,12 +91,28 @@ export const StudioView: React.FC<StudioViewProps> = ({ character, setCharacter 
     } finally { setIsSaving(null); }
   };
 
-  const handleExport = () => downloadCharactersZip([character], `${character.name || 'Archetype'}_Manifest.zip`);
+  const handleExport = () => {
+    const fullManifest: CharacterData = {
+      ...character,
+      platforms: selectedPlatforms,
+      textModelId: textModel,
+      imageModelId: imageModel
+    };
+    downloadCharactersZip([fullManifest], `${character.name || 'Archetype'}_Manifest.zip`);
+  };
+
   const handleImport = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
     const imported = await parseImportFile(file);
-    if (imported.length > 0) setCharacter({ ...imported[0], id: 'new' });
+    if (imported.length > 0) {
+      const char = imported[0];
+      setCharacter({ ...char, id: 'new' });
+      setPromptInput(char.originalPrompt || '');
+      if (char.platforms) setSelectedPlatforms(char.platforms);
+      if (char.textModelId) setTextModel(char.textModelId);
+      if (char.imageModelId) setImageModel(char.imageModelId);
+    }
   };
 
   const userName = localStorage.getItem('kamana_user_name') || 'User';
@@ -150,6 +173,9 @@ export const StudioView: React.FC<StudioViewProps> = ({ character, setCharacter 
             </div>
             <div className="space-y-10">
               <TagSelector label="Soul Attributes" selectedTags={character.tags} isNSFW={character.isNSFW} onToggle={(tag) => setCharacter((p: any) => ({ ...p, tags: p.tags.includes(tag) ? p.tags.filter((t: string) => t !== tag) : [...p.tags, tag] }))} />
+              
+              <PlatformSelector label="Target Frameworks" selectedPlatforms={selectedPlatforms} onToggle={(p) => setSelectedPlatforms(prev => prev.includes(p) ? prev.filter(x => x !== p) : [...prev, p])} />
+
               <div className="grid grid-cols-1 gap-4 p-6 bg-black/20 rounded-[2rem] border border-rose-950/20">
                 <TextModelSelector label="Intelligence" value={textModel} onSelect={setTextModel} />
                 <ImageModelSelector label="Visuals" value={imageModel} onSelect={setImageModel} />

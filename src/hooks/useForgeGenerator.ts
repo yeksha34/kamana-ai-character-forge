@@ -1,11 +1,10 @@
-
 // Import React to resolve namespace issues
 import React, { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useAppContext } from '../contexts/AppContext';
 import { ForgeManager } from '../services/forge/ForgeManager';
 import { uploadImageToStorage } from '../services/supabaseStorageService';
-import { AIProvider, CharacterData, CharacterField, Platform, PLATFORMS_CONFIG, TagMeta } from '../types';
+import { AIProvider, CharacterData, CharacterField, Platform, PLATFORMS_CONFIG, TagMeta, PromptHistoryEntry } from '../types';
 
 export function useForgeGenerator(
   character: CharacterData, 
@@ -46,11 +45,24 @@ export function useForgeGenerator(
       const selectedTagMetas = allTags.filter(t => character.tags.includes(t.name));
       const isImageGenEnabled = imageModel !== 'None' && imageModel !== '';
 
-      let currentData = { ...character, originalPrompt: prompt };
+      // Preserve intermediate prompts in history
+      const newHistory: PromptHistoryEntry[] = [...(character.promptHistory || [])];
+      if (character.modifiedPrompt && character.modifiedPrompt !== character.originalPrompt) {
+        newHistory.push({
+          text: character.modifiedPrompt,
+          timestamp: Date.now()
+        });
+      }
+
+      let currentData = { 
+        ...character, 
+        originalPrompt: prompt,
+        promptHistory: newHistory
+      };
 
       setStepIndex(1);
       setGenerationStep(language === 'mr' ? "प्रॉम्प्ट परिष्कृत करत आहे..." : "Refining vision...");
-      // refinePrompt now formally accepts useWebResearch and can return grounding data
+      
       const modifiedResult = await txtService.refinePrompt({ 
         prompt, 
         tags: selectedTagMetas, 

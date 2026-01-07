@@ -112,7 +112,9 @@ export const ChatView: React.FC<ChatViewProps> = (props) => {
       
       <header className="relative z-20 flex-shrink-0 flex items-center justify-between p-3 lg:p-6 bg-black/40 border-b border-rose-950/20 backdrop-blur-xl">
         <div className="flex items-center gap-3 lg:gap-4 min-w-0">
-          <div className="w-10 h-10 lg:w-14 lg:h-14 rounded-xl border-2 border-rose-600/30 overflow-hidden shadow-xl flex-shrink-0"><img src={props.character.characterImageUrl} className="w-full h-full object-cover" alt="" /></div>
+          <div className="w-10 h-10 lg:w-14 lg:h-14 rounded-xl border-2 border-rose-600/30 overflow-hidden shadow-xl flex-shrink-0">
+            <img src={props.character.characterImageUrl} loading="lazy" className="w-full h-full object-cover" alt="" />
+          </div>
           <div className="min-w-0">
             <h3 className="text-sm lg:text-xl serif-display italic text-rose-50 truncate">{props.character.name}</h3>
             <span className="text-[7px] lg:text-[8px] font-black uppercase text-rose-500/60 tracking-widest flex items-center gap-1.5"><History className="w-2.5 h-2.5" /> {session?.nodes.length} Nodes</span>
@@ -142,7 +144,7 @@ export const ChatView: React.FC<ChatViewProps> = (props) => {
           <div key={msg.id} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'} group/msg animate-in fade-in slide-in-from-bottom-2 duration-500`}>
             <div className={`flex gap-3 lg:gap-5 max-w-[95%] lg:max-w-[75%] ${msg.role === 'user' ? 'flex-row-reverse' : 'flex-row'}`}>
               <div className={`w-8 h-8 lg:w-12 lg:h-12 rounded-xl lg:rounded-2xl flex-shrink-0 flex items-center justify-center border shadow-xl ${msg.role === 'user' ? 'bg-rose-900/40 border-rose-500/40' : 'bg-black/90 border-rose-900/40'}`}>
-                {msg.role === 'user' ? <UserIcon className="w-4 h-4 lg:w-6 lg:h-6 text-rose-50" /> : <img src={props.character.characterImageUrl} className="w-full h-full object-cover rounded-xl" alt="" />}
+                {msg.role === 'user' ? <UserIcon className="w-4 h-4 lg:w-6 lg:h-6 text-rose-50" /> : <img src={props.character.characterImageUrl} loading="lazy" className="w-full h-full object-cover rounded-xl" alt="" />}
               </div>
               <div className="flex flex-col gap-2">
                 <div className={`p-4 lg:p-8 rounded-[1.5rem] lg:rounded-[2.5rem] ${isMobile ? 'text-[14px]' : 'text-lg'} leading-relaxed shadow-2xl ${msg.role === 'user' ? 'bg-rose-900/20 text-rose-50 border border-rose-700/30 rounded-tr-none' : 'bg-rose-950/60 text-rose-100 border border-rose-900/30 rounded-tl-none backdrop-blur-[1px]'}`}>

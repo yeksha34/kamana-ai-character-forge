@@ -158,6 +158,10 @@ export interface CharacterData {
   scenarioImagePrompt?: string; 
   worldInfo?: AIDungeonCard[];
   systemRules?: string;
+  // New studio config fields for full state persistence
+  platforms?: Platform[];
+  textModelId?: string;
+  imageModelId?: string;
 }
 
 export interface User {

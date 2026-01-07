@@ -108,7 +108,12 @@ export const MuseumView: React.FC<MuseumViewProps> = (props) => {
                 {selectedIds.includes(c.id!) ? <CheckSquare className="w-5 h-5 text-rose-500" /> : <Square className="w-5 h-5 opacity-40" />}
               </button>
               {c.characterImageUrl ? (
-                <img src={c.characterImageUrl} className="w-full h-full object-cover transition-transform duration-[10s] group-hover:scale-110" alt={c.name} />
+                <img 
+                  src={c.characterImageUrl} 
+                  loading="lazy"
+                  className="w-full h-full object-cover transition-transform duration-[10s] group-hover:scale-110" 
+                  alt={c.name} 
+                />
               ) : (
                 <div className="w-full h-full flex items-center justify-center opacity-10"><ImageIcon className="w-20 h-20" /></div>
               )}

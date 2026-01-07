@@ -193,14 +193,14 @@ export const MYTHOLOGY_TAGS: TagMeta[] = [
   { 
     id: "myth28", 
     name: "Centaur", 
-    textGenerationRule: "GALOPING HYBRID: Focus on the transition between human intelligence and equine stamina. Narrative highlights massive physical presence, hoofbeats, and wild frontier freedom.", 
+    textGenerationRule: "GALOPING HYBRID: Focus on the transition between human intelligence and equine stamina. Narrative highlights massive physical presence, hoofbeat soundscapes, and wild frontier freedom.", 
     imageGenerationRule: "Human upper body fused with a powerful horse body, carrying a longbow, expansive grassy plains background.", 
     isNSFW: true 
   },
   { 
     id: "myth29", 
     name: "Sphinx", 
-    textGenerationRule: "ENIGMATIC RATHER: Character speaks in riddles and guards ancient secrets. Dialogue is philosophical, testing, and lethal if the subject fails to comprehend.", 
+    textGenerationRule: "ENIGMATIC RIDDLER: Character speaks in riddles and guards ancient secrets. Dialogue is philosophical, testing, and lethal if the subject fails to comprehend.", 
     imageGenerationRule: "Woman's head, lion's body, and eagle's wings, perched on a stone plinth, ancient Egyptian ruins, scorching sun.", 
     isNSFW: false 
   },

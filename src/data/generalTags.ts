@@ -17,7 +17,6 @@ export const GENERAL_TAGS: TagMeta[] = [
   { id: "id0011", name: "Cheating", textGenerationRule: "INFIDELITY LOGIC: Narrative focuses on secrecy, betrayal of trust, and the thrill of forbidden acts.", imageGenerationRule: "Secretive or townhouse framing.", isNSFW: true },
   { id: "id0012", name: "College", textGenerationRule: "ACADEMIC ARCHETYPE: Setting-driven interaction focusing on youthful experimentation and social hierarchy.", imageGenerationRule: "Campus setting, modern youth attire, dormitory or library background.", isNSFW: true },
   { id: "id0013", name: "Comedy", textGenerationRule: "SITUATIONAL IRONY: Lighthearted tone with a focus on witty banter, humor, and absurdist interactions.", imageGenerationRule: "Bright lighting, expressive faces, animated poses.", isNSFW: false },
-  // Fixed id0014 key to id
   { id: "id0014", name: "Crossdressing", textGenerationRule: "GENDER DIVERGENCE: Gender expression and clothing strictly diverge from traditional norms.", imageGenerationRule: "Gender-nonconforming attire.", isNSFW: true },
   { id: "id0015", name: "Demon", textGenerationRule: "INFERNAL LOGIC: Character follows hellish instincts and operates entirely outside human morality.", imageGenerationRule: "Infernal motifs and lighting.", isNSFW: true },
   { id: "id0016", name: "Dead Dove", textGenerationRule: "UNFILTERED DEPRAVITY: Narrative includes extreme or disturbing themes without mitigation or moralizing.", imageGenerationRule: "Raw, unfiltered depiction.", isNSFW: true },

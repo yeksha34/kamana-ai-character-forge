@@ -49,6 +49,7 @@ export const VisualAssets: React.FC<VisualAssetsProps> = ({
                   <img 
                     src={imageUrl} 
                     alt={type} 
+                    loading="lazy"
                     className={`w-full h-full object-cover transform transition-all duration-[8s] group-hover:scale-105 ${isRegening ? 'scale-110 blur-xl opacity-50' : ''}`} 
                   />
                   {isRegening && (

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { GlassCard } from '../ui/GlassCard';
-import { Layers, Binary, History, Save, ChevronDown, ChevronUp } from 'lucide-react';
+import { Layers, Binary, History, Save, ChevronDown, ChevronUp, Sparkles } from 'lucide-react';
 import { CharacterData, PromptHistoryEntry } from '../../types';
 
 interface PromptSectionProps {
@@ -45,14 +45,17 @@ export const PromptSection: React.FC<PromptSectionProps> = ({ character, setChar
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 animate-in fade-in slide-in-from-top-4 duration-500">
           <GlassCard padding="md" className="rounded-[2.5rem] space-y-4 border-rose-900/30 hover-animate">
             <div className="flex items-center justify-between">
-              <span className="text-[9px] font-black uppercase tracking-widest text-rose-800 flex items-center gap-2">
-                <Layers className="w-3 h-3 animate-icon-float" /> Modified Prompt
-              </span>
+              <div className="flex flex-col">
+                <span className="text-[9px] font-black uppercase tracking-widest text-rose-800 flex items-center gap-2">
+                  <Layers className="w-3 h-3 animate-icon-float" /> Active Seed
+                </span>
+                <span className="text-[7px] font-bold text-rose-950 uppercase ml-5">Refined Refinement</span>
+              </div>
               <div className="flex gap-2">
                 <button 
                   onClick={() => setShowHistory(!showHistory)} 
-                  className="p-1.5 rounded-lg bg-rose-950/20 text-rose-600 hover:bg-rose-900/40 transition-all"
-                  title="View History"
+                  className={`p-1.5 rounded-lg transition-all ${showHistory ? 'bg-rose-600 text-white' : 'bg-rose-950/20 text-rose-600 hover:bg-rose-900/40'}`}
+                  title="View Intermediate States"
                 >
                   <History className="w-3.5 h-3.5" />
                 </button>
@@ -61,7 +64,7 @@ export const PromptSection: React.FC<PromptSectionProps> = ({ character, setChar
                     <Save className="w-3.5 h-3.5" />
                   </button>
                 ) : (
-                  <button onClick={() => { setIsEditing(true); setTempPrompt(character.modifiedPrompt || ''); }} className="text-[8px] font-black uppercase text-rose-700 hover:text-rose-400">Edit</button>
+                  <button onClick={() => { setIsEditing(true); setTempPrompt(character.modifiedPrompt || ''); }} className="text-[8px] font-black uppercase text-rose-700 hover:text-rose-400 p-1.5">Edit</button>
                 )}
               </div>
             </div>
@@ -76,16 +79,28 @@ export const PromptSection: React.FC<PromptSectionProps> = ({ character, setChar
               <p className="text-xs italic text-rose-200/50 leading-relaxed font-serif">{character.modifiedPrompt || 'N/A'}</p>
             )}
 
-            {showHistory && character.promptHistory && character.promptHistory.length > 0 && (
-              <div className="mt-4 pt-4 border-t border-rose-950/20 space-y-3">
-                <span className="text-[7px] font-black uppercase tracking-widest text-rose-950">Read-Only History</span>
-                <div className="max-h-40 overflow-y-auto custom-scrollbar space-y-4 pr-2">
-                  {character.promptHistory.map((h, i) => (
-                    <div key={i} className="p-3 bg-black/20 rounded-xl border border-rose-950/10">
-                      <p className="text-[9px] text-rose-200/30 italic leading-relaxed line-clamp-3 mb-1">"{h.text}"</p>
-                      <span className="text-[6px] font-bold text-rose-900 uppercase">{new Date(h.timestamp).toLocaleString()}</span>
-                    </div>
-                  )).reverse()}
+            {showHistory && (
+              <div className="mt-4 pt-4 border-t border-rose-950/20 space-y-3 animate-in fade-in zoom-in duration-300">
+                <span className="text-[7px] font-black uppercase tracking-widest text-rose-900">Evolution History</span>
+                <div className="max-h-60 overflow-y-auto custom-scrollbar space-y-4 pr-2">
+                  <div className="p-3 bg-emerald-950/10 rounded-xl border border-emerald-900/10">
+                    <span className="text-[6px] font-black text-emerald-900 uppercase block mb-1">Original User Vision</span>
+                    <p className="text-[9px] text-rose-200/40 italic leading-relaxed">"{character.originalPrompt}"</p>
+                  </div>
+                  {character.promptHistory && character.promptHistory.length > 0 ? (
+                    character.promptHistory.map((h, i) => (
+                      <div key={i} className="p-3 bg-black/20 rounded-xl border border-rose-950/10 relative">
+                        <div className="absolute top-2 right-2 flex items-center gap-1 opacity-20">
+                           <Sparkles className="w-2.5 h-2.5" />
+                           <span className="text-[5px] font-black uppercase">Iteration {i + 1}</span>
+                        </div>
+                        <p className="text-[9px] text-rose-200/30 italic leading-relaxed line-clamp-3 mb-1">"{h.text}"</p>
+                        <span className="text-[6px] font-bold text-rose-900 uppercase">{new Date(h.timestamp).toLocaleString()}</span>
+                      </div>
+                    )).reverse()
+                  ) : (
+                    <div className="text-center py-4 opacity-20 text-[8px] font-black uppercase tracking-widest">No Intermediate States recorded</div>
+                  )}
                 </div>
               </div>
             )}
@@ -93,7 +108,15 @@ export const PromptSection: React.FC<PromptSectionProps> = ({ character, setChar
 
           <GlassCard padding="md" className="rounded-[2.5rem] space-y-4 border-rose-900/30 hover-animate">
             <span className="text-[9px] font-black uppercase tracking-widest text-rose-800 flex items-center gap-2"><Binary className="w-3 h-3 animate-icon-wiggle" /> System Logic</span>
-            <p className="text-xs italic text-rose-200/50 leading-relaxed font-serif line-clamp-6">{character.systemRules || 'N/A'}</p>
+            <div className="h-[150px] overflow-y-auto custom-scrollbar">
+              <p className="text-xs italic text-rose-200/50 leading-relaxed font-serif whitespace-pre-wrap">{character.systemRules || 'N/A'}</p>
+            </div>
+            <div className="pt-2 flex flex-col gap-1">
+               <span className="text-[7px] font-black text-rose-950 uppercase tracking-widest">Portrait Gen Prompt:</span>
+               <p className="text-[8px] text-rose-100/20 italic truncate">{character.characterImagePrompt || 'Pending...'}</p>
+               <span className="text-[7px] font-black text-rose-950 uppercase tracking-widest mt-1">Scenario Gen Prompt:</span>
+               <p className="text-[8px] text-rose-100/20 italic truncate">{character.scenarioImagePrompt || 'Pending...'}</p>
+            </div>
           </GlassCard>
         </div>
       )}
